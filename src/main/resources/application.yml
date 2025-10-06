@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: dungeon-walker
+
+logging:
+  level:
+    momomomo:
+      dungeonwalker: DEBUG
