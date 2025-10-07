@@ -11,6 +11,7 @@ import momomomo.dungeonwalker.domain.event.DungeonEvent;
 import momomomo.dungeonwalker.domain.event.DungeonEventListener;
 import momomomo.dungeonwalker.domain.event.DungeonUpdated;
 import momomomo.dungeonwalker.domain.model.dungeon.placing.DungeonPlacingStrategy;
+import momomomo.dungeonwalker.domain.model.walker.moving.WalkerMovingStrategy;
 import momomomo.dungeonwalker.engine.dungeon.DungeonActor;
 import momomomo.dungeonwalker.engine.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.dungeon.command.SetupDungeon;
@@ -29,20 +30,25 @@ import static momomomo.dungeonwalker.commons.reflection.GenericUtils.getGenericT
 public class EngineActor extends AbstractBehavior<EngineCommand> {
 
     private final DungeonPlacingStrategy placingStrategy;
+    private final WalkerMovingStrategy movingStrategy;
 
     private ActorRef<DungeonCommand> dungeonRef;
     public HashMap<String, DungeonEventListener> eventListeners = new HashMap<>();
 
     public EngineActor(
             final ActorContext<EngineCommand> context,
-            final DungeonPlacingStrategy placingStrategy) {
+            final DungeonPlacingStrategy placingStrategy,
+            final WalkerMovingStrategy movingStrategy) {
         super(context);
         this.placingStrategy = placingStrategy;
+        this.movingStrategy = movingStrategy;
     }
 
-    public static Behavior<EngineCommand> create(final DungeonPlacingStrategy placingStrategy) {
+    public static Behavior<EngineCommand> create(
+            final DungeonPlacingStrategy placingStrategy,
+            final WalkerMovingStrategy movingStrategy) {
         log.debug("[ACTOR - Engine] create");
-        return Behaviors.setup(context -> new EngineActor(context, placingStrategy));
+        return Behaviors.setup(context -> new EngineActor(context, placingStrategy, movingStrategy));
     }
 
     @Override
@@ -72,7 +78,7 @@ public class EngineActor extends AbstractBehavior<EngineCommand> {
 
     private Behavior<EngineCommand> onSpawnWalker(final SpawnWalker command) {
         log.debug("[ACTOR - Engine] on spawn walker");
-        final var walkerRef = getContext().spawn(WalkerActor.create(dungeonRef), command.id());
+        final var walkerRef = getContext().spawn(WalkerActor.create(dungeonRef, movingStrategy), command.id());
         walkerRef.tell(new EnterTheDungeon());
         return Behaviors.same();
     }

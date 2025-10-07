@@ -8,7 +8,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.domain.model.coordinates.Coordinates;
-import momomomo.dungeonwalker.domain.model.coordinates.CoordinatesManager;
+import momomomo.dungeonwalker.domain.model.walker.moving.WalkerMovingStrategy;
 import momomomo.dungeonwalker.engine.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.dungeon.command.MoveWalker;
 import momomomo.dungeonwalker.engine.dungeon.command.PlaceWalker;
@@ -24,17 +24,22 @@ public class WalkerActor extends AbstractBehavior<WalkerCommand> {
 
     private Coordinates currentCoordinates;
     private final ActorRef<DungeonCommand> dungeonRef;
+    private final WalkerMovingStrategy movingStrategy;
 
     private WalkerActor(
             final ActorContext<WalkerCommand> context,
-            final ActorRef<DungeonCommand> dungeonRef) {
+            final ActorRef<DungeonCommand> dungeonRef,
+            final WalkerMovingStrategy movingStrategy) {
         super(context);
         this.dungeonRef = dungeonRef;
+        this.movingStrategy = movingStrategy;
     }
 
-    public static Behavior<WalkerCommand> create(final ActorRef<DungeonCommand> dungeonRef) {
+    public static Behavior<WalkerCommand> create(
+            final ActorRef<DungeonCommand> dungeonRef,
+            final WalkerMovingStrategy movingStrategy) {
         log.debug("[ACTOR - Walker] create");
-        return Behaviors.setup(context -> new WalkerActor(context, dungeonRef));
+        return Behaviors.setup(context -> new WalkerActor(context, dungeonRef, movingStrategy));
     }
 
     @Override
@@ -104,7 +109,7 @@ public class WalkerActor extends AbstractBehavior<WalkerCommand> {
         log.debug("[ACTOR - Walker] on move");
 
         // Calculate new coordinates
-        final var nextCoordinates = CoordinatesManager.of(currentCoordinates).moveRight(1).coordinates();
+        final var nextCoordinates = movingStrategy.nextCoordinates(currentCoordinates);
 
         // Ask to be moved to the new coordinates
         dungeonRef.tell(new MoveWalker(getContext().getSelf(), currentCoordinates, nextCoordinates));

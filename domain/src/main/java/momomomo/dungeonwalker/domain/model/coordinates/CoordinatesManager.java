@@ -18,25 +18,25 @@ public class CoordinatesManager {
         return new CoordinatesManager(coordinates);
     }
 
-    public CoordinatesManager moveRight(final int steps) {
-        validateSteps(steps);
-        this.coordinates = coordinates.adjust(steps, X);
-        return this;
-    }
-
-    public CoordinatesManager moveLeft(final int steps) {
-        validateSteps(steps);
-        this.coordinates = coordinates.adjust(negateExact(steps), X);
-        return this;
-    }
-
-    public CoordinatesManager moveUp(final int steps) {
+    public CoordinatesManager moveNorth(final int steps) {
         validateSteps(steps);
         this.coordinates = coordinates.adjust(negateExact(steps), Y);
         return this;
     }
 
-    public CoordinatesManager moveDown(final int steps) {
+    public CoordinatesManager moveEast(final int steps) {
+        validateSteps(steps);
+        this.coordinates = coordinates.adjust(steps, X);
+        return this;
+    }
+
+    public CoordinatesManager moveWest(final int steps) {
+        validateSteps(steps);
+        this.coordinates = coordinates.adjust(negateExact(steps), X);
+        return this;
+    }
+
+    public CoordinatesManager moveSouth(final int steps) {
         validateSteps(steps);
         this.coordinates = coordinates.adjust(steps, Y);
         return this;

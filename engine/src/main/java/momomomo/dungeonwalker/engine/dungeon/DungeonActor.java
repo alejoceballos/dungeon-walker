@@ -83,18 +83,21 @@ public class DungeonActor extends AbstractBehavior<DungeonCommand> {
     private Behavior<DungeonCommand> onMoveWalker(final MoveWalker command) {
         log.debug("[ACTOR - Dungeon] on move walker");
 
-        if (dungeon.at(command.to()).isFree()) {
-            // Get walker from its current position
-            final var walker = dungeon.at(command.from()).getOccupant();
-            // Put it into the new position
-            dungeon.at(command.to()).occupy(walker);
-            // Remove it from the old position
-            dungeon.at(command.from()).vacate();
-
-            // Tell the walker to update its coordinates
-            command.walkerRef().tell(new UpdateCoordinates(command.to()));
-            engineRef.tell(new NotifyDungeonUpdated(dungeon));
-        }
+        command.toPossibilities()
+                .stream()
+                .filter(coordinates -> dungeon.at(coordinates).isFree())
+                .findFirst()
+                .ifPresent(coordinates -> {
+                    // Get walker from its current position
+                    final var walker = dungeon.at(command.from()).getOccupant();
+                    // Put it into the new position
+                    dungeon.at(coordinates).occupy(walker);
+                    // Remove it from the old position
+                    dungeon.at(command.from()).vacate();
+                    // Tell the walker to update its coordinates
+                    command.walkerRef().tell(new UpdateCoordinates(coordinates));
+                    engineRef.tell(new NotifyDungeonUpdated(dungeon));
+                });
 
         return Behaviors.same();
     }
