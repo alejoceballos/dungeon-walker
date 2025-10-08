@@ -77,7 +77,7 @@ public class EngineActor extends AbstractBehavior<EngineCommand> {
     }
 
     private Behavior<EngineCommand> onSpawnWalker(final SpawnWalker command) {
-        log.debug("[ACTOR - Engine] on spawn walker");
+        log.debug("[ACTOR - Engine] on spawn walker \"{}\"", command.id());
         final var walkerRef = getContext().spawn(WalkerActor.create(dungeonRef, movingStrategy), command.id());
         walkerRef.tell(new EnterTheDungeon());
         return Behaviors.same();

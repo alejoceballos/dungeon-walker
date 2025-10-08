@@ -18,7 +18,11 @@ public class Console {
     public void init() {
         log.debug("[TERMINAL] Start");
         dungeonMaster.addEventListener(new TerminalDungeonCreated());
-        dungeonMaster.addWalker("walker-id");
+        dungeonMaster.addWalker("01");
+        dungeonMaster.addWalker("02");
+        dungeonMaster.addWalker("03");
+        dungeonMaster.addWalker("04");
+        dungeonMaster.addWalker("05");
     }
 
 }

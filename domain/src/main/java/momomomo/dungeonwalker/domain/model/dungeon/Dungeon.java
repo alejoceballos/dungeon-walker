@@ -40,4 +40,8 @@ public class Dungeon {
         return cells.get(coordinates);
     }
 
+    public boolean isEdge(@NonNull final Coordinates coordinates) {
+        return coordinates.x() == 0 || coordinates.y() == 0 || coordinates.x() == width || coordinates.y() == height;
+    }
+
 }

@@ -39,7 +39,7 @@ public class EngineManager implements DungeonMaster {
 
     @Override
     public void addWalker(@NonNull final String id) {
-        log.debug("[ENGINE - Manager] add walker");
+        log.debug("[ENGINE - Manager] add walker \"{}\"", id);
         engine.tell(new SpawnWalker(id));
     }
 

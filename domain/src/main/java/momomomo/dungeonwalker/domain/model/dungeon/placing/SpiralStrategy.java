@@ -7,6 +7,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 /**
  * Checks for available empty spots in the map in a spiral search strategy, circling around the center and expanding
  * until it finds it.
@@ -18,19 +21,37 @@ public class SpiralStrategy implements DungeonPlacingStrategy {
 
     @Override
     public Coordinates placingCoordinates(final Dungeon dungeon) {
-        return getAvailableCoordinates(dungeon, dungeon.getDefaultSpawnLocation());
+        final var strategy = new StrategyState(dungeon.getDefaultSpawnLocation());
+        Coordinates availableCoordinates = null;
+
+        while (isNull(availableCoordinates)) {
+            availableCoordinates = getAvailableCoordinates(
+                    dungeon,
+                    dungeon.getDefaultSpawnLocation(),
+                    strategy);
+        }
+
+        return availableCoordinates;
     }
 
     private Coordinates getAvailableCoordinates(
             final Dungeon dungeon,
-            final Coordinates coordinates) {
-        final var strategy = new StrategyState(dungeon.getDefaultSpawnLocation());
+            final Coordinates coordinates,
+            final StrategyState strategy) {
 
-        if (dungeon.at(coordinates).isFree()) {
+        final var cell = dungeon.at(coordinates);
+
+        if (nonNull(cell) && cell.isFree()) {
             return coordinates;
+
+        } else if (dungeon.isEdge(coordinates)) {
+            return null;
         }
 
-        return getAvailableCoordinates(dungeon, strategy.nextCoordinate());
+        return getAvailableCoordinates(
+                dungeon,
+                strategy.nextCoordinate(),
+                strategy);
     }
 
     static class StrategyState {

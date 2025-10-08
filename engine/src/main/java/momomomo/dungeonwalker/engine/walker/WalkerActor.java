@@ -14,22 +14,28 @@ import momomomo.dungeonwalker.engine.dungeon.command.MoveWalker;
 import momomomo.dungeonwalker.engine.dungeon.command.PlaceWalker;
 import momomomo.dungeonwalker.engine.walker.command.EnterTheDungeon;
 import momomomo.dungeonwalker.engine.walker.command.GetMoving;
+import momomomo.dungeonwalker.engine.walker.command.StandStill;
 import momomomo.dungeonwalker.engine.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.walker.command.WalkerCommand;
 
 import java.time.Duration;
+import java.util.Objects;
 
 @Slf4j
 public class WalkerActor extends AbstractBehavior<WalkerCommand> {
 
-    private Coordinates currentCoordinates;
     private final ActorRef<DungeonCommand> dungeonRef;
     private final WalkerMovingStrategy movingStrategy;
+
+    private Coordinates previousCoordinates;
+    private Coordinates currentCoordinates;
 
     private WalkerActor(
             final ActorContext<WalkerCommand> context,
             final ActorRef<DungeonCommand> dungeonRef,
             final WalkerMovingStrategy movingStrategy) {
+        log.debug("[ACTOR - Walker] constructor [id: {}]", context.getSelf().path().name());
+
         super(context);
         this.dungeonRef = dungeonRef;
         this.movingStrategy = movingStrategy;
@@ -44,34 +50,35 @@ public class WalkerActor extends AbstractBehavior<WalkerCommand> {
 
     @Override
     public Receive<WalkerCommand> createReceive() {
-        log.debug("[ACTOR - Walker] create receive");
+        log.debug("[ACTOR - Walker] create receive [id: {}]", getContext().getSelf().path().name());
         return created();
     }
 
     public Receive<WalkerCommand> created() {
-        log.debug("[ACTOR - Walker] created state");
+        log.debug("[ACTOR - Walker] created state [id: {}]", getContext().getSelf().path().name());
         return newReceiveBuilder()
                 .onMessage(EnterTheDungeon.class, this::onEnterDungeon)
                 .build();
     }
 
     public Receive<WalkerCommand> alive() {
-        log.debug("[ACTOR - Walker] alive state");
+        log.debug("[ACTOR - Walker] alive state [id: {}]", getContext().getSelf().path().name());
         return newReceiveBuilder()
                 .onMessage(UpdateCoordinates.class, this::onUpdateCoordinates)
                 .build();
     }
 
     public Receive<WalkerCommand> moving() {
-        log.debug("[ACTOR - Walker] moving state");
+        log.debug("[ACTOR - Walker] moving state [id: {}]", getContext().getSelf().path().name());
         return newReceiveBuilder()
                 .onMessage(GetMoving.class, this::onMove)
                 .onMessage(UpdateCoordinates.class, this::onUpdateCoordinates)
+                .onMessage(StandStill.class, this::onStandStill)
                 .build();
     }
 
     private Behavior<WalkerCommand> onEnterDungeon(final EnterTheDungeon command) {
-        log.debug("[ACTOR - Walker] on enter dungeon");
+        log.debug("[ACTOR - Walker] on enter dungeon [id: {}]", getContext().getSelf().path().name());
         // Tell the dungeon that you are alive and want to spawn in the coordinates
         // The dungeon will spawn you somewhere near and tell you that later
         dungeonRef.tell(new PlaceWalker(getContext().getSelf()));
@@ -81,9 +88,33 @@ public class WalkerActor extends AbstractBehavior<WalkerCommand> {
     }
 
     private Behavior<WalkerCommand> onUpdateCoordinates(final UpdateCoordinates command) {
-        log.debug("[ACTOR - Walker] on update coordinates");
-        this.currentCoordinates = command.coordinates();
+        log.debug("[ACTOR - Walker] on update coordinates [id: {}]", getContext().getSelf().path().name());
+        if (!Objects.equals(currentCoordinates, command.coordinates())) {
+            previousCoordinates = currentCoordinates;
+            currentCoordinates = command.coordinates();
+        }
 
+        return startTimerToGetMoving();
+    }
+
+    private Behavior<WalkerCommand> onMove(final GetMoving command) {
+        log.debug("[ACTOR - Walker] on move [id: {}]", getContext().getSelf().path().name());
+
+        // Calculate new coordinates
+        final var nextCoordinates = movingStrategy.nextCoordinates(previousCoordinates, currentCoordinates);
+
+        // Ask to be moved to the new coordinates
+        dungeonRef.tell(new MoveWalker(getContext().getSelf(), currentCoordinates, nextCoordinates));
+
+        return Behaviors.same();
+    }
+
+    private Behavior<WalkerCommand> onStandStill(final StandStill command) {
+        log.debug("[ACTOR - Walker] on stand still [id: {}]", getContext().getSelf().path().name());
+        return startTimerToGetMoving();
+    }
+
+    private Behavior<WalkerCommand> startTimerToGetMoving() {
         // Start a counter-delay (in the future, based on the walker velocity). When the timer reaches zero, it will
         // send to the dungeon the next movements it wants to take
         return Behaviors.withTimers(timers -> {
@@ -103,18 +134,6 @@ public class WalkerActor extends AbstractBehavior<WalkerCommand> {
             // Go to the MOVING state
             return moving();
         });
-    }
-
-    private Behavior<WalkerCommand> onMove(final GetMoving command) {
-        log.debug("[ACTOR - Walker] on move");
-
-        // Calculate new coordinates
-        final var nextCoordinates = movingStrategy.nextCoordinates(currentCoordinates);
-
-        // Ask to be moved to the new coordinates
-        dungeonRef.tell(new MoveWalker(getContext().getSelf(), currentCoordinates, nextCoordinates));
-
-        return Behaviors.same();
     }
 
 }

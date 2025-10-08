@@ -36,9 +36,41 @@ public class CoordinatesManager {
         return this;
     }
 
+    public CoordinatesManager moveNortheast(final int steps) {
+        validateSteps(steps);
+        this.coordinates = coordinates
+                .adjust(steps, X)
+                .adjust(negateExact(steps), Y);
+        return this;
+    }
+
+    public CoordinatesManager moveNorthwest(final int steps) {
+        validateSteps(steps);
+        this.coordinates = coordinates
+                .adjust(negateExact(steps), X)
+                .adjust(negateExact(steps), Y);
+        return this;
+    }
+
     public CoordinatesManager moveSouth(final int steps) {
         validateSteps(steps);
         this.coordinates = coordinates.adjust(steps, Y);
+        return this;
+    }
+
+    public CoordinatesManager moveSoutheast(final int steps) {
+        validateSteps(steps);
+        this.coordinates = coordinates
+                .adjust(steps, X)
+                .adjust(steps, Y);
+        return this;
+    }
+
+    public CoordinatesManager moveSouthwest(final int steps) {
+        validateSteps(steps);
+        this.coordinates = coordinates
+                .adjust(negateExact(steps), X)
+                .adjust(steps, Y);
         return this;
     }
 

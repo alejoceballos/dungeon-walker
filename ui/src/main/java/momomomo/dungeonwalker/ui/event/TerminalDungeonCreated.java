@@ -23,7 +23,7 @@ public class TerminalDungeonCreated implements DungeonEventListener<DungeonUpdat
             for (int x = 0; x < width; x++) {
                 final String cell = switch (dungeon.at(Coordinates.of(x, y)).getOccupant()) {
                     case Wall _ -> "#";
-                    case Walker _ -> "o";
+                    case Walker walker -> Integer.valueOf(walker.id()).toString();
                     case null, default -> " ";
                 };
 

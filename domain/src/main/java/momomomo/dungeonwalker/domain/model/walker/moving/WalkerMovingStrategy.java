@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface WalkerMovingStrategy {
 
-    List<Coordinates> nextCoordinates(Coordinates currentCoordinates);
+    List<Coordinates> nextCoordinates(Coordinates previousCoordinates, Coordinates currentCoordinates);
 
 }

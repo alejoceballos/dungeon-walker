@@ -17,7 +17,10 @@ import momomomo.dungeonwalker.engine.dungeon.command.SetupDungeon;
 import momomomo.dungeonwalker.engine.guardian.command.DungeonReady;
 import momomomo.dungeonwalker.engine.guardian.command.EngineCommand;
 import momomomo.dungeonwalker.engine.guardian.command.NotifyDungeonUpdated;
+import momomomo.dungeonwalker.engine.walker.command.StandStill;
 import momomomo.dungeonwalker.engine.walker.command.UpdateCoordinates;
+
+import java.util.Optional;
 
 @Slf4j
 public class DungeonActor extends AbstractBehavior<DungeonCommand> {
@@ -71,7 +74,7 @@ public class DungeonActor extends AbstractBehavior<DungeonCommand> {
     }
 
     private Behavior<DungeonCommand> onPlaceWalker(final PlaceWalker command) {
-        log.debug("[ACTOR - Dungeon] on place walker");
+        log.debug("[ACTOR - Dungeon] on place walker \"{}\"", command.walkerRef().path().name());
         final var coordinates = placingStrategy.placingCoordinates(dungeon);
         dungeon.at(coordinates).occupy(new Walker(command.walkerRef().path().name()));
         command.walkerRef().tell(new UpdateCoordinates(coordinates));
@@ -81,12 +84,16 @@ public class DungeonActor extends AbstractBehavior<DungeonCommand> {
     }
 
     private Behavior<DungeonCommand> onMoveWalker(final MoveWalker command) {
-        log.debug("[ACTOR - Dungeon] on move walker");
+        log.debug("[ACTOR - Dungeon] on move walker \"{}\"", command.walkerRef().path().name());
 
         command.toPossibilities()
                 .stream()
                 .filter(coordinates -> dungeon.at(coordinates).isFree())
                 .findFirst()
+                .or(() -> {
+                    command.walkerRef().tell(new StandStill());
+                    return Optional.empty();
+                })
                 .ifPresent(coordinates -> {
                     // Get walker from its current position
                     final var walker = dungeon.at(command.from()).getOccupant();
