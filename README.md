@@ -1,20 +1,26 @@
 # Dungeon Walker
 
-A dungeon game engine to help me study Akka and other technologies.
+This is a work in progress.
 
-### Loading the map and creating the dungeon
+A dungeon game engine to help me study Kafka, Akka, React, WebSockets, Microservices and other technologies.
 
-![Start Up](./README.files/DW-Architecture-Actor-Startup.png "Start Up")
+- All backends are Java-based using Spring boot
+- The frontend is in React
 
-### Allowing interactions with the dungeon engine
+## The game core
 
-![Add Listener](./README.files/DW-Architecture-Actor-Add-Listener.png "Add Listener")
+- dungeon-walker-engine
 
-### Creating an automated dungeon walker
+Uses Akka to manage asynchronous processes in a clustered environment without worrying about Java threads. Communicates to the web server through Kafka.
 
-![Spawn Walker](./README.files/DW-Architecture-Actor-Spawn-Walker.png "Spawn Walker")
+## The game UI
 
-### Dungeon walker movements
+- dungeon-walker-web-app
 
-![Move Walker](./README.files/DW-Architecture-Actor-Move-Walker.png "Move Walker")
+Uses React. Connects to the web server through WebSockets to get real-time game events.
 
+## The glue between both
+
+- dungeon-walker-ws-server
+
+Uses Websockets to communicate with the web app and kafka to communicate with the core game engine.
