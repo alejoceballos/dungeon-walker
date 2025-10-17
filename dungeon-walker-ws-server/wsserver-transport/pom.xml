@@ -13,4 +13,11 @@
     <artifactId>wsserver-transport</artifactId>
     <name>Dungeon Walker WebSocket Server - Transport</name>
 
+    <dependencies>
+        <dependency>
+            <groupId>momomomo.dungeonwalker</groupId>
+            <artifactId>wsserver-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>
