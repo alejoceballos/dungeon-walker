@@ -1,0 +1,3 @@
+heartbeat:
+  delay: 10
+  time-unit: SECONDS

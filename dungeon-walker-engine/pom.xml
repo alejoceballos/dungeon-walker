@@ -23,7 +23,6 @@
     </properties>
 
     <modules>
-        <module>engine-commons</module>
         <module>engine-domain</module>
         <module>engine-core</module>
         <module>engine-ui-console</module>

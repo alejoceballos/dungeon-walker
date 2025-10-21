@@ -5,6 +5,7 @@ import lombok.Builder;
 @Builder
 public record Heartbeat(
         long timestamp,
-        int delayInSeconds
+        int delay,
+        String timeUnit
 ) implements OutputData {
 }

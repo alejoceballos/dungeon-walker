@@ -12,7 +12,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @Configuration(proxyBeanMethods = false)
 @EnableWebSocket
 @RequiredArgsConstructor
-public class WsConfig implements WebSocketConfigurer {
+public class WebSocketConfig implements WebSocketConfigurer {
 
     private final WsHandler wsHandler;
 

@@ -14,10 +14,29 @@
     <name>Dungeon Walker WebSocket Server - Transport</name>
 
     <dependencies>
+
+        <!-- Project Modules - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>
             <artifactId>wsserver-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- Spring Boot - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <!-- Utilities - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>20030203.000129</version>
+        </dependency>
+
     </dependencies>
 </project>

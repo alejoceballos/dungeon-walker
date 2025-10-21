@@ -13,10 +13,14 @@
     <name>Dungeon Walker Engine - Console UI</name>
 
     <dependencies>
+
+        <!-- Project Modules - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>
             <artifactId>engine-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
 </project>

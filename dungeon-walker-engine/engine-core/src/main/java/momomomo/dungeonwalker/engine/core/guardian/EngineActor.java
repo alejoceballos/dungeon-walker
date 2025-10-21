@@ -28,7 +28,7 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
-import static momomomo.dungeonwalker.engine.commons.reflection.GenericUtils.getGenericTypeArgument;
+import static momomomo.dungeonwalker.commons.GenericUtils.getGenericTypeArgument;
 
 @Slf4j
 @SuppressWarnings("rawtypes")
@@ -40,7 +40,7 @@ public class EngineActor extends AbstractBehavior<EngineCommand> {
     private ActorRef<DungeonCommand> dungeonRef;
     public HashMap<String, DungeonEventListener> eventListeners = new HashMap<>();
 
-    public EngineActor(
+    private EngineActor(
             final ActorContext<EngineCommand> context,
             final DungeonPlacingStrategy placingStrategy,
             final WalkerMovingStrategy movingStrategy) {

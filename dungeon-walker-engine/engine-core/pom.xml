@@ -13,16 +13,21 @@
     <name>Dungeon Walker Engine - Core Engine</name>
 
     <dependencies>
+
+        <!-- Project Modules - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>
             <artifactId>engine-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Workspace Projects - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>
-            <artifactId>engine-commons</artifactId>
-            <version>${project.version}</version>
+            <artifactId>dungeon-walker-commons</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <!-- Akka - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->

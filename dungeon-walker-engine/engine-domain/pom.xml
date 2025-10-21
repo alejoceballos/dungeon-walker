@@ -13,11 +13,4 @@
     <artifactId>engine-domain</artifactId>
     <name>Dungeon Walker Engine - Domain</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>

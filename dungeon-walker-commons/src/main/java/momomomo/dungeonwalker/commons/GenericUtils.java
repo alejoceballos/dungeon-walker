@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.engine.commons.reflection;
+package momomomo.dungeonwalker.commons;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

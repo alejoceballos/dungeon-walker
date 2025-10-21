@@ -14,6 +14,9 @@
     <name>Dungeon Walker WebSocket Server - Startup</name>
 
     <dependencies>
+
+        <!-- Project Modules - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>
             <artifactId>wsserver-domain</artifactId>
@@ -31,6 +34,7 @@
             <artifactId>wsserver-transport</artifactId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
 
 </project>

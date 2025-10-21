@@ -13,11 +13,8 @@
     <name>Dungeon Walker Engine - Startup</name>
 
     <dependencies>
-        <dependency>
-            <groupId>momomomo.dungeonwalker</groupId>
-            <artifactId>engine-commons</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
+        <!-- Project Modules - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>

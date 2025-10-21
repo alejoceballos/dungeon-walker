@@ -7,14 +7,6 @@ function initializeWebSocket(currentMapSize, setMapSize) {
 
     socket.onopen = event => {
         console.log("[WS Manager] Connected to server: ", event);
-        const identity = {
-            type: "identity",
-            data: {
-                id: "client-id",
-                name: "client-name"
-            }
-        };
-        socket.send(JSON.stringify(identity));
     };
 
     socket.onclose = event => {
@@ -32,7 +24,7 @@ function initializeWebSocket(currentMapSize, setMapSize) {
             return;
         }
 
-        const content = JSON.parse(JSON.parse(event.data));
+        const content = JSON.parse(event.data);
 
         if (content?.type === "MapSetup") {
             if (currentMapSize.width !== content.data.width ||
@@ -42,6 +34,8 @@ function initializeWebSocket(currentMapSize, setMapSize) {
             }
         }
     };
+
+    return true;
 }
 
 export {

@@ -4,7 +4,6 @@ import lombok.Builder;
 
 @Builder
 public record Output(
-        String sessionId,
         String type,
         OutputData data
 ) {
