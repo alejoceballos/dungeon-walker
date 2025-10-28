@@ -1,9 +1,10 @@
 package momomomo.dungeonwalker.wsserver.transport.connection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import momomomo.dungeonwalker.wsserver.domain.connection.ClientConnection;
+import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
 import momomomo.dungeonwalker.wsserver.domain.output.Output;
 import momomomo.dungeonwalker.wsserver.transport.exception.WsServerTransportException;
 import org.springframework.web.socket.TextMessage;
@@ -19,11 +20,13 @@ public class WebSocketSessionAdapter implements ClientConnection {
     private final WebSocketSession session;
     private final ObjectMapper jsonMapper;
 
+    @Nonnull
     @Override
     public String getSessionId() {
         return session.getId();
     }
 
+    @Nonnull
     @Override
     public String getUserId() {
         return Optional

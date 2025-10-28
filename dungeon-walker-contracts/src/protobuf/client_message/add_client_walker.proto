@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package protobuf;
+
+option java_package = "momomomo.dungeonwalker.clientrequest";
+option java_outer_classname = "AddClientWalkerProto";
+
+message AddClientWalker {
+  string id = 1;
+}

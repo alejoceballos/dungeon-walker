@@ -1,0 +1,3 @@
+websocket:
+  endpoint: /ws-endpoint
+  allowed-origin-patterns: *

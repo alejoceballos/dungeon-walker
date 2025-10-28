@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.wsserver.domain.connection.ConnectionManager;
+import momomomo.dungeonwalker.wsserver.domain.inbound.ConnectionManager;
 import momomomo.dungeonwalker.wsserver.domain.input.Input;
 import momomomo.dungeonwalker.wsserver.transport.connection.WebSocketSessionAdapter;
 import org.springframework.lang.NonNull;
