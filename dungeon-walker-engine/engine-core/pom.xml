@@ -27,7 +27,13 @@
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>
             <artifactId>dungeon-walker-commons</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${dungeon-walker-commons.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>momomomo.dungeonwalker</groupId>
+            <artifactId>dungeon-walker-contracts</artifactId>
+            <version>${dungeon-walker-contracts.version}</version>
         </dependency>
 
         <!-- Akka - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
@@ -35,14 +41,45 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor-typed_3</artifactId>
-            <version>2.8.8</version>
+            <version>${com.typesafe.akka.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-persistence-typed_3</artifactId>
+            <version>${com.typesafe.akka.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-cluster-sharding-typed_3</artifactId>
+            <version>${com.typesafe.akka.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-serialization-jackson_3</artifactId>
+            <version>${com.typesafe.akka.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.lightbend.akka</groupId>
+            <artifactId>akka-persistence-r2dbc_3</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version>
         </dependency>
 
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor-testkit-typed_3</artifactId>
-            <version>2.8.8</version>
+            <version>${com.typesafe.akka.version}</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 </project>

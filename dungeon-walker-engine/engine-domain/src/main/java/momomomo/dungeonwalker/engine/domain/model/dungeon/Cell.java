@@ -1,26 +1,39 @@
 package momomomo.dungeonwalker.engine.domain.model.dungeon;
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
+import lombok.NoArgsConstructor;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
+import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
 
 import static java.util.Objects.isNull;
 
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Cell {
 
     @Getter
-    private final Coordinates coordinates;
+    private Coordinates coordinates;
 
     @Getter
+    @JsonTypeInfo(
+            use = JsonTypeInfo.Id.NAME,
+            include = JsonTypeInfo.As.PROPERTY,
+            property = "type")
+    @JsonSubTypes({
+            @JsonSubTypes.Type(value = Wall.class, name = "wall"),
+            @JsonSubTypes.Type(value = Walker.class, name = "walker")
+    })
     private Thing occupant;
 
-    public Cell(@NonNull Coordinates coordinates, Thing occupant) {
+    public Cell(final Coordinates coordinates) {
         this.coordinates = coordinates;
-        this.occupant = occupant;
     }
 
+    @JsonIgnore
     public boolean isFree() {
         return isNull(occupant);
     }

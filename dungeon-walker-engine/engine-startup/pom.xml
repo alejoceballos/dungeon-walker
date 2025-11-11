@@ -30,6 +30,12 @@
 
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>
+            <artifactId>engine-transport</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>momomomo.dungeonwalker</groupId>
             <artifactId>engine-ui-console</artifactId>
             <version>${project.version}</version>
         </dependency>

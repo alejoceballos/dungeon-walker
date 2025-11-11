@@ -20,11 +20,16 @@
         <java.version>25</java.version>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
+
+        <dungeon-walker-commons.version>0.0.1-SNAPSHOT</dungeon-walker-commons.version>
+        <dungeon-walker-contracts.version>1.0-SNAPSHOT</dungeon-walker-contracts.version>
+        <com.typesafe.akka.version>2.8.8</com.typesafe.akka.version>
     </properties>
 
     <modules>
         <module>engine-domain</module>
         <module>engine-core</module>
+        <module>engine-transport</module>
         <module>engine-ui-console</module>
         <module>engine-startup</module>
     </modules>

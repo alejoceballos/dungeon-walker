@@ -27,7 +27,7 @@ public class AkkaConfig {
     @DependsOn("akkaConfiguration")
     public ActorSystem<Void> actorSystem() {
         log.info("---> [AKKA - Config] 'actorSystem' bean created");
-        return ActorSystem.create(GuardianActor.create(), ActorSystem.class.getSimpleName());
+        return ActorSystem.create(GuardianActor.create(), "WsServerActorSystem");
     }
 
     @Bean

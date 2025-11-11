@@ -1,36 +1,37 @@
 package momomomo.dungeonwalker.engine.domain.model.dungeon;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
+import momomomo.dungeonwalker.engine.domain.serializer.CoordinatesDeserializer;
+import momomomo.dungeonwalker.engine.domain.serializer.CoordinatesSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Dungeon {
 
     @Getter
-    private final int width;
+    protected int width;
 
     @Getter
-    private final int height;
-
-    private final Map<Coordinates, Cell> cells;
+    protected int height;
 
     @Getter
-    private final Coordinates defaultSpawnLocation;
+    protected Coordinates defaultSpawnLocation;
 
-    public Dungeon(
-            final int width,
-            final int height,
-            @NonNull Coordinates defaultSpawnLocation
-    ) {
-        this.width = width;
-        this.height = height;
-        this.defaultSpawnLocation = defaultSpawnLocation;
-
-        this.cells = new HashMap<>(width * height);
-    }
+    @Getter
+    @JsonSerialize(keyUsing = CoordinatesSerializer.class)
+    @JsonDeserialize(keyUsing = CoordinatesDeserializer.class)
+    protected final Map<Coordinates, Cell> cells = new HashMap<>();
 
     public void add(@NonNull final Cell cell) {
         cells.put(cell.getCoordinates(), cell);

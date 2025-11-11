@@ -23,7 +23,11 @@ public class RawMapMapper implements DungeonMapper<String> {
             final var xSize = line.length;
 
             if (isNull(dungeon)) {
-                dungeon = new Dungeon(xSize, ySize, coordinates);
+                dungeon = Dungeon.builder()
+                        .width(xSize)
+                        .height(ySize)
+                        .defaultSpawnLocation(coordinates)
+                        .build();
             }
 
             for (int x = 0; x < xSize; x++) {

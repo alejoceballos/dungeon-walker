@@ -4,5 +4,9 @@ spring:
 
 logging:
   level:
+    root: info
     momomomo:
-      dungeonwalker: INFO
+      dungeonwalker:
+        engine:
+          core: debug
+          transport: debug

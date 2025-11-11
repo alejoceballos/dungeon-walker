@@ -1,7 +1,33 @@
 package momomomo.dungeonwalker.engine.domain.model.walker;
 
-import lombok.NonNull;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Thing;
+import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovingStrategy;
 
-public record Walker(@NonNull String id) implements Thing {
+@RequiredArgsConstructor
+public class Walker implements Thing {
+
+    @Getter
+    private final String id;
+
+    @Getter
+    private final WalkerMovingStrategy movingStrategy;
+
+    @Getter
+    @Setter
+    private Coordinates previousCoordinates;
+
+    @Getter
+    @Setter
+    private Coordinates currentCoordinates;
+
+    public Walker updateCoordinates(final Coordinates coordinates) {
+        this.previousCoordinates = this.currentCoordinates;
+        this.currentCoordinates = coordinates;
+        return this;
+    }
+
 }

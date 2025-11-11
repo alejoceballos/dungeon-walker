@@ -1,0 +1,11 @@
+kafka:
+  topic:
+    inbound:
+      game-engine: "game-engine-consumer-topic"
+
+spring:
+  kafka:
+    consumer:
+      group-id: engine-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
