@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.0-RC1</version>
+        <version>4.0.0-RC2</version>
     </parent>
 
     <groupId>momomomo.dungeonwalker</groupId>
@@ -66,6 +66,26 @@
                             <artifactId>lombok</artifactId>
                         </path>
                     </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.4</version>
+                <configuration>
+                    <from>
+                        <image>eclipse-temurin:25-jre</image>
+                    </from>
+                    <to>
+                        <image>alejoceballos/dungeon-walker-engine:v1</image>
+                    </to>
+                    <container>
+                        <mainClass>momomomo.dungeonwalker.engine.startup.DungeonWalkerEngine</mainClass>
+                        <ports>
+                            <port>8081</port>
+                        </ports>
+                    </container>
                 </configuration>
             </plugin>
         </plugins>

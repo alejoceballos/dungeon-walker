@@ -13,6 +13,10 @@
     <artifactId>wsserver-core</artifactId>
     <name>Dungeon Walker WebSocket Server - Core</name>
 
+    <properties>
+        <jib.skip>true</jib.skip>
+    </properties>
+
     <dependencies>
 
         <!-- Project Modules - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->

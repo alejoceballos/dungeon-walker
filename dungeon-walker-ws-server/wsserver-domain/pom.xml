@@ -13,13 +13,15 @@
     <artifactId>wsserver-domain</artifactId>
     <name>Dungeon Walker WebSocket Server - Domain</name>
 
-    <dependencies>
+    <properties>
+        <jib.skip>true</jib.skip>
+    </properties>
 
+    <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
-
     </dependencies>
 
 </project>

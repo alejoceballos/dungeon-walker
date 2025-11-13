@@ -12,6 +12,10 @@
     <artifactId>engine-core</artifactId>
     <name>Dungeon Walker Engine - Core Engine</name>
 
+    <properties>
+        <jib.skip>true</jib.skip>
+    </properties>
+
     <dependencies>
 
         <!-- Project Modules - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->

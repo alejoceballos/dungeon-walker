@@ -12,6 +12,10 @@
     <artifactId>engine-transport</artifactId>
     <name>Dungeon Walker Engine - Transport</name>
 
+    <properties>
+        <jib.skip>true</jib.skip>
+    </properties>
+
     <dependencies>
 
         <!-- Project Modules - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->

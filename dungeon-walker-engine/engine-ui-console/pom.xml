@@ -12,6 +12,10 @@
     <artifactId>engine-ui-console</artifactId>
     <name>Dungeon Walker Engine - Console UI</name>
 
+    <properties>
+        <jib.skip>true</jib.skip>
+    </properties>
+
     <dependencies>
 
         <!-- Project Modules - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->

@@ -1,6 +1,22 @@
 spring:
   application:
-    name: dungeon-walker
+    name: dungeon-walker-engine
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      access: unrestricted
+    env:
+      show-values: ALWAYS
+    configprops:
+      show-values: ALWAYS
 
 logging:
   level:
@@ -8,5 +24,7 @@ logging:
     momomomo:
       dungeonwalker:
         engine:
-          core: debug
+          startup: debug
           transport: debug
+          core: debug
+          domain: debug
