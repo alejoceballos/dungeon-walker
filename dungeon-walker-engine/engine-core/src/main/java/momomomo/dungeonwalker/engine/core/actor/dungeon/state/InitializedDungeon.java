@@ -1,12 +1,13 @@
 package momomomo.dungeonwalker.engine.core.actor.dungeon.state;
 
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 
 @NoArgsConstructor
 public class InitializedDungeon extends DungeonState {
 
-    public static InitializedDungeon of(final Dungeon dungeon) {
+    public static InitializedDungeon of(@NonNull final Dungeon dungeon) {
         final var initialized = new InitializedDungeon();
         
         initialized.width = dungeon.getWidth();

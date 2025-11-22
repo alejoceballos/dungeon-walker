@@ -7,6 +7,8 @@ import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Thing;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovingStrategy;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 public class Walker implements Thing {
 
@@ -23,6 +25,10 @@ public class Walker implements Thing {
     @Getter
     @Setter
     private Coordinates currentCoordinates;
+
+    public List<Coordinates> possibleDirections() {
+        return movingStrategy.nextCoordinates(previousCoordinates, currentCoordinates);
+    }
 
     public Walker updateCoordinates(final Coordinates coordinates) {
         this.previousCoordinates = this.currentCoordinates;

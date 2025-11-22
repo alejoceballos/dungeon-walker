@@ -30,7 +30,6 @@
         <module>engine-domain</module>
         <module>engine-core</module>
         <module>engine-transport</module>
-        <module>engine-ui-console</module>
         <module>engine-startup</module>
     </modules>
 

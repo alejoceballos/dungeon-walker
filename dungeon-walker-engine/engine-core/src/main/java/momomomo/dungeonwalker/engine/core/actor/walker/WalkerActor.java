@@ -125,19 +125,13 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, Walker> {
             final GetMoving command) {
         log.debug("---> [ACTOR - Walker][path: {}] on move", actorPath());
 
-        // Calculate new coordinates
-        final var nextCoordinates = state
-                .getMovingStrategy()
-                .nextCoordinates(
-                        state.getPreviousCoordinates(),
-                        state.getCurrentCoordinates());
-
         // Ask to be moved to the new coordinates
         dungeonEntityRef(command.dungeonEntityId())
                 .tell(new MoveWalker(
                         entityId(),
                         state.getCurrentCoordinates(),
-                        nextCoordinates));
+                        // Calculate new coordinates
+                        state.possibleDirections()));
 
         return Effect().persist(OnTheMove.of(state));
     }

@@ -1,5 +1,6 @@
 package momomomo.dungeonwalker.engine.core.mapper;
 
+import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.mapper.DungeonMapper;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Cell;
@@ -12,7 +13,7 @@ import static java.util.Objects.isNull;
 @Component
 public class RawMapMapper implements DungeonMapper<String> {
 
-    public Dungeon map(final String rawMap) {
+    public Dungeon map(@NonNull final String rawMap) {
         Dungeon dungeon = null;
 
         final var lines = rawMap.split(System.lineSeparator());
