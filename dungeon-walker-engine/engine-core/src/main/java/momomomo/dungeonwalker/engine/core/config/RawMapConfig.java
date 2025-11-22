@@ -27,7 +27,7 @@ public class RawMapConfig {
 
     @Bean
     public Coordinates defaultSpawnLocation() {
-        return Coordinates.of(5, 5);
+        return Coordinates.of(3, 4);
     }
 
 }

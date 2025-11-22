@@ -22,9 +22,9 @@ public class ClusterShardingManager {
 
     @PostConstruct
     public void init() {
-        log.debug("[CLUSTER - Manager] Bean initializing");
+        log.debug("---> [CLUSTER - Manager] Bean initializing");
 
-        log.debug("[CLUSTER - Manager] Initializing dungeon actor");
+        log.debug("---> [CLUSTER - Manager] Initializing dungeon actor");
         clusterSharding.init(
                 Entity.of(
                         DungeonActor.ENTITY_TYPE_KEY,
@@ -33,7 +33,7 @@ public class ClusterShardingManager {
                                         context.getEntityTypeKey().name(),
                                         context.getEntityId()))));
 
-        log.debug("[CLUSTER - Manager] Initializing walker actor");
+        log.debug("---> [CLUSTER - Manager] Initializing walker actor");
         clusterSharding.init(
                 Entity.of(
                         WalkerActor.ENTITY_TYPE_KEY,
@@ -44,12 +44,12 @@ public class ClusterShardingManager {
     }
 
     public EntityRef<DungeonCommand> getDungeonEntityRef(final String entityId) {
-        log.debug("[CLUSTER - Manager] get dungeon entity ref \"{}\"", entityId);
+        log.debug("---> [CLUSTER - Manager] get dungeon entity ref \"{}\"", entityId);
         return clusterSharding.entityRefFor(DungeonActor.ENTITY_TYPE_KEY, entityId);
     }
 
     public EntityRef<WalkerCommand> getWalkerEntityRef(final String entityId) {
-        log.debug("[CLUSTER - Manager] get walker entity ref \"{}\"", entityId);
+        log.debug("---> [CLUSTER - Manager] get walker entity ref \"{}\"", entityId);
         return clusterSharding.entityRefFor(WalkerActor.ENTITY_TYPE_KEY, entityId);
     }
 

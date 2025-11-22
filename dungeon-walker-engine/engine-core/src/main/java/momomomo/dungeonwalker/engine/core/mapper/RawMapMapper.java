@@ -12,7 +12,7 @@ import static java.util.Objects.isNull;
 @Component
 public class RawMapMapper implements DungeonMapper<String> {
 
-    public Dungeon map(final String rawMap, final Coordinates coordinates) {
+    public Dungeon map(final String rawMap) {
         Dungeon dungeon = null;
 
         final var lines = rawMap.split(System.lineSeparator());
@@ -26,11 +26,14 @@ public class RawMapMapper implements DungeonMapper<String> {
                 dungeon = Dungeon.builder()
                         .width(xSize)
                         .height(ySize)
-                        .defaultSpawnLocation(coordinates)
                         .build();
             }
 
             for (int x = 0; x < xSize; x++) {
+                if ("X".equals(line[x])) {
+                    dungeon.setDefaultSpawnLocation(Coordinates.of(x, y));
+                }
+
                 final var thing = "W".equals(line[x]) ? new Wall() : null;
                 dungeon.add(new Cell(Coordinates.of(x, y), thing));
             }

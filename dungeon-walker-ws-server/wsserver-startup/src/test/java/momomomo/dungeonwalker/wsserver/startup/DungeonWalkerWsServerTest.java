@@ -48,7 +48,7 @@ class DungeonWalkerWsServerTest {
     }
 
     @Test
-    public void testBasicKafkaProducerAndConsumer() throws Exception {
+    public void testServerReceivesWebSocketMessageAndSendToTopic() {
         final var data = """
                 {
                     "type": "identity",
@@ -62,7 +62,7 @@ class DungeonWalkerWsServerTest {
         wsClient
                 .execute(new TextWebSocketHandler(), "ws://localhost:" + port + "/ws-endpoint")
                 .thenAccept(session -> {
-                    log.info("[TEST] - WS Client WebSocket connection succeeded");
+                    log.info("---> [TEST] - WS Client WebSocket connection succeeded");
 
                     try {
                         session.sendMessage(new TextMessage(data));
@@ -72,7 +72,7 @@ class DungeonWalkerWsServerTest {
                     }
                 })
                 .exceptionally(ex -> {
-                    log.error("[TEST - WS Client] Error connecting or sending message: {}", ex.getMessage());
+                    log.error("---> [TEST - WS Client] Error connecting or sending message: {}", ex.getMessage());
                     return null;
                 });
 

@@ -21,17 +21,16 @@ public class TestKafkaConsumer {
             groupId = "dungeon-walker-ws-server",
             properties = {"auto.offset.reset:earliest"},
             topics = "${kafka.topic.outbound.game-engine}"
-
     )
     public void receive(final ConsumerRecord<String, byte[]> consumerRecord) {
-        log.info("[KAFKA - Consumer] Received payload");
+        log.info("---> [KAFKA - Consumer] Received payload");
 
         try {
             final var message = AddClientWalkerProto.AddClientWalker.parseFrom(consumerRecord.value());
             payloads.add(message);
 
         } catch (Exception e) {
-            log.error("[KAFKA - Consumer] Error parsing message. Error: {}", e.getMessage());
+            log.error("---> [KAFKA - Consumer] Error parsing message. Error: {}", e.getMessage());
         }
     }
 

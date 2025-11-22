@@ -20,7 +20,7 @@ public class IdentityValidator implements InputDataValidator<Identity> {
     @Nonnull
     @Override
     public List<ValidationError> validate(final Identity inputData) {
-        log.debug("[VALIDATOR - Identity] validating \"{}\"", inputData);
+        log.debug("---> [VALIDATOR - Identity] validating \"{}\"", inputData);
         
         final var errors = new ArrayList<ValidationError>();
 

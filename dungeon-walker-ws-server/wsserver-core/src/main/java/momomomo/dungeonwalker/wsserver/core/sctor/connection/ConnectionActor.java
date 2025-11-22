@@ -33,20 +33,20 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     public static Behavior<ConnectionCommand> create() {
-        log.debug("[ACTOR - Connection] create");
+        log.debug("---> [ACTOR - Connection] create");
         return Behaviors.setup(ConnectionActor::new);
     }
 
     @Override
     public Receive<ConnectionCommand> createReceive() {
-        log.debug("[ACTOR - Connection][{}] create receive", actorId());
+        log.debug("---> [ACTOR - Connection][{}] create receive", actorId());
         return newReceiveBuilder()
                 .onMessage(SetConnection.class, this::onSetConnection)
                 .build();
     }
 
     public Receive<ConnectionCommand> connected() {
-        log.debug("[ACTOR - Connection][{}] session connection", actorId());
+        log.debug("---> [ACTOR - Connection][{}] session connection", actorId());
         return newReceiveBuilder()
                 .onMessage(SetConnection.class, this::onResetConnection)
                 .onMessage(CloseConnection.class, this::onCloseConnection)
@@ -56,12 +56,12 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     public Behavior<ConnectionCommand> connectionClosed() {
-        log.debug("[ACTOR - Connection][{}] connection closed", actorId());
+        log.debug("---> [ACTOR - Connection][{}] connection closed", actorId());
         return Behaviors.stopped();
     }
 
     private Behavior<ConnectionCommand> onSetConnection(final SetConnection command) {
-        log.debug("[ACTOR - Connection][{}] on set connection \"{}\":\"{}\"",
+        log.debug("---> [ACTOR - Connection][{}] on set connection \"{}\":\"{}\"",
                 actorId(),
                 command.connection().getUserId(),
                 command.connection().getSessionId());
@@ -70,7 +70,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
         return Behaviors.withTimers(timer -> {
             final var key = "timer-" + getContext().getSelf().path().name();
-            log.debug("[ACTOR - Connection][{}] setting timer \"{}\"", actorId(), key);
+            log.debug("---> [ACTOR - Connection][{}] setting timer \"{}\"", actorId(), key);
 
             if (timer.isTimerActive(key)) {
                 timer.cancel(key);
@@ -91,17 +91,17 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onResetConnection(final SetConnection command) {
-        log.debug("[ACTOR - Connection][{}] on set connection again \"{}\":\"{}\" vs. \"{}\":\"{}\"",
+        log.debug("---> [ACTOR - Connection][{}] on set connection again \"{}\":\"{}\" vs. \"{}\":\"{}\"",
                 actorId(), userId(), sessionId(), command.connection().getUserId(), command.connection().getSessionId());
 
         if (!Objects.equals(currentConnection.getSessionId(), command.connection().getSessionId())) {
-            log.warn("[ACTOR - Connection][{}] Resetting connection since sessions has changed \"{}\":\"{}\" vs. \"{}\":\"{}\"",
+            log.warn("---> [ACTOR - Connection][{}] Resetting connection since sessions has changed \"{}\":\"{}\" vs. \"{}\":\"{}\"",
                     actorId(), userId(), sessionId(), command.connection().getUserId(), command.connection().getSessionId());
             currentConnection.close();
             currentConnection = command.connection();
 
         } else {
-            log.warn("[ACTOR - Connection][{}] Connection with same session ID will not be reset \"{}\":\"{}\"",
+            log.warn("---> [ACTOR - Connection][{}] Connection with same session ID will not be reset \"{}\":\"{}\"",
                     actorId(), userId(), sessionId());
         }
 
@@ -109,11 +109,11 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onCloseConnection(final CloseConnection command) {
-        log.debug("[ACTOR - Connection][{}] on close connection \"{}\":\"{}\"",
+        log.debug("---> [ACTOR - Connection][{}] on close connection \"{}\":\"{}\"",
                 actorId(), command.connection().getUserId(), command.connection().getSessionId());
 
         if (isSameConnection(command.connection())) {
-            log.debug("[ACTOR - Connection][{}] closing connection \"{}\":\"{}\"",
+            log.debug("---> [ACTOR - Connection][{}] closing connection \"{}\":\"{}\"",
                     actorId(), command.connection().getUserId(), command.connection().getSessionId());
             return connectionClosed();
         }
@@ -122,7 +122,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onSendHeartbeatToClient(final SendHeartbeatToClient command) {
-        log.debug("[ACTOR - Connection][{}] on send heartbeat to \"{}\":\"{}\"",
+        log.debug("---> [ACTOR - Connection][{}] on send heartbeat to \"{}\":\"{}\"",
                 actorId(), command.connection().getUserId(), command.connection().getSessionId());
 
         final var output = Output.builder()
@@ -140,7 +140,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onSendMessageFromClient(final SendMessageFromClient command) {
-        log.debug("[ACTOR - Connection][{}]  on act on message \"{}\":\"{}\"",
+        log.debug("---> [ACTOR - Connection][{}]  on act on message \"{}\":\"{}\"",
                 actorId(), command.connection().getUserId(), command.connection().getSessionId());
 
         final var result = command.dataHandlerSelector()
@@ -148,7 +148,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
                 .handle(command.message().data());
 
         if (result.type().equals(FAILURE)) {
-            log.error("[ACTOR - Connection][{}]  Message handling failed for user\"{}\":\"{}\" with result: {}",
+            log.error("---> [ACTOR - Connection][{}]  Message handling failed for user\"{}\":\"{}\" with result: {}",
                     actorId(), command.connection().getUserId(), command.connection().getSessionId(), result);
             // TODO: send error message back to client using another command
         }

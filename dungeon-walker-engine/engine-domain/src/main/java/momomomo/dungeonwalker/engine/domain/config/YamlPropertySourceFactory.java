@@ -18,7 +18,7 @@ public class YamlPropertySourceFactory implements PropertySourceFactory {
     @Nonnull
     @Override
     public PropertySource<?> createPropertySource(@Nullable String name, @NonNull EncodedResource encodedResource) {
-        log.debug("[PROPERTY SOURCE FACTORY] creating property source for \"{}\":\"{}\"",
+        log.debug("---> [PROPERTY SOURCE FACTORY] creating property source for \"{}\":\"{}\"",
                 name, encodedResource.getResource().getFilename());
 
         final var factory = new YamlPropertiesFactoryBean();

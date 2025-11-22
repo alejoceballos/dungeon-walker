@@ -7,7 +7,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
+import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
 import momomomo.dungeonwalker.engine.domain.serializer.CoordinatesDeserializer;
 import momomomo.dungeonwalker.engine.domain.serializer.CoordinatesSerializer;
 
@@ -26,6 +28,7 @@ public class Dungeon {
     protected int height;
 
     @Getter
+    @Setter
     protected Coordinates defaultSpawnLocation;
 
     @Getter
@@ -43,6 +46,24 @@ public class Dungeon {
 
     public boolean isEdge(@NonNull final Coordinates coordinates) {
         return coordinates.x() == 0 || coordinates.y() == 0 || coordinates.x() == width || coordinates.y() == height;
+    }
+
+    public void print() {
+        System.out.println();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                final String cell = switch (at(Coordinates.of(x, y)).getOccupant()) {
+                    case Wall _ -> "#";
+                    case Walker _ -> "X";
+                    case null, default -> " ";
+                };
+
+                System.out.print(cell);
+            }
+
+            System.out.println();
+        }
     }
 
 }

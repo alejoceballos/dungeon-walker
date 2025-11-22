@@ -12,7 +12,7 @@ public class Console {
 
     @PostConstruct
     public void init() {
-        log.debug("[TERMINAL] Start");
+        log.debug("---> [CONSOLE] Start");
     }
 
 }

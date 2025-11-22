@@ -17,20 +17,20 @@ public class GuardianActor extends AbstractBehavior<Void> {
     }
 
     public static Behavior<Void> create() {
-        log.debug("[ACTOR - Guardian] create");
+        log.debug("---> [ACTOR - Guardian] create");
         return Behaviors.setup(GuardianActor::new);
     }
 
     @Override
     public Receive<Void> createReceive() {
-        log.debug("[ACTOR - Guardian] create receive");
+        log.debug("---> [ACTOR - Guardian] create receive");
         return newReceiveBuilder()
                 .onSignal(PostStop.class, this::onPostStop)
                 .build();
     }
 
     private Behavior<Void> onPostStop(final PostStop signal) {
-        log.debug("[ACTOR - Guardian] on post stop");
+        log.debug("---> [ACTOR - Guardian] on post stop");
         return Behaviors.stopped();
     }
 

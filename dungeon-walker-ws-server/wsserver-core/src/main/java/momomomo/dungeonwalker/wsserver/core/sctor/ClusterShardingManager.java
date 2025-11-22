@@ -21,15 +21,15 @@ public class ClusterShardingManager {
 
     @PostConstruct
     public void init() {
-        log.debug("[CLUSTER - Manager] Bean initialized");
+        log.debug("---> [CLUSTER - Manager] Bean initialized");
         clusterSharding.init(
                 Entity.of(
                         connectionEntityTypeKey,
-                        context -> ConnectionActor.create()));
+                        _ -> ConnectionActor.create()));
     }
 
     public EntityRef<ConnectionCommand> getConnectionEntityRef(final String id) {
-        log.debug("[CLUSTER - Manager] get connection entity ref \"{}\"", id);
+        log.debug("---> [CLUSTER - Manager] get connection entity ref \"{}\"", id);
         return clusterSharding.entityRefFor(connectionEntityTypeKey, id);
     }
 

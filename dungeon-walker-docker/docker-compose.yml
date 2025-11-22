@@ -1,7 +1,7 @@
 services:
 
   kafka:
-    image: apache/kafka
+    image: apache/kafka:4.1.1
     container_name: kafka
     ports:
       - "9092:9092"     # Port for Kafka broker
@@ -9,7 +9,7 @@ services:
   # After starting the container for the first time (with no volume), in the "dungeon-walker-docker" folder, run:
   # docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
   postgres-db:
-    image: postgres:latest
+    image: postgres:18-alpine
     container_name: postgres-db
     ports:
       - "5432:5432"

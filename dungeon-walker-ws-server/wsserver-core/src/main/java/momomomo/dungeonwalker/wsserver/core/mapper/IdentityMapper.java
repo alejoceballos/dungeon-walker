@@ -14,7 +14,7 @@ public class IdentityMapper implements InputDataMapper<Identity, AddClientWalker
     @Nonnull
     @Override
     public AddClientWalkerProto.AddClientWalker map(@NonNull final Identity inputData) {
-        log.debug("[MAPPER - Identity] mapping \"{}\"", inputData);
+        log.debug("---> [MAPPER - Identity] mapping \"{}\"", inputData);
         return AddClientWalkerProto.AddClientWalker.newBuilder()
                 .setId(inputData.id())
                 .build();

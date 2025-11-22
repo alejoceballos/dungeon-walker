@@ -22,7 +22,7 @@ public abstract class SelectableInputDataHandler<I extends InputData, P> impleme
     @Nonnull
     @Override
     public HandlingResult handle(final I inputData) {
-        log.debug("[DATA HANDLER - {}] Handling input data: {}", this.getClass().getSimpleName(), inputData);
+        log.debug("---> [DATA HANDLER - {}] Handling input data: {}", this.getClass().getSimpleName(), inputData);
         final var errors = validator.validate(inputData);
 
         if (isNotEmpty(errors)) {

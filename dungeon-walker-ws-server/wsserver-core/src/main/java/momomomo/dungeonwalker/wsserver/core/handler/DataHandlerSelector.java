@@ -18,7 +18,7 @@ public class DataHandlerSelector {
 
     @SuppressWarnings("unchecked")
     public <I extends InputData> DataHandler<I> select(final I data) {
-        log.debug("[DATA HANDLER SELECTOR] Selecting data handler for input: {}", data);
+        log.debug("---> [DATA HANDLER SELECTOR] Selecting data handler for input: {}", data);
 
         final var selected = handlers.stream()
                 .filter(handler -> handler.isSelected(data))
@@ -27,7 +27,7 @@ public class DataHandlerSelector {
 
         final var dataHandler = selected.orElse(_ -> HandlingResult.builder().type(IGNORED).build());
 
-        log.debug("[DATA HANDLER SELECTOR] Selected data handler: {}", dataHandler.getClass().getSimpleName());
+        log.debug("---> [DATA HANDLER SELECTOR] Selected data handler: {}", dataHandler.getClass().getSimpleName());
 
         return dataHandler;
     }

@@ -6,7 +6,7 @@ function initializeWebSocket(currentMapSize, setMapSize) {
     const socket = new WebSocket("ws://localhost:8080/ws-endpoint");
 
     socket.onopen = event => {
-        console.log("[WS Manager] Connected to server: ", event);
+        console.log("---> [WS Manager] Connected to server: ", event);
     };
 
     socket.onclose = event => {
@@ -14,11 +14,11 @@ function initializeWebSocket(currentMapSize, setMapSize) {
     }
 
     socket.onerror = event => {
-        console.log("[WS Manager] Error connecting to server: ", event);
+        console.log("---> [WS Manager] Error connecting to server: ", event);
     }
 
     socket.onmessage = event => {
-        console.log("[WS Manager] Message from server", event.data);
+        console.log("---> [WS Manager] Message from server", event.data);
 
         if (!event.data && !event.data) {
             return;

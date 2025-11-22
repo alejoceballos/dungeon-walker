@@ -3,7 +3,7 @@ package momomomo.dungeonwalker.engine.core.actor.walker.state;
 import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovingStrategy;
 
-public class StandingStill extends Walker {
+public class StandingStill extends WalkerState {
 
     public StandingStill(String id, WalkerMovingStrategy movingStrategy) {
         super(id, movingStrategy);

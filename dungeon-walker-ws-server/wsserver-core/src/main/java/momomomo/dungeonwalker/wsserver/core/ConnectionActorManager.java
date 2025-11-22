@@ -28,14 +28,14 @@ public class ConnectionActorManager implements ConnectionManager {
 
     @Override
     public void establish(@NonNull final ClientConnection connection) {
-        log.debug("[CONNECTION - Manager] Establish connection for user \"{}\" with session \"{}\"",
+        log.debug("---> [CONNECTION - Manager] Establish connection for user \"{}\" with session \"{}\"",
                 connection.getUserId(), connection.getSessionId());
         tell(connection, new SetConnection(connection, dateTimeManager, heartbeatConfig));
     }
 
     @Override
     public void close(@NonNull final ClientConnection connection) {
-        log.debug("[CONNECTION - Manager] Close connection for user \"{}\" with session \"{}\"",
+        log.debug("---> [CONNECTION - Manager] Close connection for user \"{}\" with session \"{}\"",
                 connection.getUserId(), connection.getSessionId());
 
         tell(connection, new CloseConnection(connection));
@@ -43,7 +43,7 @@ public class ConnectionActorManager implements ConnectionManager {
 
     @Override
     public void handleMessage(@NonNull final ClientConnection connection, @NonNull final Input message) {
-        log.debug("[CONNECTION - Manager] Message received for user \"{}\" with session \"{}\": {}",
+        log.debug("---> [CONNECTION - Manager] Message received for user \"{}\" with session \"{}\": {}",
                 connection.getUserId(), connection.getSessionId(), message);
         tell(connection, new SendMessageFromClient(connection, dataHandlerSelector, message));
     }

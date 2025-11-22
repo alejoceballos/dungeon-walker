@@ -1,7 +1,6 @@
 package momomomo.dungeonwalker.engine.core.actor.walker.command;
 
-import akka.actor.typed.ActorRef;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
+import lombok.NonNull;
 
-public record StandStill(ActorRef<DungeonCommand> dungeonRef) implements WalkerCommand {
+public record StandStill(@NonNull String dungeonEntityId) implements WalkerCommand {
 }
