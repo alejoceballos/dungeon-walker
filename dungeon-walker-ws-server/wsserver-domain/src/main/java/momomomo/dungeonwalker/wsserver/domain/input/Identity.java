@@ -1,4 +1,9 @@
 package momomomo.dungeonwalker.wsserver.domain.input;
 
-public record Identity(String id, String name) implements InputData {
+import lombok.NonNull;
+
+public record Identity(
+        @NonNull String id,
+        @NonNull String name
+) implements InputData {
 }

@@ -33,7 +33,7 @@ services:
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
-  dungeon-walker-enfgine:
+  dungeon-walker-engine:
     image: alejoceballos/dungeon-walker-engine:v1
     container_name: dungeon-walker-engine
     ports:

@@ -1,5 +1,24 @@
 spring:
   kafka:
     consumer:
+      group-id: engine-consumer-group
+      auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+    producer:
+      retries: 3
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      acks: 1
+
+logging:
+  level:
+    root: info
+    momomomo:
+      dungeonwalker:
+        wsserver:
+          startup: debug
+          transport: debug
+          core: debug
+          domain: debug

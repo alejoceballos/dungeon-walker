@@ -2,9 +2,7 @@ package momomomo.dungeonwalker.engine.startup;
 
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.clientrequest.AddClientWalkerProto;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,21 +47,11 @@ class DungeonWalkerEngineTest {
         kafka.start();
     }
 
-    @AfterAll
-    static void stopContainers() {
-//        postgres.stop();
-//        kafka.stop();
-    }
-
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-    }
-
-    @BeforeEach
-    public void setUp() {
     }
 
     @Test

@@ -13,8 +13,8 @@ import momomomo.dungeonwalker.wsserver.core.sctor.connection.command.SendHeartbe
 import momomomo.dungeonwalker.wsserver.core.sctor.connection.command.SendMessageFromClient;
 import momomomo.dungeonwalker.wsserver.core.sctor.connection.command.SetConnection;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
-import momomomo.dungeonwalker.wsserver.domain.output.Heartbeat;
 import momomomo.dungeonwalker.wsserver.domain.output.Output;
+import momomomo.dungeonwalker.wsserver.domain.output.ServerHeartbeat;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -125,14 +125,10 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         log.debug("---> [ACTOR - Connection][{}] on send heartbeat to \"{}\":\"{}\"",
                 actorId(), command.connection().getUserId(), command.connection().getSessionId());
 
-        final var output = Output.builder()
-                .type("heartbeat")
-                .data(Heartbeat.builder()
-                        .timestamp(command.dateTimeManager().now())
-                        .delay(command.heartbeatConfig().getDelay())
-                        .timeUnit(command.heartbeatConfig().getTimeUnit())
-                        .build())
-                .build();
+        final var output = Output.of(new ServerHeartbeat(
+                command.heartbeatConfig().getDelay(),
+                command.heartbeatConfig().getTimeUnit(),
+                command.dateTimeManager().instantNow()));
 
         command.connection().send(output);
 

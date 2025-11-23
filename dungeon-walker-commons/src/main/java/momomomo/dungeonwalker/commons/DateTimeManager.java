@@ -1,9 +1,11 @@
 package momomomo.dungeonwalker.commons;
 
+import java.time.Instant;
+
 public class DateTimeManager {
 
-    public long now() {
-        return System.currentTimeMillis();
+    public Instant instantNow() {
+        return Instant.now();
     }
 
 }

@@ -1,34 +1,33 @@
 package momomomo.dungeonwalker.wsserver.startup;
 
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.clientrequest.AddClientWalkerProto;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.testcontainers.kafka.KafkaContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext
-@EmbeddedKafka(
-        partitions = 1,
-        brokerProperties = {"listeners=PLAINTEXT://localhost:9092", "port=9092"}
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DungeonWalkerWsServerTest {
+
+    static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("apache/kafka:4.1.1"))
+            .withExposedPorts(9092);
 
     @LocalServerPort
     private Integer port;
@@ -36,15 +35,20 @@ class DungeonWalkerWsServerTest {
     @Autowired
     private TestKafkaConsumer consumer;
 
+    @Autowired
+    private TestWebSocketHandler testWsHandler;
+
     private final WebSocketClient wsClient = new StandardWebSocketClient();
+
+    @BeforeAll
+    static void startContainers() {
+        kafka.setPortBindings(List.of("9092:9092"));
+        kafka.start();
+    }
 
     @BeforeEach
     public void setUp() {
         consumer.emptyPayloads();
-    }
-
-    @AfterEach
-    public void tearDown() {
     }
 
     @Test
@@ -60,7 +64,7 @@ class DungeonWalkerWsServerTest {
                 """;
 
         wsClient
-                .execute(new TextWebSocketHandler(), "ws://localhost:" + port + "/ws-endpoint")
+                .execute(testWsHandler, "ws://localhost:" + port + "/ws-endpoint")
                 .thenAccept(session -> {
                     log.info("---> [TEST] - WS Client WebSocket connection succeeded");
 
@@ -77,11 +81,15 @@ class DungeonWalkerWsServerTest {
                 });
 
         await()
-                .atMost(3600, TimeUnit.SECONDS)
-                .until(() -> !consumer.getPayloads().isEmpty());
+                .atMost(1, TimeUnit.HOURS)
+                .untilAsserted(() -> assertThat(false).isTrue());
 
-        final var expected = AddClientWalkerProto.AddClientWalker.newBuilder().setId("whatever").build();
-
-        assertThat(consumer.getPayloads()).containsExactly(expected);
+//        await()
+//                .atMost(3600, TimeUnit.SECONDS)
+//                .until(() -> !consumer.getPayloads().isEmpty());
+//
+//        final var expected = AddClientWalkerProto.AddClientWalker.newBuilder().setId("whatever").build();
+//
+//        assertThat(consumer.getPayloads()).containsExactly(expected);
     }
 }

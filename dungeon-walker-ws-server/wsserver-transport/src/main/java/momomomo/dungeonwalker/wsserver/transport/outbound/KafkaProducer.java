@@ -14,12 +14,12 @@ import java.util.concurrent.CompletableFuture;
 @Component
 public class KafkaProducer implements Sender<AddClientWalkerProto.AddClientWalker> {
 
-    private final KafkaTemplate<String, byte[]> kafkaTemplate;
+    private final KafkaTemplate<@NonNull String, byte @NonNull []> kafkaTemplate;
     private final String topic;
 
     public KafkaProducer(
             @Value("${kafka.topic.outbound.game-engine}") final String topic,
-            final KafkaTemplate<String, byte[]> kafkaTemplate) {
+            final KafkaTemplate<@NonNull String, byte @NonNull []> kafkaTemplate) {
         log.debug("---> [OUTBOUND - Kafka Producer] Bean created");
         this.topic = topic;
         this.kafkaTemplate = kafkaTemplate;
