@@ -18,8 +18,8 @@ public class TestKafkaConsumer {
     private final List<AddClientWalkerProto.AddClientWalker> payloads = new ArrayList<>();
 
     @KafkaListener(
-            groupId = "dungeon-walker-ws-server",
-            properties = {"auto.offset.reset:earliest"},
+            groupId = "${spring.kafka.consumer.group-id}",
+            properties = {"${spring.kafka.consumer.auto-offset-reset}"},
             topics = "${kafka.topic.outbound.game-engine}"
     )
     public void receive(final ConsumerRecord<String, byte[]> consumerRecord) {
