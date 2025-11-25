@@ -38,7 +38,7 @@
 
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>
-            <artifactId>dungeon-walker-spring-commons</artifactId>
+            <artifactId>dungeon-walker-commons-spring</artifactId>
             <version>${dungeon-walker-spring-commons.version}</version>
         </dependency>
 
