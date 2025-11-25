@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.engine.domain.config;
+package momomomo.dungeonwalker.spring.commons;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;

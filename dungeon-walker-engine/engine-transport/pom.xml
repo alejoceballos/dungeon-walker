@@ -36,6 +36,12 @@
             <version>${dungeon-walker-contracts.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>momomomo.dungeonwalker</groupId>
+            <artifactId>dungeon-walker-spring-commons</artifactId>
+            <version>${dungeon-walker-spring-commons.version}</version>
+        </dependency>
+
         <!-- Spring Boot - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
         <dependency>
