@@ -38,6 +38,12 @@
 
         <dependency>
             <groupId>momomomo.dungeonwalker</groupId>
+            <artifactId>dungeon-walker-commons-spring</artifactId>
+            <version>${dungeon-walker-commons-spring.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>momomomo.dungeonwalker</groupId>
             <artifactId>dungeon-walker-contracts</artifactId>
             <version>${dungeon-walker-contracts.version}</version>
         </dependency>

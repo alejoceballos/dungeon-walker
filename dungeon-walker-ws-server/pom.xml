@@ -23,6 +23,7 @@
         <maven.compiler.target>25</maven.compiler.target>
 
         <dungeon-walker-commons.version>0.0.1-SNAPSHOT</dungeon-walker-commons.version>
+        <dungeon-walker-commons-spring.version>0.0.1-SNAPSHOT</dungeon-walker-commons-spring.version>
         <dungeon-walker-contracts.version>1.0-SNAPSHOT</dungeon-walker-contracts.version>
         <com.typesafe.akka.version>2.8.8</com.typesafe.akka.version>
         <apache-commons-lang.version>3.19.0</apache-commons-lang.version>
