@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.DungeonActor;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
+import momomomo.dungeonwalker.engine.core.actor.walker.AutomatedWalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.WalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import org.springframework.stereotype.Component;
@@ -36,8 +37,8 @@ public class ClusterShardingManager {
         log.debug("---> [CLUSTER - Manager] Initializing walker actor");
         clusterSharding.init(
                 Entity.of(
-                        WalkerActor.ENTITY_TYPE_KEY,
-                        context -> WalkerActor.create(
+                        AutomatedWalkerActor.ENTITY_TYPE_KEY,
+                        context -> AutomatedWalkerActor.create(
                                 PersistenceId.of(
                                         context.getEntityTypeKey().name(),
                                         context.getEntityId()))));

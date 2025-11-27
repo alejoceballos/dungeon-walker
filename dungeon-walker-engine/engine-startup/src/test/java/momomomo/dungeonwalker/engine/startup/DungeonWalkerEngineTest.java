@@ -62,13 +62,13 @@ class DungeonWalkerEngineTest {
                 .setId("whatever")
                 .build();
 
-        testKafkaProducer
-                .produce("whatever", message.toByteArray())
-                .thenAccept(result -> log.info("---> [TEST] - Kafka Producer result: {}", result))
-                .exceptionally(ex -> {
-                    log.error(ex.getMessage(), ex);
-                    return null;
-                });
+//        testKafkaProducer
+//                .produce("whatever", message.toByteArray())
+//                .thenAccept(result -> log.info("---> [TEST] - Kafka Producer result: {}", result))
+//                .exceptionally(ex -> {
+//                    log.error(ex.getMessage(), ex);
+//                    return null;
+//                });
 
         await()
                 .atMost(1, TimeUnit.HOURS)

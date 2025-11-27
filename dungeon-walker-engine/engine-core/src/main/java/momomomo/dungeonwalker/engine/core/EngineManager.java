@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Component
@@ -42,6 +43,13 @@ public class EngineManager implements DungeonMaster {
         cluster
                 .getDungeonEntityRef(DUNGEON_ID)
                 .tell(new SetupDungeon(mapper.map(rawMap)));
+
+        IntStream.of(1, 2, 3, 4).forEach(i -> cluster
+                .getWalkerEntityRef(String.valueOf(i))
+                .tell(new AskToEnterTheDungeon(
+                        DUNGEON_ID,
+                        PLACING_STRATEGY,
+                        MOVING_STRATEGY)));
     }
 
     @Override
