@@ -25,6 +25,10 @@ public record Input(
     public static final String IDENTITY = "identity";
     public static final String HEARTBEAT = "heartbeat";
 
+    public static Input of(final Identity identity) {
+        return new Input(IDENTITY, identity);
+    }
+
     public static Input of(final ClientHeartbeat heartbeat) {
         return new Input(HEARTBEAT, heartbeat);
     }

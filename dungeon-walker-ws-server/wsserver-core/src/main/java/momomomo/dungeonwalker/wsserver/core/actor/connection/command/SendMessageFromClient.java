@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.wsserver.core.sctor.connection.command;
+package momomomo.dungeonwalker.wsserver.core.actor.connection.command;
 
 import lombok.NonNull;
 import momomomo.dungeonwalker.wsserver.core.handler.DataHandlerSelector;

@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.wsserver.core.sctor.connection;
+package momomomo.dungeonwalker.wsserver.core.actor.connection;
 
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
@@ -7,11 +7,11 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.wsserver.core.sctor.connection.command.CloseConnection;
-import momomomo.dungeonwalker.wsserver.core.sctor.connection.command.ConnectionCommand;
-import momomomo.dungeonwalker.wsserver.core.sctor.connection.command.SendHeartbeatToClient;
-import momomomo.dungeonwalker.wsserver.core.sctor.connection.command.SendMessageFromClient;
-import momomomo.dungeonwalker.wsserver.core.sctor.connection.command.SetConnection;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.CloseConnection;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendHeartbeatToClient;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendMessageFromClient;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SetConnection;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
 import momomomo.dungeonwalker.wsserver.domain.output.Output;
 import momomomo.dungeonwalker.wsserver.domain.output.ServerHeartbeat;
@@ -62,15 +62,15 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private Behavior<ConnectionCommand> onSetConnection(final SetConnection command) {
         log.debug("---> [ACTOR - Connection][{}] on set connection \"{}\":\"{}\"",
-                actorId(),
+                actorPath(),
                 command.connection().getUserId(),
                 command.connection().getSessionId());
 
         this.currentConnection = command.connection();
 
         return Behaviors.withTimers(timer -> {
-            final var key = "timer-" + getContext().getSelf().path().name();
-            log.debug("---> [ACTOR - Connection][{}] setting timer \"{}\"", actorId(), key);
+            final var key = "timer-" + actorId();
+            log.debug("---> [ACTOR - Connection][{}] setting timer \"{}\"", actorPath(), key);
 
             if (timer.isTimerActive(key)) {
                 timer.cancel(key);
@@ -92,17 +92,17 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private Behavior<ConnectionCommand> onResetConnection(final SetConnection command) {
         log.debug("---> [ACTOR - Connection][{}] on set connection again \"{}\":\"{}\" vs. \"{}\":\"{}\"",
-                actorId(), userId(), sessionId(), command.connection().getUserId(), command.connection().getSessionId());
+                actorPath(), userId(), sessionId(), command.connection().getUserId(), command.connection().getSessionId());
 
         if (!Objects.equals(currentConnection.getSessionId(), command.connection().getSessionId())) {
             log.warn("---> [ACTOR - Connection][{}] Resetting connection since sessions has changed \"{}\":\"{}\" vs. \"{}\":\"{}\"",
-                    actorId(), userId(), sessionId(), command.connection().getUserId(), command.connection().getSessionId());
+                    actorPath(), userId(), sessionId(), command.connection().getUserId(), command.connection().getSessionId());
             currentConnection.close();
             currentConnection = command.connection();
 
         } else {
             log.warn("---> [ACTOR - Connection][{}] Connection with same session ID will not be reset \"{}\":\"{}\"",
-                    actorId(), userId(), sessionId());
+                    actorPath(), userId(), sessionId());
         }
 
         return Behaviors.same();
@@ -110,11 +110,11 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private Behavior<ConnectionCommand> onCloseConnection(final CloseConnection command) {
         log.debug("---> [ACTOR - Connection][{}] on close connection \"{}\":\"{}\"",
-                actorId(), command.connection().getUserId(), command.connection().getSessionId());
+                actorPath(), command.connection().getUserId(), command.connection().getSessionId());
 
         if (isSameConnection(command.connection())) {
             log.debug("---> [ACTOR - Connection][{}] closing connection \"{}\":\"{}\"",
-                    actorId(), command.connection().getUserId(), command.connection().getSessionId());
+                    actorPath(), command.connection().getUserId(), command.connection().getSessionId());
             return connectionClosed();
         }
 
@@ -123,7 +123,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private Behavior<ConnectionCommand> onSendHeartbeatToClient(final SendHeartbeatToClient command) {
         log.debug("---> [ACTOR - Connection][{}] on send heartbeat to \"{}\":\"{}\"",
-                actorId(), command.connection().getUserId(), command.connection().getSessionId());
+                actorPath(), command.connection().getUserId(), command.connection().getSessionId());
 
         final var output = Output.of(new ServerHeartbeat(
                 command.heartbeatConfig().getDelay(),
@@ -137,7 +137,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private Behavior<ConnectionCommand> onSendMessageFromClient(final SendMessageFromClient command) {
         log.debug("---> [ACTOR - Connection][{}]  on act on message \"{}\":\"{}\"",
-                actorId(), command.connection().getUserId(), command.connection().getSessionId());
+                actorPath(), command.connection().getUserId(), command.connection().getSessionId());
 
         final var result = command.dataHandlerSelector()
                 .select(command.message().data())
@@ -145,11 +145,15 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
         if (result.type().equals(FAILURE)) {
             log.error("---> [ACTOR - Connection][{}]  Message handling failed for user\"{}\":\"{}\" with result: {}",
-                    actorId(), command.connection().getUserId(), command.connection().getSessionId(), result);
+                    actorPath(), command.connection().getUserId(), command.connection().getSessionId(), result);
             // TODO: send error message back to client using another command
         }
 
         return Behaviors.same();
+    }
+
+    private String actorPath() {
+        return getContext().getSelf().path().toString();
     }
 
     private String actorId() {

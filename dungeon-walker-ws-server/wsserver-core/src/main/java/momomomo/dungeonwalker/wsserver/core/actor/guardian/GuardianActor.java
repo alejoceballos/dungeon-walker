@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.wsserver.core.sctor.guardian;
+package momomomo.dungeonwalker.wsserver.core.actor.guardian;
 
 import akka.actor.typed.Behavior;
 import akka.actor.typed.PostStop;

@@ -2,13 +2,14 @@ package momomomo.dungeonwalker.wsserver.transport.inbound;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ConnectionManager;
+import momomomo.dungeonwalker.wsserver.domain.input.Identity;
 import momomomo.dungeonwalker.wsserver.domain.input.Input;
 import momomomo.dungeonwalker.wsserver.transport.connection.WebSocketSessionAdapter;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -29,33 +30,47 @@ public class WsHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionEstablished(@NonNull final WebSocketSession session) {
+    public void afterConnectionEstablished(@Nonnull final WebSocketSession session) {
         log.info("---> [WS Server - Handler] Connection established with session \"{}\"", session.getId());
 
-        connectionManager.establish(new WebSocketSessionAdapter(session, jsonMapper));
+        final var connection = new WebSocketSessionAdapter(session, jsonMapper);
+        connectionManager.establish(connection);
+        connectionManager.handleMessage(connection, Input.of(new Identity(connection.getUserId())));
     }
 
     @Override
-    public void afterConnectionClosed(@NonNull final WebSocketSession session, @NonNull final CloseStatus status) {
+    public void afterConnectionClosed(
+            @Nonnull final WebSocketSession session,
+            @Nonnull final CloseStatus status
+    ) {
         log.info("---> [WS Server - Handler] Connection closed for session \"{}\"", session.getId());
 
         connectionManager.close(new WebSocketSessionAdapter(session, jsonMapper));
     }
 
     @Override
-    protected void handleTextMessage(@NonNull final WebSocketSession session, @NonNull final TextMessage message) {
+    protected void handleTextMessage(
+            @Nonnull final WebSocketSession session,
+            @Nonnull final TextMessage message
+    ) {
         log.info("---> [WS Server - Handler] Session \"{}\" received the message \"{}\"",
                 session.getId(),
                 message.getPayload());
 
         try {
             final var input = jsonMapper.readValue(message.getPayload(), Input.class);
+            final var isNotIdentityInput = !(input.data() instanceof Identity);
+
+            if (isNotIdentityInput) {
+                log.warn("---> [WS Server - Handler] Identity messages are not allowed \"{}\"", message.getPayload());
+                return;
+            }
+
             connectionManager.handleMessage(new WebSocketSessionAdapter(session, jsonMapper), input);
 
         } catch (final JsonProcessingException e) {
             log.error("---> [WS Server - Handler] Error parsing message \"{}\"", message.getPayload(), e);
         }
-
     }
 
 }
