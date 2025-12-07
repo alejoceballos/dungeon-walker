@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package contract.client;
+
+import "client/direction.proto";
+
+option java_package = "momomomo.dungeonwalker.contract.client";
+option java_outer_classname = "MovementProto";
+
+message Movement {
+  Direction direction = 1;
+}

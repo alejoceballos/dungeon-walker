@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package contract.client;
+
+import "client/connection.proto";
+import "client/movement.proto";
+
+option java_package = "momomomo.dungeonwalker.contract.client";
+option java_outer_classname = "ClientRequestProto";
+
+message ClientRequest {
+  string client_id = 1;
+  oneof data {
+    Connection connection = 2;
+    Movement movement = 3;
+  }
+}

@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package contract.client;
+
+option java_package = "momomomo.dungeonwalker.contract.client";
+option java_outer_classname = "ConnectionProto";
+
+message Connection {
+}

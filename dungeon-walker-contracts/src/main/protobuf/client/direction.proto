@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package contract.client;
+
+option java_package = "momomomo.dungeonwalker.contract.client";
+option java_outer_classname = "DirectionProto";
+
+enum Direction {
+  N = 0;
+  E = 1;
+  S = 2;
+  W = 3;
+  NE = 4;
+  SE = 5;
+  SW = 6;
+  NW = 7;
+}
