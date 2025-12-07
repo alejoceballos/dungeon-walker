@@ -5,6 +5,8 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"     # Port for Kafka broker
+    networks:
+      - dungeon-walker-network
 
   # After starting the container for the first time (with no volume), in the "dungeon-walker-docker" folder, run:
   # docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
@@ -22,14 +24,10 @@ services:
       retries: 5
       start_period: 5s
       timeout: 5s
-
-  # To create this container's image, go to the folder where this project is located and run:
-  # mvn clean install jib:dockerBuild -DskipTests
-  dungeon-walker-ws-server:
-    image: alejoceballos/dungeon-walker-ws-server:v1
-    container_name: dungeon-walker-ws-server
-    ports:
-      - "8080:8080"
+    volumes:
+      - ./ddl-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - dungeon-walker-network
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
@@ -38,3 +36,33 @@ services:
     container_name: dungeon-walker-engine
     ports:
       - "8081:8081"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: postgres-db
+      POSTGRES_PORT: 5432
+      KAFKA_BOOTSTRAP_SERVER: kafka:9092
+    networks:
+      - dungeon-walker-network
+    depends_on:
+      - kafka
+      - postgres-db
+
+  # To create this container's image, go to the folder where this project is located and run:
+  # mvn clean install jib:dockerBuild -DskipTests
+  dungeon-walker-ws-server:
+    image: alejoceballos/dungeon-walker-ws-server:v1
+    container_name: dungeon-walker-ws-server
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BOOTSTRAP_SERVER: kafka:9092
+    networks:
+      - dungeon-walker-network
+#    depends_on:
+#      - dungeon-walker-engine
+
+networks:
+  dungeon-walker-network:
+    driver: bridge
