@@ -25,7 +25,7 @@ public class KafkaProducer implements Sender<ClientRequest> {
     public KafkaProducer(
             @Value("${kafka.topic.outbound.game-engine}") final String topic,
             final KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate) {
-        log.debug("---> [OUTBOUND - Kafka Producer] Bean created");
+        log.debug("---> [OUTBOUND - Kafka Producer] Bean created. Topic \"{}\". Kafka template: \"{}\"", topic, kafkaTemplate);
         this.topic = topic;
         this.kafkaTemplate = kafkaTemplate;
     }
@@ -33,16 +33,16 @@ public class KafkaProducer implements Sender<ClientRequest> {
     @Nonnull
     @Override
     public CompletableFuture<SendResult> send(@NonNull final ClientRequest message) {
-        log.debug("---> [OUTBOUND - Kafka Producer] Sending message \"{}\"", message);
+        log.debug("---> [OUTBOUND - Kafka Producer] Sending message \"{}\" to topic \"{}\"", message, topic);
 
         return kafkaTemplate.send(topic, message.getClientId(), message)
                 .thenCompose(_ -> {
-                    log.info("---> [OUTBOUND - Kafka Producer] Message sent successfully: {}", message);
+                    log.info("---> [OUTBOUND - Kafka Producer] Message sent successfully to topic \"{}\": {}", topic, message);
                     return CompletableFuture.completedFuture(new SendResult(
                             SUCCESS,
                             "Message sent successfully"));
                 }).exceptionally(ex -> {
-                    log.error("---> [OUTBOUND - Kafka Producer] Error sending message: {}", message, ex);
+                    log.error("---> [OUTBOUND - Kafka Producer] Error sending message to topic \"{}\": {}", topic, message, ex);
                     return new SendResult(FAILURE, ex.getMessage());
                 });
     }

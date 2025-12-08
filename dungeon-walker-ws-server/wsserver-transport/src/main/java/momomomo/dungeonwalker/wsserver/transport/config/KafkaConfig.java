@@ -26,7 +26,8 @@ public class KafkaConfig {
             @Value("${spring.kafka.producer.value-serializer}") final Class<?> valueSerializer,
             @Value("${spring.kafka.producer.acks}") final String acks,
             @Value("${spring.kafka.producer.retries}") final int retries) {
-        log.debug("---> [CONFIG - Kafka] Creating producer factory");
+        log.debug("---> [CONFIG - Kafka] Creating producer factory: {}, {}, {}, {}, {}"
+                , bootstrapServers, keySerializer, valueSerializer, acks, retries);
         return new DefaultKafkaProducerFactory<>(Map.of(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer,

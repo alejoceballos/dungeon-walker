@@ -1,10 +1,7 @@
-kafka:
-  consumer:
-    group-id: engine-consumer-group
-
 spring:
   kafka:
     consumer:
+      group-id: wsserver-consumer-group
       auto-offset-reset: auto.offset.reset:earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: momomomo.dungeonwalker.contract.serializer.ProtoDeserializer

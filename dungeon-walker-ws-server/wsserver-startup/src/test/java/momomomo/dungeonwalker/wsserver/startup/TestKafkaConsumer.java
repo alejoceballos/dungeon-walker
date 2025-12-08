@@ -20,7 +20,7 @@ public class TestKafkaConsumer {
 
     @KafkaListener(
             topics = "${kafka.topic.outbound.game-engine}",
-            groupId = "${kafka.consumer.group-id}"
+            groupId = "${spring.kafka.consumer.group-id}"
     )
     public void receive(
             final ConsumerRecord<String, ClientRequest> consumerRecord,
