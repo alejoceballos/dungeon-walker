@@ -17,13 +17,17 @@ public record Input(
                         name = IDENTITY),
                 @JsonSubTypes.Type(
                         value = ClientHeartbeat.class,
-                        name = HEARTBEAT)
+                        name = HEARTBEAT),
+                @JsonSubTypes.Type(
+                        value = Movement.class,
+                        name = MOVEMENT)
         })
         @NonNull InputData data
 ) {
 
     public static final String IDENTITY = "identity";
     public static final String HEARTBEAT = "heartbeat";
+    public static final String MOVEMENT = "movement";
 
     public static Input of(final Identity identity) {
         return new Input(IDENTITY, identity);
@@ -31,6 +35,10 @@ public record Input(
 
     public static Input of(final ClientHeartbeat heartbeat) {
         return new Input(HEARTBEAT, heartbeat);
+    }
+
+    public static Input of(final Movement movement) {
+        return new Input(MOVEMENT, movement);
     }
 
 }

@@ -21,6 +21,11 @@ management:
 logging:
   level:
     root: info
+    org:
+      apache:
+        kafka:
+          clients:
+            NetworkClient: warn
     momomomo:
       dungeonwalker:
         wsserver:

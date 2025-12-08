@@ -2,9 +2,10 @@ package momomomo.dungeonwalker.wsserver.startup;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.clientrequest.AddClientWalkerProto;
+import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -15,22 +16,25 @@ import java.util.List;
 public class TestKafkaConsumer {
 
     @Getter
-    private final List<AddClientWalkerProto.AddClientWalker> payloads = new ArrayList<>();
+    private final List<ClientRequest> payloads = new ArrayList<>();
 
     @KafkaListener(
-            groupId = "${spring.kafka.consumer.group-id}",
-            properties = {"${spring.kafka.consumer.auto-offset-reset}"},
-            topics = "${kafka.topic.outbound.game-engine}"
+            topics = "${kafka.topic.outbound.game-engine}",
+            groupId = "${kafka.consumer.group-id}"
     )
-    public void receive(final ConsumerRecord<String, byte[]> consumerRecord) {
+    public void receive(
+            final ConsumerRecord<String, ClientRequest> consumerRecord,
+            final Acknowledgment acknowledgment) {
         log.info("---> [KAFKA - Consumer] Received payload");
 
         try {
-            final var message = AddClientWalkerProto.AddClientWalker.parseFrom(consumerRecord.value());
-            payloads.add(message);
+            payloads.add(consumerRecord.value());
 
         } catch (Exception e) {
             log.error("---> [KAFKA - Consumer] Error parsing message. Error: {}", e.getMessage());
+
+        } finally {
+            acknowledgment.acknowledge();
         }
     }
 

@@ -1,14 +1,23 @@
 package momomomo.dungeonwalker.wsserver.core.handler;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.wsserver.core.mapper.InputDataMapper;
 import momomomo.dungeonwalker.wsserver.core.validator.InputDataValidator;
+import momomomo.dungeonwalker.wsserver.core.validator.ValidationError;
 import momomomo.dungeonwalker.wsserver.domain.input.InputData;
+import momomomo.dungeonwalker.wsserver.domain.outbound.SendResult;
+import momomomo.dungeonwalker.wsserver.domain.outbound.SendStatus;
 import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
 
-import static momomomo.dungeonwalker.wsserver.core.handler.HandlingResult.type.SUCCESS;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static momomomo.dungeonwalker.wsserver.core.handler.HandlingResult.Type.FAILURE;
+import static momomomo.dungeonwalker.wsserver.core.handler.HandlingResult.Type.SUCCESS;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Slf4j
@@ -21,25 +30,36 @@ public abstract class SelectableInputDataHandler<I extends InputData, P> impleme
 
     @Nonnull
     @Override
-    public HandlingResult handle(final I inputData) {
+    public CompletableFuture<HandlingResult> handle(@NonNull final String clientId, @NonNull final I inputData) {
         log.debug("---> [DATA HANDLER - {}] Handling input data: {}", this.getClass().getSimpleName(), inputData);
         final var errors = validator.validate(inputData);
 
         if (isNotEmpty(errors)) {
-            return HandlingResult.builder()
-                    .type(SUCCESS)
-                    .errors(errors)
-                    .build();
+            return CompletableFuture.completedFuture(
+                    HandlingResult.builder()
+                            .type(FAILURE)
+                            .errors(errors.stream()
+                                    .map(ValidationError::toString)
+                                    .toList())
+                            .build());
         }
 
-        final var mappedData = mapper.map(inputData);
-        sender.send(mappedData);
+        final var mappedData = mapper.map(clientId, inputData);
 
-        return HandlingResult.builder()
-                .type(SUCCESS)
-                .build();
+        return sender.send(mappedData)
+                .thenCompose(result -> CompletableFuture.completedFuture(map(result)))
+                .exceptionally(ex -> HandlingResult.builder()
+                        .type(FAILURE)
+                        .errors(List.of(ex.getMessage()))
+                        .build());
     }
 
-    protected abstract boolean isSelected(InputData data);
+    private HandlingResult map(@NonNull final SendResult result) {
+        final var type = result.status() == SendStatus.SUCCESS ? SUCCESS : FAILURE;
+        final List<String> errors = result.status() == SendStatus.FAILURE ? List.of(result.message()) : List.of();
+        return HandlingResult.builder().type(type).errors(errors).build();
+    }
+
+    protected abstract boolean isSelected(@Nullable final InputData data);
 
 }

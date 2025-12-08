@@ -7,7 +7,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ConnectionManager;
-import momomomo.dungeonwalker.wsserver.domain.input.Identity;
 import momomomo.dungeonwalker.wsserver.domain.input.Input;
 import momomomo.dungeonwalker.wsserver.transport.connection.WebSocketSessionAdapter;
 import org.springframework.stereotype.Component;
@@ -33,9 +32,7 @@ public class WsHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(@Nonnull final WebSocketSession session) {
         log.info("---> [WS Server - Handler] Connection established with session \"{}\"", session.getId());
 
-        final var connection = new WebSocketSessionAdapter(session, jsonMapper);
-        connectionManager.establish(connection);
-        connectionManager.handleMessage(connection, Input.of(new Identity(connection.getUserId())));
+        connectionManager.establish(new WebSocketSessionAdapter(session, jsonMapper));
     }
 
     @Override
@@ -53,19 +50,10 @@ public class WsHandler extends TextWebSocketHandler {
             @Nonnull final WebSocketSession session,
             @Nonnull final TextMessage message
     ) {
-        log.info("---> [WS Server - Handler] Session \"{}\" received the message \"{}\"",
-                session.getId(),
-                message.getPayload());
+        log.info("---> [WS Server - Handler] Session \"{}\" received the message \"{}\"", session.getId(), message.getPayload());
 
         try {
             final var input = jsonMapper.readValue(message.getPayload(), Input.class);
-            final var isNotIdentityInput = !(input.data() instanceof Identity);
-
-            if (isNotIdentityInput) {
-                log.warn("---> [WS Server - Handler] Identity messages are not allowed \"{}\"", message.getPayload());
-                return;
-            }
-
             connectionManager.handleMessage(new WebSocketSessionAdapter(session, jsonMapper), input);
 
         } catch (final JsonProcessingException e) {

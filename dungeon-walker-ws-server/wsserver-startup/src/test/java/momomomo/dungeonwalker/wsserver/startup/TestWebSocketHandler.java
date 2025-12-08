@@ -37,8 +37,7 @@ public class TestWebSocketHandler extends TextWebSocketHandler {
 
                                 try {
                                     final var json = jsonMapper.writeValueAsString(
-                                            Input.of(
-                                                    new ClientHeartbeat("TBD", dateTimeManager.instantNow())));
+                                            Input.of(new ClientHeartbeat(dateTimeManager.instantNow())));
                                     session.sendMessage(new TextMessage(json));
 
                                 } catch (JsonProcessingException e) {

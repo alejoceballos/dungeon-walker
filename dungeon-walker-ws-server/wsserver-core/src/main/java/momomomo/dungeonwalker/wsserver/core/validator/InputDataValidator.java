@@ -8,6 +8,6 @@ import java.util.List;
 public interface InputDataValidator<I extends InputData> {
 
     @Nonnull
-    List<ValidationError> validate(I inputData);
+    List<ValidationError> validate(@Nonnull I inputData);
 
 }

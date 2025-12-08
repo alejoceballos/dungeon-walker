@@ -13,15 +13,17 @@ import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendHeartbe
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendMessageFromClient;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SetConnection;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
+import momomomo.dungeonwalker.wsserver.domain.output.ServerErrors;
 import momomomo.dungeonwalker.wsserver.domain.output.Output;
 import momomomo.dungeonwalker.wsserver.domain.output.ServerHeartbeat;
+import momomomo.dungeonwalker.wsserver.domain.output.ServerMessage;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
-import static momomomo.dungeonwalker.wsserver.core.handler.HandlingResult.type.FAILURE;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
@@ -135,19 +137,44 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         return Behaviors.same();
     }
 
-    private Behavior<ConnectionCommand> onSendMessageFromClient(final SendMessageFromClient command) {
+    private Behavior<ConnectionCommand>
+
+    onSendMessageFromClient(final SendMessageFromClient command) {
         log.debug("---> [ACTOR - Connection][{}]  on act on message \"{}\":\"{}\"",
                 actorPath(), command.connection().getUserId(), command.connection().getSessionId());
 
-        final var result = command.dataHandlerSelector()
+        command.dataHandlerSelector()
                 .select(command.message().data())
-                .handle(command.message().data());
+                .handle(command.connection().getUserId(), command.message().data())
+                .thenCompose(result -> {
+                    switch (result.type()) {
+                        case FAILURE -> {
+                            log.error("---> [ACTOR - Connection][{}] Failure sending message for user \"{}\":\"{}\". Result: {}",
+                                    actorPath(), command.connection().getUserId(), command.connection().getSessionId(), result);
+                            command.connection().send(Output.of(new ServerErrors(result.errors())));
+                        }
+                        case SUCCESS -> {
+                            log.debug("---> [ACTOR - Connection][{}] Success sending message for user \"{}\":\"{}\"",
+                                    actorPath(), command.connection().getUserId(), command.connection().getSessionId());
+                            command.connection().send(Output.of(new ServerMessage("Message sent")));
+                        }
+                        default -> {
+                            log.debug("---> [ACTOR - Connection][{}] Ignoring message for user \"{}\":\"{}\"",
+                                    actorPath(), command.connection().getUserId(), command.connection().getSessionId());
+                            command.connection().send(Output.of(new ServerMessage("Message ignored")));
+                        }
+                    }
 
-        if (result.type().equals(FAILURE)) {
-            log.error("---> [ACTOR - Connection][{}]  Message handling failed for user\"{}\":\"{}\" with result: {}",
-                    actorPath(), command.connection().getUserId(), command.connection().getSessionId(), result);
-            // TODO: send error message back to client using another command
-        }
+                    return CompletableFuture.completedFuture(null);
+
+                }).exceptionally(ex -> {
+                    log.error("---> [ACTOR - Connection][{}] Error sending message for user  \"{}\":\"{}\". Exception: {}",
+                            actorPath(), command.connection().getUserId(), command.connection().getSessionId(), ex.getMessage());
+
+                    command.connection().send(Output.of(new ServerErrors(List.of(ex.getMessage()))));
+
+                    return CompletableFuture.failedFuture(ex);
+                });
 
         return Behaviors.same();
     }

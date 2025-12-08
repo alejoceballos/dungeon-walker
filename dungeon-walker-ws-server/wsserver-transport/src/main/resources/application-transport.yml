@@ -9,17 +9,9 @@ kafka:
 
 spring:
   kafka:
-    consumer:
-      bootstrap-servers: localhost:9092
-      group-id: engine-consumer-group
-      auto-offset-reset: auto.offset.reset:earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
-      concurrency: 3
-      poll-timeout: 3000
     producer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER:localhost:9092}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      value-serializer: momomomo.dungeonwalker.contract.serializer.ProtoSerializer
       acks: 1
       retries: 3

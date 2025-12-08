@@ -6,6 +6,6 @@ import momomomo.dungeonwalker.wsserver.domain.input.InputData;
 public interface InputDataMapper<I extends InputData, P> {
 
     @Nonnull
-    P map(@Nonnull I input);
+    P map(@Nonnull String clientId, @Nonnull I input);
 
 }

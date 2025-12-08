@@ -14,15 +14,31 @@ public record Output(
         @JsonSubTypes({
                 @JsonSubTypes.Type(
                         value = ServerHeartbeat.class,
-                        name = HEARTBEAT)
+                        name = HEARTBEAT),
+                @JsonSubTypes.Type(
+                        value = ServerErrors.class,
+                        name = SERVER_ERRORS),
+                @JsonSubTypes.Type(
+                        value = ServerMessage.class,
+                        name = SERVER_MESSAGE)
         })
         @NonNull OutputData data
 ) {
 
     public static final String HEARTBEAT = "heartbeat";
+    public static final String SERVER_ERRORS = "server-errors";
+    public static final String SERVER_MESSAGE = "server-message";
 
     public static Output of(final ServerHeartbeat heartbeat) {
         return new Output(HEARTBEAT, heartbeat);
+    }
+
+    public static Output of(final ServerErrors error) {
+        return new Output(SERVER_ERRORS, error);
+    }
+
+    public static Output of(final ServerMessage message) {
+        return new Output(SERVER_MESSAGE, message);
     }
 
 }

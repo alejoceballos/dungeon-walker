@@ -3,20 +3,22 @@ package momomomo.dungeonwalker.wsserver.core.mapper;
 import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.clientrequest.AddClientWalkerProto;
+import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
+import momomomo.dungeonwalker.contract.client.ConnectionProto.Connection;
 import momomomo.dungeonwalker.wsserver.domain.input.Identity;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class IdentityMapper implements InputDataMapper<Identity, AddClientWalkerProto.AddClientWalker> {
+public class IdentityMapper implements InputDataMapper<Identity, ClientRequest> {
 
     @Nonnull
     @Override
-    public AddClientWalkerProto.AddClientWalker map(@NonNull final Identity inputData) {
+    public ClientRequest map(@NonNull final String clientId, @NonNull final Identity inputData) {
         log.debug("---> [MAPPER - Identity] mapping \"{}\"", inputData);
-        return AddClientWalkerProto.AddClientWalker.newBuilder()
-                .setId(inputData.id())
+        return ClientRequest.newBuilder()
+                .setClientId(clientId)
+                .setConnection(Connection.newBuilder().build())
                 .build();
     }
 

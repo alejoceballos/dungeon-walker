@@ -4,15 +4,16 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.commons.DateTimeManager;
-import momomomo.dungeonwalker.wsserver.core.config.HeartbeatConfig;
-import momomomo.dungeonwalker.wsserver.core.handler.DataHandlerSelector;
 import momomomo.dungeonwalker.wsserver.core.actor.ClusterShardingManager;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.CloseConnection;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendMessageFromClient;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SetConnection;
+import momomomo.dungeonwalker.wsserver.core.config.HeartbeatConfig;
+import momomomo.dungeonwalker.wsserver.core.handler.DataHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ConnectionManager;
+import momomomo.dungeonwalker.wsserver.domain.input.Identity;
 import momomomo.dungeonwalker.wsserver.domain.input.Input;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +32,7 @@ public class ConnectionActorManager implements ConnectionManager {
         log.debug("---> [CONNECTION - Manager] Establish connection for user \"{}\" with session \"{}\"",
                 connection.getUserId(), connection.getSessionId());
         tell(connection, new SetConnection(connection, dateTimeManager, heartbeatConfig));
+        tell(connection, new SendMessageFromClient(connection, dataHandlerSelector, Input.of(new Identity())));
     }
 
     @Override
@@ -45,6 +47,13 @@ public class ConnectionActorManager implements ConnectionManager {
     public void handleMessage(@NonNull final ClientConnection connection, @NonNull final Input message) {
         log.debug("---> [CONNECTION - Manager] Message received for user \"{}\" with session \"{}\": {}",
                 connection.getUserId(), connection.getSessionId(), message);
+
+        if (message.data() instanceof Identity) {
+            log.warn("---> [WS Server - Handler] Identity messages are sent when establishing a connection and " +
+                    "are not allowed anymore. Identity Message: \"{}\"", message.data());
+            return;
+        }
+
         tell(connection, new SendMessageFromClient(connection, dataHandlerSelector, message));
     }
 
