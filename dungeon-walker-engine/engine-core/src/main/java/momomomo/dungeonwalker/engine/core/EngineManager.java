@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.ClusterShardingManager;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
-import momomomo.dungeonwalker.engine.core.actor.walker.WalkerType;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.AskToEnterTheDungeon;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.Move;
 import momomomo.dungeonwalker.engine.core.mapper.RawMapMapper;
@@ -70,7 +69,6 @@ public class EngineManager implements DungeonMaster {
         cluster.getUserWalkerEntityRef(playerId)
                 .tell(new AskToEnterTheDungeon(
                         DUNGEON_ID,
-                        WalkerType.USER,
                         PLACING_STRATEGY,
                         new UserMovementStrategy()));
     }
@@ -78,7 +76,10 @@ public class EngineManager implements DungeonMaster {
     @Override
     public void move(@NonNull final String playerId, @NonNull final Direction direction) {
         log.debug("---> [ENGINE - manager] Moving player {} to {}]", playerId, direction);
-        cluster.getUserWalkerEntityRef(playerId).tell(new Move(DUNGEON_ID, WalkerType.USER, direction));
+        cluster.getUserWalkerEntityRef(playerId)
+                .tell(new Move(
+                        DUNGEON_ID,
+                        direction));
     }
 
 }

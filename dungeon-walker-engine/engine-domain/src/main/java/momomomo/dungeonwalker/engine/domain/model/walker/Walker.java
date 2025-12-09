@@ -16,6 +16,9 @@ public class Walker implements Thing {
     private final String id;
 
     @Getter
+    private final WalkerType type;
+
+    @Getter
     private final WalkerMovingStrategy movingStrategy;
 
     @Getter

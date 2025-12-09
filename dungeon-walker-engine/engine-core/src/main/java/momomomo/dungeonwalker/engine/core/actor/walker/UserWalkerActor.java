@@ -22,7 +22,8 @@ import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.UserMovementStrategy;
 
 import java.util.List;
-import java.util.Objects;
+
+import static momomomo.dungeonwalker.engine.domain.model.walker.WalkerType.USER;
 
 @Slf4j
 public class UserWalkerActor extends WalkerActor {
@@ -43,8 +44,8 @@ public class UserWalkerActor extends WalkerActor {
 
     @Override
     public Walker emptyState() {
-        log.debug("---> [ACTOR - User Walker][path: {}] empty state", actorPath());
-        return new Awaken(entityId(), new UserMovementStrategy());
+        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] empty state", actorPath(), Awaken.class.getSimpleName());
+        return new Awaken(entityId(), USER, new UserMovementStrategy());
     }
 
     @Override
@@ -57,7 +58,7 @@ public class UserWalkerActor extends WalkerActor {
     }
 
     @Override
-    protected void setonTheMoveStateCommands(
+    protected void setOnTheMoveStateCommands(
             @NonNull CommandHandlerBuilderByState<WalkerCommand, OnTheMove, Walker> builder
     ) {
         builder
@@ -71,42 +72,40 @@ public class UserWalkerActor extends WalkerActor {
             @NonNull final Walker state,
             @NonNull final UpdateCoordinates command
     ) {
-        log.debug("---> [ACTOR - User Walker][path: {}] on update coordinates", actorPath());
+        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] on update coordinates", actorPath(), actorState(state));
 
-        final var effect = Objects.equals(state.getCurrentCoordinates(), command.coordinates()) ?
-                Effect().none() :
-                Effect().persist(StandingStill.of(state.updateCoordinates(command.coordinates())));
-
-        return effect.thenRun(_ -> {
-            // TODO: Send to client the current coordinates
-        });
+        return Effect()
+                .persist(StandingStill.of(state.updateCoordinates(command.coordinates())))
+                .thenRun(_ -> {
+                    // TODO: Send to client the current coordinates
+                });
     }
 
     protected Effect<Walker> onMove(
             @NonNull final Walker state,
             @NonNull final Move command
     ) {
-        log.debug("---> [ACTOR - User Walker][path: {}] on move", actorPath());
+        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] on move", actorPath(), actorState(state));
 
-        // Ask to be moved to the new coordinates
-        dungeonEntityRef(command.dungeonEntityId())
-                .tell(new MoveWalker(
-                        entityId(),
-                        command.walkerType(),
-                        state.getCurrentCoordinates(),
-                        List.of(CoordinatesManager
-                                .of(state.getCurrentCoordinates())
-                                .move(command.to(), 1)
-                                .coordinates())));
-
-        return Effect().persist(OnTheMove.of(state));
+        return Effect()
+                .persist(OnTheMove.of(state))
+                // Ask to be moved to the new coordinates
+                .thenRun(_ -> dungeonEntityRef(command.dungeonEntityId())
+                        .tell(new MoveWalker(
+                                entityId(),
+                                state.getType(),
+                                state.getCurrentCoordinates(),
+                                List.of(CoordinatesManager
+                                        .of(state.getCurrentCoordinates())
+                                        .move(command.to(), 1)
+                                        .coordinates()))));
     }
 
     protected Effect<Walker> onAlreadyMoving(
             @NonNull final Walker state,
             @NonNull final Move command
     ) {
-        log.debug("---> [ACTOR - User Walker][path: {}] on already moving", actorPath());
+        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] on already moving", actorPath(), actorState(state));
 
         return Effect().none().thenRun(_ -> {
             // TODO: Send to client that no move command can be applied when the walker is moving
@@ -117,9 +116,9 @@ public class UserWalkerActor extends WalkerActor {
             @NonNull final Walker state,
             @NonNull final StandStill command
     ) {
-        log.debug("---> [ACTOR - User Walker][path: {}] on stand still", actorPath());
+        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] on stand still", actorPath(), actorState(state));
 
-        return Effect().none().thenRun(_ -> {
+        return Effect().persist(StandingStill.of(state)).thenRun(_ -> {
             // TODO: Send to client that the walker is standing still
         });
     }

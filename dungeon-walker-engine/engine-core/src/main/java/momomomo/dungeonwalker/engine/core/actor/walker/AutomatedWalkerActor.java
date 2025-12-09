@@ -23,6 +23,7 @@ import momomomo.dungeonwalker.engine.domain.model.walker.moving.SameDirectionOrR
 import java.util.Objects;
 
 import static java.time.Duration.ofMillis;
+import static momomomo.dungeonwalker.engine.domain.model.walker.WalkerType.AUTOMATED;
 
 @Slf4j
 public class AutomatedWalkerActor extends WalkerActor {
@@ -37,14 +38,14 @@ public class AutomatedWalkerActor extends WalkerActor {
     }
 
     public static Behavior<WalkerCommand> create(@NonNull final PersistenceId persistenceId) {
-        log.debug("---> [ACTOR - Auto Walker][persistenceId: {}] create", persistenceId.toString());
+        log.debug("---> [ACTOR - Auto Walker][persistenceId: {}] create", persistenceId);
         return Behaviors.setup(context -> new AutomatedWalkerActor(context, persistenceId));
     }
 
     @Override
     public Walker emptyState() {
-        log.debug("---> [ACTOR - Auto Walker][path: {}] empty state", actorPath());
-        return new Awaken(entityId(), new SameDirectionOrRandomOtherwise());
+        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] empty state", actorPath(), Awaken.class.getSimpleName());
+        return new Awaken(entityId(), AUTOMATED, new SameDirectionOrRandomOtherwise());
     }
 
     @Override
@@ -57,7 +58,7 @@ public class AutomatedWalkerActor extends WalkerActor {
     }
 
     @Override
-    protected void setonTheMoveStateCommands(
+    protected void setOnTheMoveStateCommands(
             @NonNull CommandHandlerBuilderByState<WalkerCommand, OnTheMove, Walker> builder
     ) {
         builder
@@ -70,7 +71,7 @@ public class AutomatedWalkerActor extends WalkerActor {
     protected Effect<Walker> onUpdateCoordinates(
             @NonNull final Walker state,
             @NonNull final UpdateCoordinates command) {
-        log.debug("---> [ACTOR - Auto Walker][path: {}] on update coordinates", actorPath());
+        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] on update coordinates", actorPath(), actorState(state));
 
         final var effect = Objects.equals(state.getCurrentCoordinates(), command.coordinates()) ?
                 Effect().none() :
@@ -86,13 +87,13 @@ public class AutomatedWalkerActor extends WalkerActor {
     protected Effect<Walker> onMove(
             @NonNull final Walker state,
             @NonNull final GetMoving command) {
-        log.debug("---> [ACTOR - Auto Walker][path: {}] on move", actorPath());
+        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] on move", actorPath(), actorState(state));
 
         // Ask to be moved to the new coordinates
         dungeonEntityRef(command.dungeonEntityId())
                 .tell(new MoveWalker(
                         entityId(),
-                        command.walkerType(),
+                        state.getType(),
                         state.getCurrentCoordinates(),
                         command.possibleCoordinatesTo()));
 
@@ -102,7 +103,7 @@ public class AutomatedWalkerActor extends WalkerActor {
     protected Effect<Walker> onAlreadyMoving(
             @NonNull final Walker state,
             @NonNull final GetMoving command) {
-        log.debug("---> [ACTOR - Auto Walker][path: {}] on already moving", actorPath());
+        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] on already moving", actorPath(), actorState(state));
 
         return Effect().none();
     }
@@ -110,7 +111,7 @@ public class AutomatedWalkerActor extends WalkerActor {
     protected Effect<Walker> onStandStill(
             @NonNull final Walker state,
             @NonNull final StandStill command) {
-        log.debug("---> [ACTOR - Auto Walker][path: {}] on stand still", actorPath());
+        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] on stand still", actorPath(), actorState(state));
 
         return Effect().none().thenRun(_ -> startTimerToGetMoving(state, command.dungeonEntityId()));
     }
@@ -128,7 +129,6 @@ public class AutomatedWalkerActor extends WalkerActor {
                 context.getSelf(),
                 new GetMoving(
                         dungeonEntityId,
-                        WalkerType.AUTOMATED,
                         // Calculate new coordinates
                         state.possibleCoordinatesTo()));
     }

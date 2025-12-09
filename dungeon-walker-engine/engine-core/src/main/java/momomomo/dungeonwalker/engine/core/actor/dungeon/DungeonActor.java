@@ -19,11 +19,11 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.state.InitializedDungeon
 import momomomo.dungeonwalker.engine.core.actor.dungeon.state.UninitializedDungeon;
 import momomomo.dungeonwalker.engine.core.actor.walker.AutomatedWalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.UserWalkerActor;
-import momomomo.dungeonwalker.engine.core.actor.walker.WalkerType;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.StandStill;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
+import momomomo.dungeonwalker.engine.domain.model.walker.WalkerType;
 
 import static java.util.Objects.isNull;
 
@@ -102,7 +102,6 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, Dungeon> 
                 .thenRun(_ -> walkerEntityRef(command.walkerType(), command.walkerEntityId())
                         .tell(new UpdateCoordinates(
                                 entityId(),
-                                command.walkerType(),
                                 coordinates)));
     }
 
@@ -120,13 +119,14 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, Dungeon> 
         return isNull(to) ?
                 Effect()
                         .none()
-                        .thenRun(_ -> walkerEntityRef(command.walkerType(), command.walkerEntityId())
-                                .tell(new StandStill(entityId(), command.walkerType()))) :
+                        .thenRun(_ ->
+                                walkerEntityRef(command.walkerType(), command.walkerEntityId())
+                                        .tell(new StandStill(entityId()))) :
                 Effect()
                         .persist(state)
                         .thenRun(_ ->
                                 walkerEntityRef(command.walkerType(), command.walkerEntityId())
-                                        .tell(new UpdateCoordinates(entityId(), command.walkerType(), to)));
+                                        .tell(new UpdateCoordinates(entityId(), to)));
     }
 
     private String actorPath() {

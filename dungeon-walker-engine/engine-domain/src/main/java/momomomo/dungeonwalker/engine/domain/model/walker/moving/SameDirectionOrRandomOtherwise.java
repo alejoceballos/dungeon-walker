@@ -2,6 +2,7 @@ package momomomo.dungeonwalker.engine.domain.model.walker.moving;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.CoordinatesManager;
@@ -23,6 +24,7 @@ import static momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction
 import static momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction.SOUTHWEST;
 import static momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction.WEST;
 
+@NoArgsConstructor
 public class SameDirectionOrRandomOtherwise implements WalkerMovingStrategy {
 
     @Override

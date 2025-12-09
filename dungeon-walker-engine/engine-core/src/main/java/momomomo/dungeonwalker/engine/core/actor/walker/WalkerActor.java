@@ -51,7 +51,7 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates);
 
         setStandingStillStateCommands(builder.forStateType(StandingStill.class));
-        setonTheMoveStateCommands(builder.forStateType(OnTheMove.class));
+        setOnTheMoveStateCommands(builder.forStateType(OnTheMove.class));
 
         return builder.build();
     }
@@ -59,15 +59,15 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
     protected abstract void setStandingStillStateCommands(
             @NonNull final CommandHandlerBuilderByState<WalkerCommand, StandingStill, Walker> builder);
 
-    protected abstract void setonTheMoveStateCommands(
+    protected abstract void setOnTheMoveStateCommands(
             @NonNull final CommandHandlerBuilderByState<WalkerCommand, OnTheMove, Walker> builder);
 
     protected Effect<Walker> onAskingToEnterTheDungeon(
             @NonNull final Walker state,
             @NonNull final AskToEnterTheDungeon command) {
-        log.debug("---> [ACTOR - Walker][path: {}] on enter dungeon", actorPath());
+        log.debug("---> [ACTOR - Walker][path: {}][state: {}] on enter dungeon", actorPath(), actorState(state));
 
-        final var walker = new WaitingToEnter(entityId(), command.movingStrategy());
+        final var walker = new WaitingToEnter(entityId(), state.getType(), command.movingStrategy());
 
         // Go to STASIS state
         return Effect()
@@ -78,7 +78,7 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
                         dungeonEntityRef(command.dungeonEntityId())
                                 .tell(new PlaceWalker(
                                         entityId(),
-                                        command.walkerType(),
+                                        state.getType(),
                                         walker,
                                         command.placingStrategy())));
     }
@@ -95,7 +95,11 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
         return context.getSelf().path().name();
     }
 
-    protected EntityRef<DungeonCommand> dungeonEntityRef(final String entityId) {
+    protected String actorState(@NonNull Walker state) {
+        return state.getClass().getSimpleName();
+    }
+
+    protected EntityRef<DungeonCommand> dungeonEntityRef(@NonNull final String entityId) {
         return cluster.entityRefFor(DungeonActor.ENTITY_TYPE_KEY, entityId);
     }
 

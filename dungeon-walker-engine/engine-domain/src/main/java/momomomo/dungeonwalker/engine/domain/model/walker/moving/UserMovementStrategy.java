@@ -1,6 +1,7 @@
 package momomomo.dungeonwalker.engine.domain.model.walker.moving;
 
 import jakarta.annotation.Nonnull;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import org.jspecify.annotations.NonNull;
@@ -9,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 @Slf4j
+@NoArgsConstructor
 public class UserMovementStrategy implements WalkerMovingStrategy {
 
     @Override
