@@ -70,6 +70,14 @@ enum Direction {
   "connection": {}
 }
 ```
+```json
+{
+  "client_id": "user-id",
+  "movement": {
+    "direction": "E"
+  }
+}
+```
 
 #### IJ's Kafka Plugin Consumer
 

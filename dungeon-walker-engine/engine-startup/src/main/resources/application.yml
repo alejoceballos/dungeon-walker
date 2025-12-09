@@ -20,11 +20,14 @@ management:
 
 logging:
   level:
-    root: info
+    root: ${LOGGING_LEVEL_ROOT:info}
+    org:
+      apache:
+        kafka: ${LOGGING_LEVEL_KAFKA:warn}
     momomomo:
       dungeonwalker:
         engine:
-          startup: debug
-          transport: debug
-          core: debug
-          domain: debug
+          startup: ${LOGGING_DW_STARTUP:debug}
+          transport: ${LOGGING_DW_TRANSPORT:debug}
+          core: ${LOGGING_DW_CORE:debug}
+          domain: ${LOGGING_DW_DOMAIN:debug}

@@ -1,6 +1,7 @@
 package momomomo.dungeonwalker.engine.domain.model.coordinates;
 
 import lombok.NonNull;
+import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
 
 import static java.lang.Math.negateExact;
 import static momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates.Axis.X;
@@ -16,6 +17,19 @@ public class CoordinatesManager {
 
     public static CoordinatesManager of(@NonNull final Coordinates coordinates) {
         return new CoordinatesManager(coordinates);
+    }
+
+    public CoordinatesManager move(@NonNull final Direction direction, final int steps) {
+        return switch (direction) {
+            case NORTH -> moveNorth(steps);
+            case EAST -> moveEast(steps);
+            case SOUTH -> moveSouth(steps);
+            case WEST -> moveWest(steps);
+            case NORTHEAST -> moveNortheast(steps);
+            case SOUTHEAST -> moveSoutheast(steps);
+            case SOUTHWEST -> moveSouthwest(steps);
+            case NORTHWEST -> moveNorthwest(steps);
+        };
     }
 
     public CoordinatesManager moveNorth(final int steps) {

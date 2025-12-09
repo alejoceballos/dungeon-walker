@@ -17,7 +17,9 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.PlaceWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.state.InitializedDungeon;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.state.UninitializedDungeon;
-import momomomo.dungeonwalker.engine.core.actor.walker.WalkerActor;
+import momomomo.dungeonwalker.engine.core.actor.walker.AutomatedWalkerActor;
+import momomomo.dungeonwalker.engine.core.actor.walker.UserWalkerActor;
+import momomomo.dungeonwalker.engine.core.actor.walker.WalkerType;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.StandStill;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
@@ -97,9 +99,10 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, Dungeon> 
 
         return Effect()
                 .persist(state)
-                .thenRun(_ -> walkerEntityRef(command.walkerEntityId())
+                .thenRun(_ -> walkerEntityRef(command.walkerType(), command.walkerEntityId())
                         .tell(new UpdateCoordinates(
                                 entityId(),
+                                command.walkerType(),
                                 coordinates)));
     }
 
@@ -117,13 +120,13 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, Dungeon> 
         return isNull(to) ?
                 Effect()
                         .none()
-                        .thenRun(_ -> walkerEntityRef(command.walkerEntityId())
-                                .tell(new StandStill(entityId()))) :
+                        .thenRun(_ -> walkerEntityRef(command.walkerType(), command.walkerEntityId())
+                                .tell(new StandStill(entityId(), command.walkerType()))) :
                 Effect()
                         .persist(state)
                         .thenRun(_ ->
-                                walkerEntityRef(command.walkerEntityId())
-                                        .tell(new UpdateCoordinates(entityId(), to)));
+                                walkerEntityRef(command.walkerType(), command.walkerEntityId())
+                                        .tell(new UpdateCoordinates(entityId(), command.walkerType(), to)));
     }
 
     private String actorPath() {
@@ -134,8 +137,11 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, Dungeon> 
         return context.getSelf().path().name();
     }
 
-    private EntityRef<WalkerCommand> walkerEntityRef(final String entityId) {
-        return cluster.entityRefFor(WalkerActor.ENTITY_TYPE_KEY, entityId);
+    private EntityRef<WalkerCommand> walkerEntityRef(final WalkerType walkerType, final String entityId) {
+        return switch (walkerType) {
+            case USER -> cluster.entityRefFor(UserWalkerActor.ENTITY_TYPE_KEY, entityId);
+            case AUTOMATED -> cluster.entityRefFor(AutomatedWalkerActor.ENTITY_TYPE_KEY, entityId);
+        };
     }
 
 }

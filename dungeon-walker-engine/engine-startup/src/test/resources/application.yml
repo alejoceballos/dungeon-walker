@@ -1,15 +1,17 @@
 spring:
   kafka:
+    listener:
+      ack-mode: manual_immediate
     consumer:
       group-id: engine-consumer-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+      value-deserializer: momomomo.dungeonwalker.contract.serializer.ProtoDeserializer
     producer:
       retries: 3
       bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      value-serializer: momomomo.dungeonwalker.contract.serializer.ProtoSerializer
       acks: 1
 
 logging:

@@ -1,7 +1,11 @@
 package momomomo.dungeonwalker.engine.startup;
 
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.clientrequest.AddClientWalkerProto;
+import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
+import momomomo.dungeonwalker.contract.client.ConnectionProto.Connection;
+import momomomo.dungeonwalker.contract.client.DirectionProto;
+import momomomo.dungeonwalker.contract.client.MovementProto.Movement;
+import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +17,7 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -56,19 +61,45 @@ class DungeonWalkerEngineTest {
 
     @Test
     public void testEngineConsumesTopicAndProcessesMessage() {
-        final var message = AddClientWalkerProto
-                .AddClientWalker
-                .newBuilder()
-                .setId("whatever")
+        final var clientId = "user-id";
+
+        final var connection = ClientRequest.newBuilder()
+                .setClientId(clientId)
+                .setConnection(Connection.newBuilder().build())
                 .build();
 
-//        testKafkaProducer
-//                .produce("whatever", message.toByteArray())
-//                .thenAccept(result -> log.info("---> [TEST] - Kafka Producer result: {}", result))
-//                .exceptionally(ex -> {
-//                    log.error(ex.getMessage(), ex);
-//                    return null;
-//                });
+        testKafkaProducer
+                .produce(clientId, connection)
+                .thenAccept(result ->
+                        log.info("---> [TEST] - Connection result: {}", result))
+                .exceptionally(ex -> {
+                    log.error("---> [TEST] - Connection error: {}", ex.getMessage(), ex);
+                    return null;
+                });
+
+        await().atMost(5, TimeUnit.SECONDS);
+
+        Arrays.stream(Direction.values())
+                .map(Direction::getAcronym)
+                .forEach(direction -> {
+                    final var movement = ClientRequest.newBuilder()
+                            .setClientId(clientId)
+                            .setMovement(
+                                    Movement.newBuilder()
+                                            .setDirection(DirectionProto.Direction.valueOf(direction))
+                                            .build())
+                            .build();
+                    testKafkaProducer
+                            .produce(clientId, movement)
+                            .thenAccept(result ->
+                                    log.info("---> [TEST] - Move {} result: {}", direction, result))
+                            .exceptionally(ex -> {
+                                log.error("---> [TEST] - Move {} error: {}", direction, ex.getMessage(), ex);
+                                return null;
+                            });
+
+                    await().atMost(5, TimeUnit.SECONDS);
+                });
 
         await()
                 .atMost(1, TimeUnit.HOURS)

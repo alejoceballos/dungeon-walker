@@ -2,6 +2,7 @@ package momomomo.dungeonwalker.engine.startup;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -13,19 +14,19 @@ import java.util.concurrent.CompletableFuture;
 @Component
 public class TestKafkaProducer {
 
-    private final KafkaTemplate<@NonNull String, byte @NonNull []> kafkaTemplate;
+    private final KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate;
     private final String topic;
 
     public TestKafkaProducer(
-            final KafkaTemplate<@NonNull String, byte @NonNull []> kafkaTemplate,
+            final KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate,
             @Value("${kafka.topic.inbound.game-engine}") String topic) {
         this.kafkaTemplate = kafkaTemplate;
         this.topic = topic;
     }
 
-    public CompletableFuture<SendResult<@NonNull String, byte @NonNull []>> produce(
+    public CompletableFuture<SendResult<@NonNull String, @NonNull ClientRequest>> produce(
             final String messageId,
-            final byte[] payload) {
+            final ClientRequest payload) {
         log.info("---> [KAFKA - Producer] Sending payload");
         return kafkaTemplate.send(topic, messageId, payload);
     }

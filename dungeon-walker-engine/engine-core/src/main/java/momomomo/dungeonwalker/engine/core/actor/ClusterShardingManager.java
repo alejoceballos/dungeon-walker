@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.DungeonActor;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.core.actor.walker.AutomatedWalkerActor;
-import momomomo.dungeonwalker.engine.core.actor.walker.WalkerActor;
+import momomomo.dungeonwalker.engine.core.actor.walker.UserWalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import org.springframework.stereotype.Component;
 
@@ -34,11 +34,20 @@ public class ClusterShardingManager {
                                         context.getEntityTypeKey().name(),
                                         context.getEntityId()))));
 
-        log.debug("---> [CLUSTER - Manager] Initializing walker actor");
+        log.debug("---> [CLUSTER - Manager] Initializing automated walker actor");
         clusterSharding.init(
                 Entity.of(
                         AutomatedWalkerActor.ENTITY_TYPE_KEY,
                         context -> AutomatedWalkerActor.create(
+                                PersistenceId.of(
+                                        context.getEntityTypeKey().name(),
+                                        context.getEntityId()))));
+
+        log.debug("---> [CLUSTER - Manager] Initializing user walker actor");
+        clusterSharding.init(
+                Entity.of(
+                        UserWalkerActor.ENTITY_TYPE_KEY,
+                        context -> UserWalkerActor.create(
                                 PersistenceId.of(
                                         context.getEntityTypeKey().name(),
                                         context.getEntityId()))));
@@ -49,9 +58,14 @@ public class ClusterShardingManager {
         return clusterSharding.entityRefFor(DungeonActor.ENTITY_TYPE_KEY, entityId);
     }
 
-    public EntityRef<WalkerCommand> getWalkerEntityRef(final String entityId) {
-        log.debug("---> [CLUSTER - Manager] get walker entity ref \"{}\"", entityId);
-        return clusterSharding.entityRefFor(WalkerActor.ENTITY_TYPE_KEY, entityId);
+    public EntityRef<WalkerCommand> getAutomatedWalkerEntityRef(final String entityId) {
+        log.debug("---> [CLUSTER - Manager] get automatic walker entity ref \"{}\"", entityId);
+        return clusterSharding.entityRefFor(AutomatedWalkerActor.ENTITY_TYPE_KEY, entityId);
+    }
+
+    public EntityRef<WalkerCommand> getUserWalkerEntityRef(final String entityId) {
+        log.debug("---> [CLUSTER - Manager] get user walker entity ref \"{}\"", entityId);
+        return clusterSharding.entityRefFor(UserWalkerActor.ENTITY_TYPE_KEY, entityId);
     }
 
 }

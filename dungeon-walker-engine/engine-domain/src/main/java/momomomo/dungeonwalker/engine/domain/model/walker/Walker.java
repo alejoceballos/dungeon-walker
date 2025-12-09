@@ -26,7 +26,7 @@ public class Walker implements Thing {
     @Setter
     private Coordinates currentCoordinates;
 
-    public List<Coordinates> possibleDirections() {
+    public List<Coordinates> possibleCoordinatesTo() {
         return movingStrategy.nextCoordinates(previousCoordinates, currentCoordinates);
     }
 
