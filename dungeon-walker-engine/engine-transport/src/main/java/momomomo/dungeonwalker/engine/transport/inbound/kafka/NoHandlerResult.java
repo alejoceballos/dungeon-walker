@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.engine.transport.inbound;
+package momomomo.dungeonwalker.engine.transport.inbound.kafka;
 
 import lombok.NonNull;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;

@@ -10,8 +10,9 @@ public class WalkerState extends Walker {
     public WalkerState(
             @NonNull final String id,
             @NonNull final WalkerType type,
-            @NonNull final WalkerMovingStrategy movingStrategy) {
-        super(id, type, movingStrategy);
+            @NonNull final WalkerMovingStrategy movingStrategy,
+            final String dungeonId) {
+        super(id, type, movingStrategy, dungeonId);
     }
 
 }

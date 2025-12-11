@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.engine.transport.inbound;
+package momomomo.dungeonwalker.engine.transport.inbound.kafka;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +16,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KafkaConsumer {
 
+    private static final String LABEL = "---> [CONSUMER - Kafka]";
+
     private final List<SelectableHandler<ClientRequest>> handlers;
 
     @KafkaListener(
@@ -27,7 +29,7 @@ public class KafkaConsumer {
             final ConsumerRecord<String, ClientRequest> record,
             final Acknowledgment ack
     ) {
-        log.info("---> [INBOUND - Kafka Consumer] Message received: \"{}\":\"{}\"", record.key(), record.value());
+        log.info("{} Message received: \"{}\":\"{}\"", LABEL, record.key(), record.value());
 
         handlers.stream()
                 .filter(handler -> handler.shouldHandle(record.value()))
@@ -37,16 +39,11 @@ public class KafkaConsumer {
                         record.value(),
                         new IllegalArgumentException("No handler found for message")))
                 .onSuccess(proto -> {
-                    log.info("---> [INBOUND - Kafka Consumer] Message successful processed: \"{}\"/\"{}\"",
-                            record.key(),
-                            proto);
+                    log.info("{} Message successful processed: \"{}\"/\"{}\"", LABEL, record.key(), proto);
                     ack.acknowledge();
                 })
                 .onFailure((proto, throwable) -> {
-                    log.error("---> [INBOUND - Kafka Consumer] Message processing failure: \"{}\"/\"{}\": {}",
-                            record.key(),
-                            proto,
-                            throwable.getMessage());
+                    log.error("{} Message processing failure: \"{}\"/\"{}\": {}", LABEL, record.key(), proto, throwable.getMessage());
                     ack.acknowledge();
                 });
     }

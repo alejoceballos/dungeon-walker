@@ -4,9 +4,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
-import momomomo.dungeonwalker.engine.domain.DungeonMaster;
 import momomomo.dungeonwalker.engine.domain.handler.MessageHandlerResult;
 import momomomo.dungeonwalker.engine.domain.handler.SelectableHandler;
+import momomomo.dungeonwalker.engine.domain.manager.PlayerManager;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -14,12 +14,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ClientConnectionHandler implements SelectableHandler<ClientRequest> {
 
-    public final DungeonMaster dungeonMaster;
+    private static final String LABEL = "---> [CLIENT MSG HANDLER - Connection]";
+
+    public final PlayerManager playerManager;
 
     @Override
     public MessageHandlerResult<ClientRequest> handle(@NonNull final ClientRequest message) {
-        log.debug("---> [MESSAGE RECEIVER - Client] Message received: \"{}\"", message);
-        dungeonMaster.enterTheDungeon(message.getClientId());
+        log.debug("---> [{} Message received: \"{}\"", LABEL, message);
+        playerManager.enterTheDungeon(message.getClientId());
         return new ClientRequestResult(message);
     }
 

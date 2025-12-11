@@ -5,8 +5,5 @@ import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 
 import java.util.List;
 
-public record GetMoving(
-        @NonNull String dungeonEntityId,
-        @NonNull List<Coordinates> possibleCoordinatesTo
-) implements WalkerCommand {
+public record GetMoving(@NonNull List<Coordinates> possibleCoordinatesTo) implements WalkerCommand {
 }

@@ -20,10 +20,12 @@ import momomomo.dungeonwalker.engine.core.actor.walker.state.Awaken;
 import momomomo.dungeonwalker.engine.core.actor.walker.state.OnTheMove;
 import momomomo.dungeonwalker.engine.core.actor.walker.state.StandingStill;
 import momomomo.dungeonwalker.engine.core.actor.walker.state.WaitingToEnter;
-import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
+import momomomo.dungeonwalker.engine.core.actor.walker.state.WalkerState;
 
 @Slf4j
-public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Walker> {
+public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState> {
+
+    private static final String LABEL = "---> [ACTOR - Walker]";
 
     protected final ActorContext<WalkerCommand> context;
 
@@ -32,15 +34,15 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
     protected WalkerActor(
             @NonNull final ActorContext<WalkerCommand> context,
             @NonNull final PersistenceId persistenceId) {
-        log.debug("---> [ACTOR - Walker][path: {}] constructor", context.getSelf().toString());
+        log.debug("{}[Path: {}][State: null] constructor", LABEL, context.getSelf().toString());
         this.cluster = ClusterSharding.get(context.getSystem());
         this.context = context;
         super(persistenceId);
     }
 
     @Override
-    public CommandHandler<WalkerCommand, Walker> commandHandler() {
-        log.debug("---> [ACTOR - Walker][path: {}] command handler", actorPath());
+    public CommandHandler<WalkerCommand, WalkerState> commandHandler() {
+        log.debug("{}[Path: {}][State: ?] command handler", LABEL, actorPath());
 
         final var builder = newCommandHandlerBuilder();
 
@@ -57,25 +59,29 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
     }
 
     protected abstract void setStandingStillStateCommands(
-            @NonNull final CommandHandlerBuilderByState<WalkerCommand, StandingStill, Walker> builder);
+            @NonNull final CommandHandlerBuilderByState<WalkerCommand, StandingStill, WalkerState> builder);
 
     protected abstract void setOnTheMoveStateCommands(
-            @NonNull final CommandHandlerBuilderByState<WalkerCommand, OnTheMove, Walker> builder);
+            @NonNull final CommandHandlerBuilderByState<WalkerCommand, OnTheMove, WalkerState> builder);
 
-    protected Effect<Walker> onAskingToEnterTheDungeon(
-            @NonNull final Walker state,
+    protected Effect<WalkerState> onAskingToEnterTheDungeon(
+            @NonNull final WalkerState state,
             @NonNull final AskToEnterTheDungeon command) {
-        log.debug("---> [ACTOR - Walker][path: {}][state: {}] on enter dungeon", actorPath(), actorState(state));
+        log.debug("{}[Path: {}][State: {}] on enter dungeon", LABEL, actorPath(), state(state));
 
-        final var walker = new WaitingToEnter(entityId(), state.getType(), command.movingStrategy());
+        final var walker = new WaitingToEnter(
+                entityId(),
+                state.getType(),
+                command.movingStrategy(),
+                command.dungeonEntityId());
 
-        // Go to STASIS state
+        // Go to STASIS value
         return Effect()
                 .persist(walker)
                 .thenRun(_ ->
                         // Tell the dungeonRef that you are alive and want to spawn in the coordinates
                         // The dungeonRef will spawn you somewhere near and tell you that later
-                        dungeonEntityRef(command.dungeonEntityId())
+                        dungeonEntityRef(walker.getDungeonId())
                                 .tell(new PlaceWalker(
                                         entityId(),
                                         state.getType(),
@@ -83,19 +89,19 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
                                         command.placingStrategy())));
     }
 
-    protected abstract Effect<Walker> onUpdateCoordinates(
-            @NonNull final Walker state,
+    protected abstract Effect<WalkerState> onUpdateCoordinates(
+            @NonNull final WalkerState state,
             @NonNull final UpdateCoordinates command);
 
     protected String actorPath() {
-        return context.getSelf().path().toString();
+        return context.getSelf().path().name();
     }
 
     protected String entityId() {
         return context.getSelf().path().name();
     }
 
-    protected String actorState(@NonNull Walker state) {
+    protected String state(@NonNull WalkerState state) {
         return state.getClass().getSimpleName();
     }
 

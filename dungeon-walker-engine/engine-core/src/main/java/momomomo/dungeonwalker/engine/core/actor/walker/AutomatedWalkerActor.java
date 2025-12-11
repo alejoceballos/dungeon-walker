@@ -17,7 +17,7 @@ import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.core.actor.walker.state.Awaken;
 import momomomo.dungeonwalker.engine.core.actor.walker.state.OnTheMove;
 import momomomo.dungeonwalker.engine.core.actor.walker.state.StandingStill;
-import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
+import momomomo.dungeonwalker.engine.core.actor.walker.state.WalkerState;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.SameDirectionOrRandomOtherwise;
 
 import java.util.Objects;
@@ -28,29 +28,32 @@ import static momomomo.dungeonwalker.engine.domain.model.walker.WalkerType.AUTOM
 @Slf4j
 public class AutomatedWalkerActor extends WalkerActor {
 
+    private static final String LABEL = "---> [ACTOR - Auto Walker]";
+
     public static final EntityTypeKey<WalkerCommand> ENTITY_TYPE_KEY =
             EntityTypeKey.create(WalkerCommand.class, "walkerRef-auto-actor-type-key");
 
     private AutomatedWalkerActor(
             @NonNull final ActorContext<WalkerCommand> context,
             @NonNull final PersistenceId persistenceId) {
+        log.debug("{}[Path: {}][State: null] constructor", LABEL, context.getSelf().path().name());
         super(context, persistenceId);
     }
 
     public static Behavior<WalkerCommand> create(@NonNull final PersistenceId persistenceId) {
-        log.debug("---> [ACTOR - Auto Walker][persistenceId: {}] create", persistenceId);
+        log.debug("{}[persistenceId: {}] create", LABEL, persistenceId);
         return Behaviors.setup(context -> new AutomatedWalkerActor(context, persistenceId));
     }
 
     @Override
-    public Walker emptyState() {
-        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] empty state", actorPath(), Awaken.class.getSimpleName());
+    public WalkerState emptyState() {
+        log.debug("{}[Path: {}][State: {}] empty value", LABEL, actorPath(), Awaken.class.getSimpleName());
         return new Awaken(entityId(), AUTOMATED, new SameDirectionOrRandomOtherwise());
     }
 
     @Override
     protected void setStandingStillStateCommands(
-            @NonNull final CommandHandlerBuilderByState<WalkerCommand, StandingStill, Walker> builder
+            @NonNull final CommandHandlerBuilderByState<WalkerCommand, StandingStill, WalkerState> builder
     ) {
         builder
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates)
@@ -59,7 +62,7 @@ public class AutomatedWalkerActor extends WalkerActor {
 
     @Override
     protected void setOnTheMoveStateCommands(
-            @NonNull CommandHandlerBuilderByState<WalkerCommand, OnTheMove, Walker> builder
+            @NonNull CommandHandlerBuilderByState<WalkerCommand, OnTheMove, WalkerState> builder
     ) {
         builder
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates)
@@ -68,10 +71,10 @@ public class AutomatedWalkerActor extends WalkerActor {
     }
 
     @Override
-    protected Effect<Walker> onUpdateCoordinates(
-            @NonNull final Walker state,
+    protected Effect<WalkerState> onUpdateCoordinates(
+            @NonNull final WalkerState state,
             @NonNull final UpdateCoordinates command) {
-        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] on update coordinates", actorPath(), actorState(state));
+        log.debug("{}[Path: {}][State: {}] on update coordinates", LABEL, actorPath(), state(state));
 
         final var effect = Objects.equals(state.getCurrentCoordinates(), command.coordinates()) ?
                 Effect().none() :
@@ -80,17 +83,17 @@ public class AutomatedWalkerActor extends WalkerActor {
         return effect.thenRun(_ -> {
             // 1. Send update to a client listener (tell to "Actor Broadcaster")
             // 2. Restart the timer to start moving again
-            startTimerToGetMoving(state, command.dungeonEntityId());
+            startTimerToGetMoving(state);
         });
     }
 
-    protected Effect<Walker> onMove(
-            @NonNull final Walker state,
+    protected Effect<WalkerState> onMove(
+            @NonNull final WalkerState state,
             @NonNull final GetMoving command) {
-        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] on move", actorPath(), actorState(state));
+        log.debug("{}[Path: {}][State: {}] on move", LABEL, actorPath(), state(state));
 
         // Ask to be moved to the new coordinates
-        dungeonEntityRef(command.dungeonEntityId())
+        dungeonEntityRef(state.getDungeonId())
                 .tell(new MoveWalker(
                         entityId(),
                         state.getType(),
@@ -100,25 +103,23 @@ public class AutomatedWalkerActor extends WalkerActor {
         return Effect().persist(OnTheMove.of(state));
     }
 
-    protected Effect<Walker> onAlreadyMoving(
-            @NonNull final Walker state,
+    protected Effect<WalkerState> onAlreadyMoving(
+            @NonNull final WalkerState state,
             @NonNull final GetMoving command) {
-        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] on already moving", actorPath(), actorState(state));
+        log.debug("{}[Path: {}][State: {}] on already moving", LABEL, actorPath(), state(state));
 
         return Effect().none();
     }
 
-    protected Effect<Walker> onStandStill(
-            @NonNull final Walker state,
+    protected Effect<WalkerState> onStandStill(
+            @NonNull final WalkerState state,
             @NonNull final StandStill command) {
-        log.debug("---> [ACTOR - Auto Walker][path: {}][state: {}] on stand still", actorPath(), actorState(state));
+        log.debug("{}[Path: {}][State: {}] on stand still", LABEL, actorPath(), state(state));
 
-        return Effect().none().thenRun(_ -> startTimerToGetMoving(state, command.dungeonEntityId()));
+        return Effect().none().thenRun(_ -> startTimerToGetMoving(state));
     }
 
-    private void startTimerToGetMoving(
-            @NonNull final Walker state,
-            @NonNull final String dungeonEntityId) {
+    private void startTimerToGetMoving(@NonNull final WalkerState state) {
         // Start a counter-delay (in the future, based on the walker velocity). When the timer reaches zero, it will
         // send to the dungeonRef the next movements it wants to take
 
@@ -128,7 +129,6 @@ public class AutomatedWalkerActor extends WalkerActor {
                 ofMillis(1000),
                 context.getSelf(),
                 new GetMoving(
-                        dungeonEntityId,
                         // Calculate new coordinates
                         state.possibleCoordinatesTo()));
     }

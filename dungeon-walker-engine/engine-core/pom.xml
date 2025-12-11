@@ -74,17 +74,20 @@
             <version>${akka-persistence-r2dbc.version}</version>
         </dependency>
 
+        <!-- PostgreSQL - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgres.version}</version>
         </dependency>
 
+        <!-- Apache Commons - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
         <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor-testkit-typed_3</artifactId>
-            <version>${com.typesafe.akka.version}</version>
-            <scope>test</scope>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${apache-commons-lang.version}</version>
         </dependency>
 
     </dependencies>

@@ -9,8 +9,9 @@ public class WaitingToEnter extends WalkerState {
     public WaitingToEnter(
             @NonNull final String id,
             @NonNull final WalkerType type,
-            @NonNull final WalkerMovingStrategy movingStrategy) {
-        super(id, type, movingStrategy);
+            @NonNull final WalkerMovingStrategy movingStrategy,
+            @NonNull final String dungeonId) {
+        super(id, type, movingStrategy, dungeonId);
     }
 
 }

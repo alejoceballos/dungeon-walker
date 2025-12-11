@@ -17,8 +17,8 @@ import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.core.actor.walker.state.Awaken;
 import momomomo.dungeonwalker.engine.core.actor.walker.state.OnTheMove;
 import momomomo.dungeonwalker.engine.core.actor.walker.state.StandingStill;
+import momomomo.dungeonwalker.engine.core.actor.walker.state.WalkerState;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.CoordinatesManager;
-import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.UserMovementStrategy;
 
 import java.util.List;
@@ -28,29 +28,32 @@ import static momomomo.dungeonwalker.engine.domain.model.walker.WalkerType.USER;
 @Slf4j
 public class UserWalkerActor extends WalkerActor {
 
+    private static final String LABEL = "---> [ACTOR - User Walker]";
+
     public static final EntityTypeKey<WalkerCommand> ENTITY_TYPE_KEY =
             EntityTypeKey.create(WalkerCommand.class, "walkerRef-user-actor-type-key");
 
     private UserWalkerActor(
             @NonNull final ActorContext<WalkerCommand> context,
             @NonNull final PersistenceId persistenceId) {
+        log.debug("{}[Path: {}][State: null] constructor", LABEL, context.getSelf().path().name());
         super(context, persistenceId);
     }
 
     public static Behavior<WalkerCommand> create(@NonNull final PersistenceId persistenceId) {
-        log.debug("---> [ACTOR - User Walker][persistenceId: {}] create", persistenceId);
+        log.debug("{}[persistenceId: {}] create", LABEL, persistenceId);
         return Behaviors.setup(context -> new UserWalkerActor(context, persistenceId));
     }
 
     @Override
-    public Walker emptyState() {
-        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] empty state", actorPath(), Awaken.class.getSimpleName());
+    public WalkerState emptyState() {
+        log.debug("{}[Path: {}][State: {}] empty value", LABEL, actorPath(), Awaken.class.getSimpleName());
         return new Awaken(entityId(), USER, new UserMovementStrategy());
     }
 
     @Override
     protected void setStandingStillStateCommands(
-            @NonNull final CommandHandlerBuilderByState<WalkerCommand, StandingStill, Walker> builder
+            @NonNull final CommandHandlerBuilderByState<WalkerCommand, StandingStill, WalkerState> builder
     ) {
         builder
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates)
@@ -59,7 +62,7 @@ public class UserWalkerActor extends WalkerActor {
 
     @Override
     protected void setOnTheMoveStateCommands(
-            @NonNull CommandHandlerBuilderByState<WalkerCommand, OnTheMove, Walker> builder
+            @NonNull CommandHandlerBuilderByState<WalkerCommand, OnTheMove, WalkerState> builder
     ) {
         builder
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates)
@@ -68,11 +71,11 @@ public class UserWalkerActor extends WalkerActor {
     }
 
     @Override
-    protected Effect<Walker> onUpdateCoordinates(
-            @NonNull final Walker state,
+    protected Effect<WalkerState> onUpdateCoordinates(
+            @NonNull final WalkerState state,
             @NonNull final UpdateCoordinates command
     ) {
-        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] on update coordinates", actorPath(), actorState(state));
+        log.debug("{}[Path: {}][State: {}] on update coordinates", LABEL, actorPath(), state(state));
 
         return Effect()
                 .persist(StandingStill.of(state.updateCoordinates(command.coordinates())))
@@ -81,16 +84,16 @@ public class UserWalkerActor extends WalkerActor {
                 });
     }
 
-    protected Effect<Walker> onMove(
-            @NonNull final Walker state,
+    protected Effect<WalkerState> onMove(
+            @NonNull final WalkerState state,
             @NonNull final Move command
     ) {
-        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] on move", actorPath(), actorState(state));
+        log.debug("{}[Path: {}][State: {}] on move", LABEL, actorPath(), state(state));
 
         return Effect()
                 .persist(OnTheMove.of(state))
                 // Ask to be moved to the new coordinates
-                .thenRun(_ -> dungeonEntityRef(command.dungeonEntityId())
+                .thenRun(_ -> dungeonEntityRef(state.getDungeonId())
                         .tell(new MoveWalker(
                                 entityId(),
                                 state.getType(),
@@ -101,22 +104,22 @@ public class UserWalkerActor extends WalkerActor {
                                         .coordinates()))));
     }
 
-    protected Effect<Walker> onAlreadyMoving(
-            @NonNull final Walker state,
+    protected Effect<WalkerState> onAlreadyMoving(
+            @NonNull final WalkerState state,
             @NonNull final Move command
     ) {
-        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] on already moving", actorPath(), actorState(state));
+        log.debug("{}[Path: {}][State: {}] on already moving", LABEL, actorPath(), state(state));
 
         return Effect().none().thenRun(_ -> {
             // TODO: Send to client that no move command can be applied when the walker is moving
         });
     }
 
-    protected Effect<Walker> onStandStill(
-            @NonNull final Walker state,
+    protected Effect<WalkerState> onStandStill(
+            @NonNull final WalkerState state,
             @NonNull final StandStill command
     ) {
-        log.debug("---> [ACTOR - User Walker][path: {}][state: {}] on stand still", actorPath(), actorState(state));
+        log.debug("{}[Path: {}][State: {}] on stand still", LABEL, actorPath(), state(state));
 
         return Effect().persist(StandingStill.of(state)).thenRun(_ -> {
             // TODO: Send to client that the walker is standing still

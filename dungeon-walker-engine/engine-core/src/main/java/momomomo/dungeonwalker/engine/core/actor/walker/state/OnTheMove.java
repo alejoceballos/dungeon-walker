@@ -10,12 +10,17 @@ public class OnTheMove extends WalkerState {
     public OnTheMove(
             @NonNull final String id,
             @NonNull final WalkerType type,
-            @NonNull final WalkerMovingStrategy movingStrategy) {
-        super(id, type, movingStrategy);
+            @NonNull final WalkerMovingStrategy movingStrategy,
+            @NonNull final String dungeonId) {
+        super(id, type, movingStrategy, dungeonId);
     }
 
     public static OnTheMove of(@NonNull final Walker source) {
-        final var target = new OnTheMove(source.getId(), source.getType(), source.getMovingStrategy());
+        final var target = new OnTheMove(
+                source.getId(),
+                source.getType(),
+                source.getMovingStrategy(),
+                source.getDungeonId());
 
         target.setPreviousCoordinates(source.getPreviousCoordinates());
         target.setCurrentCoordinates(source.getCurrentCoordinates());

@@ -4,9 +4,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
-import momomomo.dungeonwalker.engine.domain.DungeonMaster;
 import momomomo.dungeonwalker.engine.domain.handler.MessageHandlerResult;
 import momomomo.dungeonwalker.engine.domain.handler.SelectableHandler;
+import momomomo.dungeonwalker.engine.domain.manager.PlayerManager;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
 import org.springframework.stereotype.Component;
 
@@ -15,13 +15,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ClientMovementHandler implements SelectableHandler<ClientRequest> {
 
-    public final DungeonMaster dungeonMaster;
+    private static final String LABEL = "---> [CLIENT MSG HANDLER - Movement]";
+
+    public final PlayerManager playerManager;
 
     @Override
     public MessageHandlerResult<ClientRequest> handle(@NonNull final ClientRequest message) {
-        log.debug("---> [MESSAGE RECEIVER - Client] Message received: \"{}\"", message);
+        log.debug("---> [{} Message received: \"{}\"", LABEL, message);
 
-        dungeonMaster.move(
+        playerManager.move(
                 message.getClientId(),
                 Direction.of(message.getMovement().getDirection().name()));
 
