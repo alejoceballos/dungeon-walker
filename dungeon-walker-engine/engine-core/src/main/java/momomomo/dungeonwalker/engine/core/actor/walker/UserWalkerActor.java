@@ -16,8 +16,8 @@ import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.CoordinatesManager;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.UserMovementStrategy;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Asleep;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Moving;
-import momomomo.dungeonwalker.engine.domain.model.walker.state.Sleeping;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Stopped;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
 
@@ -47,8 +47,8 @@ public class UserWalkerActor extends WalkerActor {
 
     @Override
     public WalkerState emptyState() {
-        log.debug("{}[Path: {}][State: {}] empty value", LABEL, actorPath(), Sleeping.class.getSimpleName());
-        return new Sleeping(entityId(), USER, new UserMovementStrategy());
+        log.debug("{}[Path: {}][State: {}] empty value", LABEL, actorPath(), Asleep.class.getSimpleName());
+        return new Asleep(entityId(), USER, new UserMovementStrategy());
     }
 
     @Override

@@ -4,9 +4,9 @@ import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.walker.WalkerType;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovingStrategy;
 
-public class Sleeping extends WalkerState {
+public class Asleep extends WalkerState {
 
-    public Sleeping(
+    public Asleep(
             @NonNull final String id,
             @NonNull final WalkerType type,
             @NonNull final WalkerMovingStrategy movingStrategy) {

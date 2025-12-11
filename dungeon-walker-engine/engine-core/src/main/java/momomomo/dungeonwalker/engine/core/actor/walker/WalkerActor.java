@@ -16,9 +16,9 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.PlaceWalker;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WakeUp;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Asleep;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Awake;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Moving;
-import momomomo.dungeonwalker.engine.domain.model.walker.state.Sleeping;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Stopped;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
 
@@ -46,7 +46,7 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
 
         final var builder = newCommandHandlerBuilder();
 
-        builder.forStateType(Sleeping.class)
+        builder.forStateType(Asleep.class)
                 .onCommand(WakeUp.class, this::onWakeUp);
 
         builder.forStateType(Awake.class)
