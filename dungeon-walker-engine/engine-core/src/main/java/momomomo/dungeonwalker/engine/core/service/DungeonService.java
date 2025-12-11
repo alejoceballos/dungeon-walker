@@ -8,8 +8,8 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateReply;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequest;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.state.InitializedDungeon;
 import momomomo.dungeonwalker.engine.core.mapper.RawMapMapper;
+import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;

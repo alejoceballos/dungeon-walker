@@ -13,14 +13,14 @@ import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.DungeonActor;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.PlaceWalker;
-import momomomo.dungeonwalker.engine.core.actor.walker.command.AskToEnterTheDungeon;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.WakeUp;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
-import momomomo.dungeonwalker.engine.core.actor.walker.state.Awaken;
-import momomomo.dungeonwalker.engine.core.actor.walker.state.OnTheMove;
-import momomomo.dungeonwalker.engine.core.actor.walker.state.StandingStill;
-import momomomo.dungeonwalker.engine.core.actor.walker.state.WaitingToEnter;
-import momomomo.dungeonwalker.engine.core.actor.walker.state.WalkerState;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Awake;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Moving;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Sleeping;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Stopped;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
 
 @Slf4j
 public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState> {
@@ -46,30 +46,30 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
 
         final var builder = newCommandHandlerBuilder();
 
-        builder.forStateType(Awaken.class)
-                .onCommand(AskToEnterTheDungeon.class, this::onAskingToEnterTheDungeon);
+        builder.forStateType(Sleeping.class)
+                .onCommand(WakeUp.class, this::onWakeUp);
 
-        builder.forStateType(WaitingToEnter.class)
+        builder.forStateType(Awake.class)
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates);
 
-        setStandingStillStateCommands(builder.forStateType(StandingStill.class));
-        setOnTheMoveStateCommands(builder.forStateType(OnTheMove.class));
+        setStandingStillStateCommands(builder.forStateType(Stopped.class));
+        setOnTheMoveStateCommands(builder.forStateType(Moving.class));
 
         return builder.build();
     }
 
     protected abstract void setStandingStillStateCommands(
-            @NonNull final CommandHandlerBuilderByState<WalkerCommand, StandingStill, WalkerState> builder);
+            @NonNull final CommandHandlerBuilderByState<WalkerCommand, Stopped, WalkerState> builder);
 
     protected abstract void setOnTheMoveStateCommands(
-            @NonNull final CommandHandlerBuilderByState<WalkerCommand, OnTheMove, WalkerState> builder);
+            @NonNull final CommandHandlerBuilderByState<WalkerCommand, Moving, WalkerState> builder);
 
-    protected Effect<WalkerState> onAskingToEnterTheDungeon(
+    protected Effect<WalkerState> onWakeUp(
             @NonNull final WalkerState state,
-            @NonNull final AskToEnterTheDungeon command) {
+            @NonNull final WakeUp command) {
         log.debug("{}[Path: {}][State: {}] on enter dungeon", LABEL, actorPath(), state(state));
 
-        final var walker = new WaitingToEnter(
+        final var walker = new Awake(
                 entityId(),
                 state.getType(),
                 command.movingStrategy(),

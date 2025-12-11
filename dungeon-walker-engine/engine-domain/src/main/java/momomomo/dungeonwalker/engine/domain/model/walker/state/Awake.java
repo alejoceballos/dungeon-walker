@@ -1,12 +1,12 @@
-package momomomo.dungeonwalker.engine.core.actor.walker.state;
+package momomomo.dungeonwalker.engine.domain.model.walker.state;
 
 import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.walker.WalkerType;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovingStrategy;
 
-public class WaitingToEnter extends WalkerState {
+public class Awake extends WalkerState {
 
-    public WaitingToEnter(
+    public Awake(
             @NonNull final String id,
             @NonNull final WalkerType type,
             @NonNull final WalkerMovingStrategy movingStrategy,

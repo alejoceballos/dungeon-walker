@@ -1,11 +1,11 @@
-package momomomo.dungeonwalker.engine.core.actor.walker.state;
+package momomomo.dungeonwalker.engine.domain.model.walker.state;
 
 import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
 import momomomo.dungeonwalker.engine.domain.model.walker.WalkerType;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovingStrategy;
 
-public class WalkerState extends Walker {
+public abstract class WalkerState extends Walker {
 
     public WalkerState(
             @NonNull final String id,

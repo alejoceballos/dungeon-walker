@@ -1,13 +1,13 @@
-package momomomo.dungeonwalker.engine.core.actor.walker.state;
+package momomomo.dungeonwalker.engine.domain.model.walker.state;
 
 import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
 import momomomo.dungeonwalker.engine.domain.model.walker.WalkerType;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovingStrategy;
 
-public class StandingStill extends WalkerState {
+public class Stopped extends WalkerState {
 
-    public StandingStill(
+    public Stopped(
             @NonNull final String id,
             @NonNull final WalkerType type,
             @NonNull final WalkerMovingStrategy movingStrategy,
@@ -15,8 +15,8 @@ public class StandingStill extends WalkerState {
         super(id, type, movingStrategy, dungeonId);
     }
 
-    public static StandingStill of(@NonNull final Walker source) {
-        final var target = new StandingStill(
+    public static Stopped of(@NonNull final Walker source) {
+        final var target = new Stopped(
                 source.getId(),
                 source.getType(),
                 source.getMovingStrategy(),

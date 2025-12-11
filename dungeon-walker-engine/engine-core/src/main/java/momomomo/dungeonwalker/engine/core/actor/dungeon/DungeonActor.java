@@ -17,14 +17,14 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequ
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.MoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.PlaceWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.state.DungeonState;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.state.InitializedDungeon;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.state.UninitializedDungeon;
 import momomomo.dungeonwalker.engine.core.actor.walker.AutomatedWalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.UserWalkerActor;
-import momomomo.dungeonwalker.engine.core.actor.walker.command.StandStill;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.Stop;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
+import momomomo.dungeonwalker.engine.domain.model.dungeon.state.DungeonState;
+import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
+import momomomo.dungeonwalker.engine.domain.model.dungeon.state.UninitializedDungeon;
 import momomomo.dungeonwalker.engine.domain.model.walker.WalkerType;
 import org.apache.commons.lang3.Strings;
 
@@ -136,7 +136,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
                         .none()
                         .thenRun(_ ->
                                 walkerEntityRef(command.walkerType(), command.walkerEntityId())
-                                        .tell(new StandStill())) :
+                                        .tell(new Stop())) :
                 Effect()
                         .persist(state)
                         .thenRun(_ ->

@@ -8,6 +8,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Awake;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Moving;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Sleeping;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Stopped;
 
 import static java.util.Objects.isNull;
 
@@ -25,7 +29,11 @@ public class Cell {
             property = "type")
     @JsonSubTypes({
             @JsonSubTypes.Type(value = Wall.class, name = "wall"),
-            @JsonSubTypes.Type(value = Walker.class, name = "walker")
+            @JsonSubTypes.Type(value = Walker.class, name = "walker"),
+            @JsonSubTypes.Type(value = Sleeping.class, name = "walker-awaken"),
+            @JsonSubTypes.Type(value = Awake.class, name = "walker-waiting-to-enter"),
+            @JsonSubTypes.Type(value = Moving.class, name = "walker-moving"),
+            @JsonSubTypes.Type(value = Stopped.class, name = "walker-stopped")
     })
     private Thing occupant;
 

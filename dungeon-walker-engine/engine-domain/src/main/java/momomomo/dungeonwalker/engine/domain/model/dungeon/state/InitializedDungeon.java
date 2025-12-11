@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.engine.core.actor.dungeon.state;
+package momomomo.dungeonwalker.engine.domain.model.dungeon.state;
 
 import lombok.NoArgsConstructor;
 import lombok.NonNull;

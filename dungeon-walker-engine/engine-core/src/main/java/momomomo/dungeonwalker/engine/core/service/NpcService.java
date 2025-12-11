@@ -4,7 +4,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.ClusterShardingManager;
-import momomomo.dungeonwalker.engine.core.actor.walker.command.AskToEnterTheDungeon;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.WakeUp;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.placing.DungeonPlacingStrategy;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.placing.SpiralStrategy;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.UserMovementStrategy;
@@ -31,7 +31,7 @@ public class NpcService {
         // Ask if the NPC is already in a dungeon, if it does, ignore the code below
 
         // But if the player does not exist, then it must enter the dungeon
-        entityRef.tell(new AskToEnterTheDungeon(
+        entityRef.tell(new WakeUp(
                 identityService.dungeonId(1),
                 PLACING_STRATEGY,
                 new UserMovementStrategy()));

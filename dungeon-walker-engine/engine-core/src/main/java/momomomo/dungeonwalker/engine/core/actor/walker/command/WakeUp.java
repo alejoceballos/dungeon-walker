@@ -4,7 +4,7 @@ import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.placing.DungeonPlacingStrategy;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovingStrategy;
 
-public record AskToEnterTheDungeon(
+public record WakeUp(
         @NonNull String dungeonEntityId,
         @NonNull DungeonPlacingStrategy placingStrategy,
         @NonNull WalkerMovingStrategy movingStrategy

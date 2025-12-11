@@ -11,14 +11,14 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.MoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.GetMoving;
-import momomomo.dungeonwalker.engine.core.actor.walker.command.StandStill;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.Stop;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
-import momomomo.dungeonwalker.engine.core.actor.walker.state.Awaken;
-import momomomo.dungeonwalker.engine.core.actor.walker.state.OnTheMove;
-import momomomo.dungeonwalker.engine.core.actor.walker.state.StandingStill;
-import momomomo.dungeonwalker.engine.core.actor.walker.state.WalkerState;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.SameDirectionOrRandomOtherwise;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Moving;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Sleeping;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.Stopped;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
 
 import java.util.Objects;
 
@@ -47,13 +47,13 @@ public class AutomatedWalkerActor extends WalkerActor {
 
     @Override
     public WalkerState emptyState() {
-        log.debug("{}[Path: {}][State: {}] empty value", LABEL, actorPath(), Awaken.class.getSimpleName());
-        return new Awaken(entityId(), AUTOMATED, new SameDirectionOrRandomOtherwise());
+        log.debug("{}[Path: {}][State: {}] empty value", LABEL, actorPath(), Sleeping.class.getSimpleName());
+        return new Sleeping(entityId(), AUTOMATED, new SameDirectionOrRandomOtherwise());
     }
 
     @Override
     protected void setStandingStillStateCommands(
-            @NonNull final CommandHandlerBuilderByState<WalkerCommand, StandingStill, WalkerState> builder
+            @NonNull final CommandHandlerBuilderByState<WalkerCommand, Stopped, WalkerState> builder
     ) {
         builder
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates)
@@ -62,12 +62,12 @@ public class AutomatedWalkerActor extends WalkerActor {
 
     @Override
     protected void setOnTheMoveStateCommands(
-            @NonNull CommandHandlerBuilderByState<WalkerCommand, OnTheMove, WalkerState> builder
+            @NonNull CommandHandlerBuilderByState<WalkerCommand, Moving, WalkerState> builder
     ) {
         builder
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates)
                 .onCommand(GetMoving.class, this::onAlreadyMoving)
-                .onCommand(StandStill.class, this::onStandStill);
+                .onCommand(Stop.class, this::onStop);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class AutomatedWalkerActor extends WalkerActor {
 
         final var effect = Objects.equals(state.getCurrentCoordinates(), command.coordinates()) ?
                 Effect().none() :
-                Effect().persist(StandingStill.of(state.updateCoordinates(command.coordinates())));
+                Effect().persist(Stopped.of(state.updateCoordinates(command.coordinates())));
 
         return effect.thenRun(_ -> {
             // 1. Send update to a client listener (tell to "Actor Broadcaster")
@@ -100,7 +100,7 @@ public class AutomatedWalkerActor extends WalkerActor {
                         state.getCurrentCoordinates(),
                         command.possibleCoordinatesTo()));
 
-        return Effect().persist(OnTheMove.of(state));
+        return Effect().persist(Moving.of(state));
     }
 
     protected Effect<WalkerState> onAlreadyMoving(
@@ -111,9 +111,9 @@ public class AutomatedWalkerActor extends WalkerActor {
         return Effect().none();
     }
 
-    protected Effect<WalkerState> onStandStill(
+    protected Effect<WalkerState> onStop(
             @NonNull final WalkerState state,
-            @NonNull final StandStill command) {
+            @NonNull final Stop command) {
         log.debug("{}[Path: {}][State: {}] on stand still", LABEL, actorPath(), state(state));
 
         return Effect().none().thenRun(_ -> startTimerToGetMoving(state));
