@@ -19,7 +19,7 @@ public class TestKafkaProducer {
 
     public TestKafkaProducer(
             final KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate,
-            @Value("${kafka.topic.inbound.game-engine}") String topic) {
+            @Value("${kafka.topic.game-engine.inbound}") String topic) {
         this.kafkaTemplate = kafkaTemplate;
         this.topic = topic;
     }

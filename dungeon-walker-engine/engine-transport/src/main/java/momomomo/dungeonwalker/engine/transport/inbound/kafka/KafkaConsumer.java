@@ -21,7 +21,7 @@ public class KafkaConsumer {
     private final List<SelectableHandler<ClientRequest>> handlers;
 
     @KafkaListener(
-            topics = "${kafka.topic.inbound.game-engine}",
+            topics = "${kafka.topic.game-engine.inbound}",
             groupId = "${spring.kafka.consumer.group-id}",
             properties = {"${spring.kafka.consumer.auto-offset-reset}"}
     )

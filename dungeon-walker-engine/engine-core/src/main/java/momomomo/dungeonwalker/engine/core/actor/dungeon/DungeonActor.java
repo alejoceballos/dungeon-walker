@@ -11,6 +11,7 @@ import akka.persistence.typed.state.javadsl.CommandHandler;
 import akka.persistence.typed.state.javadsl.DurableStateBehavior;
 import akka.persistence.typed.state.javadsl.Effect;
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateReply;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequest;
@@ -26,6 +27,7 @@ import momomomo.dungeonwalker.engine.domain.model.dungeon.state.DungeonState;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.UninitializedDungeon;
 import momomomo.dungeonwalker.engine.domain.model.walker.WalkerType;
+import momomomo.dungeonwalker.engine.domain.outbound.Sender;
 import org.apache.commons.lang3.Strings;
 
 import static java.util.Objects.isNull;
@@ -38,22 +40,28 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     public static final EntityTypeKey<DungeonCommand> ENTITY_TYPE_KEY =
             EntityTypeKey.create(DungeonCommand.class, "dungeonRef-actor-type-key");
 
+    private final Sender<EngineMessage> sender;
+
     private final ActorContext<DungeonCommand> context;
 
     private final ClusterSharding cluster;
 
     public DungeonActor(
             final ActorContext<DungeonCommand> context,
+            final Sender<EngineMessage> sender,
             final PersistenceId persistenceId) {
         super(persistenceId);
-        this.cluster = ClusterSharding.get(context.getSystem());
         this.context = context;
+        this.sender = sender;
+        this.cluster = ClusterSharding.get(context.getSystem());
         log.debug("{}[path: {}][State: null] constructor", LABEL, actorPath());
     }
 
-    public static Behavior<DungeonCommand> create(final PersistenceId persistenceId) {
+    public static Behavior<DungeonCommand> create(
+            final Sender<EngineMessage> sender,
+            final PersistenceId persistenceId) {
         log.debug("{}[persistenceId: {}] create", LABEL, persistenceId.toString());
-        return Behaviors.setup(context -> new DungeonActor(context, persistenceId));
+        return Behaviors.setup(context -> new DungeonActor(context, sender, persistenceId));
     }
 
     @Override
@@ -123,8 +131,6 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
         final var to = state.moveThing(
                 command.from(),
                 command.toPossibilities());
-
-        state.print();
 
         return isNull(to) ?
                 Effect()

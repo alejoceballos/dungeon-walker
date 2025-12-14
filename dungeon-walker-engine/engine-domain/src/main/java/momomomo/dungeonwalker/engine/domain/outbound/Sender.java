@@ -2,7 +2,7 @@ package momomomo.dungeonwalker.engine.domain.outbound;
 
 import jakarta.annotation.Nonnull;
 
-public interface MessageSender<M> {
+public interface Sender<M> {
 
     void send(@Nonnull M message);
 

@@ -18,7 +18,7 @@ public class DisplayDungeonState {
 
     public final DungeonManager dungeonManager;
 
-    @Scheduled(initialDelay = 30L, fixedRate = 1L, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(initialDelay = 10L, fixedRate = 1L, timeUnit = TimeUnit.SECONDS)
     public void displayDungeon() {
         final var dungeon = dungeonManager.getDungeon();
 
