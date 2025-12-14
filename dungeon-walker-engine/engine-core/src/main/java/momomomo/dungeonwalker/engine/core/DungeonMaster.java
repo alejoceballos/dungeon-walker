@@ -9,8 +9,15 @@ import momomomo.dungeonwalker.engine.core.service.NpcService;
 import momomomo.dungeonwalker.engine.core.service.PlayerService;
 import momomomo.dungeonwalker.engine.domain.manager.DungeonManager;
 import momomomo.dungeonwalker.engine.domain.manager.PlayerManager;
+import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.join;
 
 @Slf4j
 @Component
@@ -25,7 +32,24 @@ public class DungeonMaster implements DungeonManager, PlayerManager {
 
     @PostConstruct
     public void init() {
-        dungeonService.setupLevel(1);
+        log.debug("{} Init", LABEL);
+
+        try (final var executor = Executors.newSingleThreadScheduledExecutor()) {
+            executor.schedule(() -> {
+                        log.debug("{} Calling dungeon level setup", LABEL);
+                        dungeonService.setupLevel(1);
+                    },
+                    5L,
+                    TimeUnit.SECONDS);
+
+            executor.schedule(() -> {
+                        final var npcIds = List.of("1", "2", "3", "4");
+                        log.debug("{} Putting NPCs '{}' in the dungeon", LABEL, join("', '", npcIds));
+                        npcIds.forEach(npcService::enterTheDungeon);
+                    },
+                    5L,
+                    TimeUnit.SECONDS);
+        }
     }
 
     @Override
@@ -35,9 +59,8 @@ public class DungeonMaster implements DungeonManager, PlayerManager {
     }
 
     @Override
-    public void addNpcToDungeon(@NonNull final String npcId) {
-        log.debug("{} Adding NPM \"{}\" to dungeon", LABEL, npcId);
-        npcService.addToDungeon(npcId);
+    public Dungeon getDungeon() {
+        return dungeonService.getDungeon(1);
     }
 
     @Override

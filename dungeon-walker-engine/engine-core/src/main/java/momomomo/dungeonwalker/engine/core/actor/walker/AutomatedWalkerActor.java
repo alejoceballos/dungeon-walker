@@ -1,5 +1,6 @@
 package momomomo.dungeonwalker.engine.core.actor.walker;
 
+import akka.actor.Cancellable;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
@@ -11,6 +12,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.MoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.GetMoving;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.RestartTimer;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.Stop;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
@@ -23,6 +25,7 @@ import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
 import java.util.Objects;
 
 import static java.time.Duration.ofMillis;
+import static java.util.Objects.nonNull;
 import static momomomo.dungeonwalker.engine.domain.model.walker.WalkerType.AUTOMATED;
 
 @Slf4j
@@ -32,6 +35,8 @@ public class AutomatedWalkerActor extends WalkerActor {
 
     public static final EntityTypeKey<WalkerCommand> ENTITY_TYPE_KEY =
             EntityTypeKey.create(WalkerCommand.class, "walkerRef-auto-actor-type-key");
+
+    private Cancellable timer;
 
     private AutomatedWalkerActor(
             @NonNull final ActorContext<WalkerCommand> context,
@@ -47,21 +52,22 @@ public class AutomatedWalkerActor extends WalkerActor {
 
     @Override
     public WalkerState emptyState() {
-        log.debug("{}[Path: {}][State: {}] empty value", LABEL, actorPath(), Asleep.class.getSimpleName());
+        log.debug("{}[Path: {}][State: {}] empty state", LABEL, actorPath(), Asleep.class.getSimpleName());
         return new Asleep(entityId(), AUTOMATED, new SameDirectionOrRandomOtherwise());
     }
 
     @Override
-    protected void setStandingStillStateCommands(
+    protected void setStoppedStateCommands(
             @NonNull final CommandHandlerBuilderByState<WalkerCommand, Stopped, WalkerState> builder
     ) {
         builder
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates)
-                .onCommand(GetMoving.class, this::onMove);
+                .onCommand(GetMoving.class, this::onMove)
+                .onCommand(RestartTimer.class, this::onRestartTimer);
     }
 
     @Override
-    protected void setOnTheMoveStateCommands(
+    protected void setMovingStateCommands(
             @NonNull CommandHandlerBuilderByState<WalkerCommand, Moving, WalkerState> builder
     ) {
         builder
@@ -115,7 +121,13 @@ public class AutomatedWalkerActor extends WalkerActor {
             @NonNull final WalkerState state,
             @NonNull final Stop command) {
         log.debug("{}[Path: {}][State: {}] on stand still", LABEL, actorPath(), state(state));
+        return Effect().none().thenRun(_ -> startTimerToGetMoving(state));
+    }
 
+    private Effect<WalkerState> onRestartTimer(
+            @NonNull final WalkerState state,
+            @NonNull final RestartTimer command) {
+        log.debug("{}[Path: {}][State: {}] on restart timer", LABEL, actorPath(), state(state));
         return Effect().none().thenRun(_ -> startTimerToGetMoving(state));
     }
 
@@ -125,7 +137,11 @@ public class AutomatedWalkerActor extends WalkerActor {
 
         // Wait for some while (it could be the walker speed, the lower the value, the faster it moves) and then
         // send a self-command to start calculating where to go and to really move
-        context.scheduleOnce(
+        if (nonNull(timer)) {
+            timer.cancel();
+        }
+
+        timer = context.scheduleOnce(
                 ofMillis(1000),
                 context.getSelf(),
                 new GetMoving(

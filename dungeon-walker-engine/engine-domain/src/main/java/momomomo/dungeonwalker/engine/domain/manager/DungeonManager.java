@@ -1,11 +1,11 @@
 package momomomo.dungeonwalker.engine.domain.manager;
 
-import jakarta.annotation.Nonnull;
+import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 
 public interface DungeonManager {
 
     void setupDungeon(final int level);
 
-    void addNpcToDungeon(@Nonnull final String npcId);
+    Dungeon getDungeon();
 
 }

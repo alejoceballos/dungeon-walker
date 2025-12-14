@@ -52,7 +52,7 @@ public class UserWalkerActor extends WalkerActor {
     }
 
     @Override
-    protected void setStandingStillStateCommands(
+    protected void setStoppedStateCommands(
             @NonNull final CommandHandlerBuilderByState<WalkerCommand, Stopped, WalkerState> builder
     ) {
         builder
@@ -61,7 +61,7 @@ public class UserWalkerActor extends WalkerActor {
     }
 
     @Override
-    protected void setOnTheMoveStateCommands(
+    protected void setMovingStateCommands(
             @NonNull CommandHandlerBuilderByState<WalkerCommand, Moving, WalkerState> builder
     ) {
         builder

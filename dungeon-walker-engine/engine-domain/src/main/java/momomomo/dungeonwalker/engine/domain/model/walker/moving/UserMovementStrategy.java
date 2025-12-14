@@ -11,7 +11,7 @@ import java.util.List;
 
 @Slf4j
 @NoArgsConstructor
-public class UserMovementStrategy implements WalkerMovingStrategy {
+public class UserMovementStrategy implements WalkerMovementStrategy {
 
     @Override
     public @Nonnull List<Coordinates> nextCoordinates(

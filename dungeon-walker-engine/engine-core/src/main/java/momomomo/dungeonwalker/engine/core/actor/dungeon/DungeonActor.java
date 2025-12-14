@@ -71,9 +71,6 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
         builder.forAnyState()
                 .onCommand(DungeonStateRequest.class, this::onDungeonStateRequest);
 
-        builder.forNullState()
-                .onCommand(SetupDungeon.class, this::onSetupDungeon);
-
         builder.forStateType(UninitializedDungeon.class)
                 .onCommand(SetupDungeon.class, this::onSetupDungeon);
 
@@ -90,7 +87,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
         log.debug("{}[path: {}][State: {}] on dungeon state request", LABEL, actorPath(), state(state));
         return Effect()
                 .none()
-                .thenRun(_ -> command.replyTo().tell(new DungeonStateReply(state.getClass())));
+                .thenRun(_ -> command.replyTo().tell(new DungeonStateReply(state)));
     }
 
     private Effect<DungeonState> onSetupDungeon(
@@ -111,8 +108,6 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
         final var coordinates = state.placeThing(
                 command.placingStrategy(),
                 command.walker());
-
-        state.print();
 
         return Effect()
                 .persist(state)

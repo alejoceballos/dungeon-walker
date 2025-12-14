@@ -6,7 +6,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Thing;
-import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovingStrategy;
+import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovementStrategy;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public class Walker implements Thing {
     public Walker(
             @Nonnull final String id,
             @Nonnull final WalkerType type,
-            @Nonnull final WalkerMovingStrategy movingStrategy,
+            @Nonnull final WalkerMovementStrategy movingStrategy,
             final String dungeonId) {
         this.id = id;
         this.type = type;
@@ -33,7 +33,7 @@ public class Walker implements Thing {
 
     @Getter
     @Nonnull
-    private final WalkerMovingStrategy movingStrategy;
+    private final WalkerMovementStrategy movingStrategy;
 
     @Getter
     @Setter

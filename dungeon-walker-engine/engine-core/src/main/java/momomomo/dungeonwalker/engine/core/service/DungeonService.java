@@ -9,6 +9,7 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRepl
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequest;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
 import momomomo.dungeonwalker.engine.core.mapper.RawMapMapper;
+import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +42,7 @@ public class DungeonService {
 
         final var dungeonId = identityService.dungeonId(level);
 
-        if (InitializedDungeon.class.equals(askForState(dungeonId).value())) {
+        if (InitializedDungeon.class.equals(askForState(dungeonId).value().getClass())) {
             log.debug("{} Level \"{}\" already initialized", LABEL, level);
             return;
         }
@@ -59,6 +60,11 @@ public class DungeonService {
         } catch (final IOException e) {
             throw new DungeonServiceException("Unable to set up dungeon level \"%s\".".formatted(level), e);
         }
+    }
+
+    public Dungeon getDungeon(final int level) {
+        final var dungeonId = identityService.dungeonId(level);
+        return askForState(dungeonId).value();
     }
 
     private DungeonStateReply askForState(final String dungeonId) {
@@ -79,15 +85,5 @@ public class DungeonService {
     private EntityRef<DungeonCommand> dungeonRef(final String dungeonId) {
         return cluster.getDungeonEntityRef(dungeonId);
     }
-
-//    public void addNPC(final String npcName) {
-//        IntStream.of(1, 2, 3, 4).forEach(i -> cluster
-//                .getAutomatedWalkerEntityRef(String.valueOf(i))
-//                .tell(new AskToEnterTheDungeon(
-//                        DUNGEON_ID,
-//                        PLACING_STRATEGY,
-//                        MOVING_STRATEGY)));
-//
-//    }
 
 }

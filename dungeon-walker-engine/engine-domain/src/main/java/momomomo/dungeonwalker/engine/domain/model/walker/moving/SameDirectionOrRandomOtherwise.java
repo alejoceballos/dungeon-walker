@@ -25,7 +25,7 @@ import static momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction
 import static momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction.WEST;
 
 @NoArgsConstructor
-public class SameDirectionOrRandomOtherwise implements WalkerMovingStrategy {
+public class SameDirectionOrRandomOtherwise implements WalkerMovementStrategy {
 
     @Override
     public @Nonnull List<Coordinates> nextCoordinates(

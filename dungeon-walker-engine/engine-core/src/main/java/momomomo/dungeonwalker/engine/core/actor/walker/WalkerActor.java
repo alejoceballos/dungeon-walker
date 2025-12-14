@@ -16,6 +16,8 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.PlaceWalker;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WakeUp;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerStateReply;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerStateRequest;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Asleep;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Awake;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Moving;
@@ -46,22 +48,35 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
 
         final var builder = newCommandHandlerBuilder();
 
+        builder.forAnyState()
+                .onCommand(WalkerStateRequest.class, this::onWalkerStateRequest);
+
         builder.forStateType(Asleep.class)
                 .onCommand(WakeUp.class, this::onWakeUp);
 
         builder.forStateType(Awake.class)
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates);
 
-        setStandingStillStateCommands(builder.forStateType(Stopped.class));
-        setOnTheMoveStateCommands(builder.forStateType(Moving.class));
+        setStoppedStateCommands(builder.forStateType(Stopped.class));
+        setMovingStateCommands(builder.forStateType(Moving.class));
 
         return builder.build();
     }
 
-    protected abstract void setStandingStillStateCommands(
+    private Effect<WalkerState> onWalkerStateRequest(
+            final WalkerState state,
+            final WalkerStateRequest command) {
+        log.debug("{}[path: {}][State: {}] on walker state request", LABEL, actorPath(), state(state));
+
+        return Effect()
+                .none()
+                .thenRun(_ -> command.replyTo().tell(new WalkerStateReply(  state.getClass())));
+    }
+
+    protected abstract void setStoppedStateCommands(
             @NonNull final CommandHandlerBuilderByState<WalkerCommand, Stopped, WalkerState> builder);
 
-    protected abstract void setOnTheMoveStateCommands(
+    protected abstract void setMovingStateCommands(
             @NonNull final CommandHandlerBuilderByState<WalkerCommand, Moving, WalkerState> builder);
 
     protected Effect<WalkerState> onWakeUp(

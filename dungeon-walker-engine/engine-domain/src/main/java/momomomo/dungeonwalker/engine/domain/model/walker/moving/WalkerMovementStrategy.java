@@ -13,7 +13,7 @@ import java.util.List;
         @JsonSubTypes.Type(value = SameDirectionOrRandomOtherwise.class, name = "SAME_DIR_OR_RANDOM"),
         @JsonSubTypes.Type(value = UserMovementStrategy.class, name = "USER")
 })
-public interface WalkerMovingStrategy {
+public interface WalkerMovementStrategy {
 
     @Nonnull
     List<Coordinates> nextCoordinates(
