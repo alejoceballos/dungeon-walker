@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: dungeon-walker-ui
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      access: unrestricted
+    env:
+      show-values: ALWAYS
+    configprops:
+      show-values: ALWAYS
