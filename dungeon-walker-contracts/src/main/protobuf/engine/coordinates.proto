@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package contract.engine;
+
+option java_package = "momomomo.dungeonwalker.contract.engine";
+option java_outer_classname = "CoordinatesProto";
+
+message Coordinates {
+  int32 x = 1;
+  int32 y = 2;
+}

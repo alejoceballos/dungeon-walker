@@ -11,7 +11,6 @@ import akka.persistence.typed.state.javadsl.CommandHandler;
 import akka.persistence.typed.state.javadsl.DurableStateBehavior;
 import akka.persistence.typed.state.javadsl.Effect;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateReply;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequest;
@@ -23,11 +22,11 @@ import momomomo.dungeonwalker.engine.core.actor.walker.UserWalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.Stop;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
+import momomomo.dungeonwalker.engine.core.service.MessageSender;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.DungeonState;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.UninitializedDungeon;
 import momomomo.dungeonwalker.engine.domain.model.walker.WalkerType;
-import momomomo.dungeonwalker.engine.domain.outbound.Sender;
 import org.apache.commons.lang3.Strings;
 
 import static java.util.Objects.isNull;
@@ -40,7 +39,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     public static final EntityTypeKey<DungeonCommand> ENTITY_TYPE_KEY =
             EntityTypeKey.create(DungeonCommand.class, "dungeonRef-actor-type-key");
 
-    private final Sender<EngineMessage> sender;
+    private final MessageSender sender;
 
     private final ActorContext<DungeonCommand> context;
 
@@ -48,7 +47,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
 
     public DungeonActor(
             final ActorContext<DungeonCommand> context,
-            final Sender<EngineMessage> sender,
+            final MessageSender sender,
             final PersistenceId persistenceId) {
         super(persistenceId);
         this.context = context;
@@ -58,7 +57,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     }
 
     public static Behavior<DungeonCommand> create(
-            final Sender<EngineMessage> sender,
+            final MessageSender sender,
             final PersistenceId persistenceId) {
         log.debug("{}[persistenceId: {}] create", LABEL, persistenceId.toString());
         return Behaviors.setup(context -> new DungeonActor(context, sender, persistenceId));
@@ -140,9 +139,10 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
                                         .tell(new Stop())) :
                 Effect()
                         .persist(state)
-                        .thenRun(_ ->
-                                walkerEntityRef(command.walkerType(), command.walkerEntityId())
-                                        .tell(new UpdateCoordinates(to)));
+                        .thenRun(_ -> {
+                            walkerEntityRef(command.walkerType(), command.walkerEntityId()).tell(new UpdateCoordinates(to));
+                            sender.broadcast(state.getWalkersPositions());
+                        });
     }
 
     private String actorPath() {

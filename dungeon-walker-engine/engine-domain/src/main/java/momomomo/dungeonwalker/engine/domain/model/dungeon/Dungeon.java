@@ -40,6 +40,9 @@ public class Dungeon {
     @JsonDeserialize(keyUsing = CoordinatesDeserializer.class)
     protected final Map<Coordinates, Cell> cells = new HashMap<>();
 
+    @Getter
+    protected final Map<String, Coordinates> walkersPositions = new HashMap<>();
+
     public void add(@NonNull final Cell cell) {
         cells.put(cell.getCoordinates(), cell);
     }
@@ -57,6 +60,9 @@ public class Dungeon {
             @NonNull final Thing thing) {
         final var coordinates = placingStrategy.placingCoordinates(this);
         at(coordinates).occupy(thing);
+
+        updateWalkersPositions(thing, coordinates);
+
         return coordinates;
     }
 
@@ -80,6 +86,8 @@ public class Dungeon {
         // Remove it from the old position
         at(from).vacate();
 
+        updateWalkersPositions(thing, to);
+
         return to;
     }
 
@@ -98,6 +106,12 @@ public class Dungeon {
             }
 
             System.out.println();
+        }
+    }
+
+    private void updateWalkersPositions(@NonNull final Thing thing, @NonNull final Coordinates coordinates) {
+        if (thing instanceof final Walker walker) {
+            walkersPositions.put(walker.getId(), coordinates);
         }
     }
 

@@ -5,7 +5,9 @@ import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import momomomo.dungeonwalker.contract.client.ConnectionProto.Connection;
 import momomomo.dungeonwalker.contract.client.DirectionProto;
 import momomomo.dungeonwalker.contract.client.MovementProto.Movement;
+import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +45,9 @@ class DungeonWalkerEngineTest {
 
     @Autowired
     private TestKafkaProducer testKafkaProducer;
+
+    @Autowired
+    private KafkaConsumer<String, EngineMessage> testKafkaConsumer;
 
     @BeforeAll
     static void startContainers() {
@@ -98,11 +104,19 @@ class DungeonWalkerEngineTest {
                                 return null;
                             });
 
-                    await().atMost(5, TimeUnit.SECONDS);
+                    await()
+                            .atMost(500, TimeUnit.MILLISECONDS)
+                            .until(() -> {
+                                for (final var record : testKafkaConsumer.poll(Duration.ofMillis(100))) {
+                                    log.info("---> [TEST] - Record: {}", record);
+                                }
+
+                                return true;
+                            });
                 });
 
         await()
-                .atMost(1, TimeUnit.HOURS)
+                .atMost(1, TimeUnit.MINUTES)
                 .untilAsserted(() -> assertThat(false).isTrue());
     }
 

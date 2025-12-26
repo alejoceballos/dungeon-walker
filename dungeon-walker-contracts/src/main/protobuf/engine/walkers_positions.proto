@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package contract.engine;
+
+import "engine/coordinates.proto";
+
+option java_package = "momomomo.dungeonwalker.contract.engine";
+option java_outer_classname = "WalkersPositionsProto";
+
+message WalkersPositions {
+  map<string, Coordinates> coordinatesByWalkerId = 1;
+}

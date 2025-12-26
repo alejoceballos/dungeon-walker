@@ -9,13 +9,12 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.DungeonActor;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.core.actor.walker.AutomatedWalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.UserWalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
-import momomomo.dungeonwalker.engine.domain.outbound.Sender;
+import momomomo.dungeonwalker.engine.core.service.MessageSender;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -30,7 +29,7 @@ public class ClusterShardingManager {
     @Getter
     private final ActorSystem<Void> actorSystem;
 
-    private final Sender<EngineMessage> sender;
+    private final MessageSender sender;
 
     @PostConstruct
     public void init() {

@@ -2,12 +2,13 @@ syntax = "proto3";
 
 package contract.engine;
 
+import "engine/walkers_positions.proto";
+
 option java_package = "momomomo.dungeonwalker.contract.engine";
 option java_outer_classname = "EngineMessageProto";
 
 message EngineMessage {
-  string client_id = 1;
   oneof data {
-    string dungeon = 2;
+    WalkersPositions walkerPositions = 2;
   }
 }

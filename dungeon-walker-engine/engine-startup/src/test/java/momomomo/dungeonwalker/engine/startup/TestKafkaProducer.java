@@ -14,21 +14,21 @@ import java.util.concurrent.CompletableFuture;
 @Component
 public class TestKafkaProducer {
 
-    private final KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate;
+    private final KafkaTemplate<@NonNull String, @NonNull ClientRequest> testKafkaTemplate;
     private final String topic;
 
     public TestKafkaProducer(
-            final KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate,
+            final KafkaTemplate<@NonNull String, @NonNull ClientRequest> testKafkaTemplate,
             @Value("${kafka.topic.game-engine.inbound}") String topic) {
-        this.kafkaTemplate = kafkaTemplate;
+        this.testKafkaTemplate = testKafkaTemplate;
         this.topic = topic;
     }
 
     public CompletableFuture<SendResult<@NonNull String, @NonNull ClientRequest>> produce(
             final String messageId,
             final ClientRequest payload) {
-        log.info("---> [KAFKA - Producer] Sending payload");
-        return kafkaTemplate.send(topic, messageId, payload);
+        log.info("---> [TEST KAFKA - Producer] Sending payload");
+        return testKafkaTemplate.send(topic, messageId, payload);
     }
 
 }

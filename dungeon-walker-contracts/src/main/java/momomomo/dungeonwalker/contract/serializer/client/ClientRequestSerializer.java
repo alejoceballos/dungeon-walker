@@ -1,9 +1,9 @@
-package momomomo.dungeonwalker.contract.serializer;
+package momomomo.dungeonwalker.contract.serializer.client;
 
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import org.apache.kafka.common.serialization.Serializer;
 
-public class ProtoSerializer implements Serializer<ClientRequest> {
+public class ClientRequestSerializer implements Serializer<ClientRequest> {
 
     @Override
     public byte[] serialize(final String topic, final ClientRequest proto) {

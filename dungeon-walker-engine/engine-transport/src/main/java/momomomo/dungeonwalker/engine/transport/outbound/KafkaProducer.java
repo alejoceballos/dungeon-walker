@@ -29,7 +29,7 @@ public class KafkaProducer implements Sender<EngineMessage> {
     public void send(@NonNull final EngineMessage message) {
         log.debug("---> [OUTBOUND - Kafka Producer] Sending message \"{}\" to topic \"{}\"", message, topic);
 
-        kafkaTemplate.send(topic, message.getClientId(), message)
+        kafkaTemplate.send(topic, message.getDataCase().name(), message)
                 .thenCompose(_ -> {
                     log.info("---> [OUTBOUND - Kafka Producer] Message sent successfully to topic \"{}\": {}", topic, message);
                     return CompletableFuture.completedFuture(null);
