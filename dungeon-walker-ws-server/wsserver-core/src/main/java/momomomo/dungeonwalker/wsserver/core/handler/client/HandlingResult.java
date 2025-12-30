@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.wsserver.core.handler;
+package momomomo.dungeonwalker.wsserver.core.handler.client;
 
 import lombok.Builder;
 import lombok.NonNull;

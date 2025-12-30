@@ -7,14 +7,19 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.CloseConnection;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.PollFromConsumer;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendHeartbeatToClient;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendMessageFromClient;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SetConnection;
+import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
-import momomomo.dungeonwalker.wsserver.domain.output.ServerErrors;
+import momomomo.dungeonwalker.wsserver.domain.inbound.Consumer;
+import momomomo.dungeonwalker.wsserver.domain.inbound.ConsumerFactory;
 import momomomo.dungeonwalker.wsserver.domain.output.Output;
+import momomomo.dungeonwalker.wsserver.domain.output.ServerErrors;
 import momomomo.dungeonwalker.wsserver.domain.output.ServerHeartbeat;
 import momomomo.dungeonwalker.wsserver.domain.output.ServerMessage;
 
@@ -28,15 +33,29 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
-    private ClientConnection currentConnection;
+    private final ConsumerFactory<EngineMessage> consumerFactory;
+    private final MessageHandlerSelector<EngineMessage, Void> messageHandlerSelector;
 
-    private ConnectionActor(@NonNull final ActorContext<ConnectionCommand> context) {
+    private ClientConnection currentConnection;
+    private Consumer<EngineMessage> consumer;
+
+    private ConnectionActor(
+            @NonNull final ActorContext<ConnectionCommand> context,
+            @NonNull final ConsumerFactory<EngineMessage> consumerFactory,
+            @NonNull final MessageHandlerSelector<EngineMessage, Void> messageHandlerSelector
+    ) {
         super(context);
+        this.consumerFactory = consumerFactory;
+        this.messageHandlerSelector = messageHandlerSelector;
     }
 
-    public static Behavior<ConnectionCommand> create() {
+    public static Behavior<ConnectionCommand> create(
+            @NonNull final ConsumerFactory<EngineMessage> consumerFactory,
+            @NonNull final MessageHandlerSelector<EngineMessage, Void> messageHandlerSelector
+    ) {
         log.debug("---> [ACTOR - Connection] create");
-        return Behaviors.setup(ConnectionActor::new);
+        return Behaviors.setup(context ->
+                new ConnectionActor(context, consumerFactory, messageHandlerSelector));
     }
 
     @Override
@@ -54,6 +73,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
                 .onMessage(CloseConnection.class, this::onCloseConnection)
                 .onMessage(SendHeartbeatToClient.class, this::onSendHeartbeatToClient)
                 .onMessage(SendMessageFromClient.class, this::onSendMessageFromClient)
+                .onMessage(PollFromConsumer.class, this::onPollFromConsumer)
                 .build();
     }
 
@@ -68,18 +88,20 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
                 command.connection().getUserId(),
                 command.connection().getSessionId());
 
-        this.currentConnection = command.connection();
+        currentConnection = command.connection();
+        consumer = consumerFactory.create(actorPath());
+        consumer.start();
 
         return Behaviors.withTimers(timer -> {
-            final var key = "timer-" + actorId();
-            log.debug("---> [ACTOR - Connection][{}] setting timer \"{}\"", actorPath(), key);
+            final var timerHeartbeatKey = "timer-heartbeat-" + actorId();
+            log.debug("---> [ACTOR - Connection][{}] setting timer \"{}\"", actorPath(), timerHeartbeatKey);
 
-            if (timer.isTimerActive(key)) {
-                timer.cancel(key);
+            if (timer.isTimerActive(timerHeartbeatKey)) {
+                timer.cancel(timerHeartbeatKey);
             }
 
             timer.startTimerWithFixedDelay(
-                    key,
+                    timerHeartbeatKey,
                     new SendHeartbeatToClient(
                             command.connection(),
                             command.dateTimeManager(),
@@ -87,6 +109,18 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
                     Duration.of(
                             command.heartbeatConfig().getDelay(),
                             ChronoUnit.valueOf(command.heartbeatConfig().getTimeUnit())));
+
+            final var timerConsumerPollKey = "timer-consumer-" + actorId();
+            log.debug("---> [ACTOR - Connection][{}] setting timer \"{}\"", actorPath(), timerConsumerPollKey);
+
+            if (timer.isTimerActive(timerConsumerPollKey)) {
+                timer.cancel(timerConsumerPollKey);
+            }
+
+            timer.startTimerWithFixedDelay(
+                    timerConsumerPollKey,
+                    new PollFromConsumer(command.connection()),
+                    Duration.of(100, ChronoUnit.MILLIS));
 
             return connected();
         });
@@ -140,7 +174,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     private Behavior<ConnectionCommand>
 
     onSendMessageFromClient(final SendMessageFromClient command) {
-        log.debug("---> [ACTOR - Connection][{}]  on act on message \"{}\":\"{}\"",
+        log.debug("---> [ACTOR - Connection][{}] on act on message \"{}\":\"{}\"",
                 actorPath(), command.connection().getUserId(), command.connection().getSessionId());
 
         command.dataHandlerSelector()
@@ -175,6 +209,17 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
                     return CompletableFuture.failedFuture(ex);
                 });
+
+        return Behaviors.same();
+    }
+
+    private Behavior<ConnectionCommand> onPollFromConsumer(final PollFromConsumer command) {
+        consumer
+                .poll()
+                .forEach(message ->
+                        messageHandlerSelector
+                                .select(message)
+                                .handle(message, currentConnection));
 
         return Behaviors.same();
     }

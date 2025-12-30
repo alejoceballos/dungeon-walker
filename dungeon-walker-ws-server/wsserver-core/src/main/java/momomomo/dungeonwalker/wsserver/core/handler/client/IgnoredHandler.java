@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.wsserver.core.handler;
+package momomomo.dungeonwalker.wsserver.core.handler.client;
 
 import jakarta.annotation.Nonnull;
 import lombok.NonNull;
@@ -8,10 +8,10 @@ import momomomo.dungeonwalker.wsserver.domain.input.InputData;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static momomomo.dungeonwalker.wsserver.core.handler.HandlingResult.Type.FAILURE;
+import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.FAILURE;
 
 @Slf4j
-public class IgnoredHandler implements DataHandler<InputData> {
+public class IgnoredHandler implements ClientDataHandler<InputData> {
 
     @Nonnull
     @Override

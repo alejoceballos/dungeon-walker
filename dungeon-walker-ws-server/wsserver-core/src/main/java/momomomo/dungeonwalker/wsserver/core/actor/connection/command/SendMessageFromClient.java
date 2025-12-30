@@ -1,7 +1,7 @@
 package momomomo.dungeonwalker.wsserver.core.actor.connection.command;
 
 import lombok.NonNull;
-import momomomo.dungeonwalker.wsserver.core.handler.DataHandlerSelector;
+import momomomo.dungeonwalker.wsserver.core.handler.client.DataHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
 import momomomo.dungeonwalker.wsserver.domain.input.Input;
 

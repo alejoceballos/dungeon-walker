@@ -10,7 +10,7 @@ import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionC
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendMessageFromClient;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SetConnection;
 import momomomo.dungeonwalker.wsserver.core.config.HeartbeatConfig;
-import momomomo.dungeonwalker.wsserver.core.handler.DataHandlerSelector;
+import momomomo.dungeonwalker.wsserver.core.handler.client.DataHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ConnectionManager;
 import momomomo.dungeonwalker.wsserver.domain.input.Identity;

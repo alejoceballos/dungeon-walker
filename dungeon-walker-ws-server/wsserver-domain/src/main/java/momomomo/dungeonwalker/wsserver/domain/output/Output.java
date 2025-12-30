@@ -20,6 +20,9 @@ public record Output(
                         name = SERVER_ERRORS),
                 @JsonSubTypes.Type(
                         value = ServerMessage.class,
+                        name = SERVER_MESSAGE),
+                @JsonSubTypes.Type(
+                        value = EngineWalkersCoordinates.class,
                         name = SERVER_MESSAGE)
         })
         @NonNull OutputData data
@@ -28,6 +31,7 @@ public record Output(
     public static final String HEARTBEAT = "heartbeat";
     public static final String SERVER_ERRORS = "server-errors";
     public static final String SERVER_MESSAGE = "server-message";
+    public static final String WALKERS_COORDINATES = "Walkers-coordinates";
 
     public static Output of(final ServerHeartbeat heartbeat) {
         return new Output(HEARTBEAT, heartbeat);
@@ -39,6 +43,10 @@ public record Output(
 
     public static Output of(final ServerMessage message) {
         return new Output(SERVER_MESSAGE, message);
+    }
+
+    public static Output of(final EngineWalkersCoordinates walkersCoordinates) {
+        return new Output(WALKERS_COORDINATES, walkersCoordinates);
     }
 
 }

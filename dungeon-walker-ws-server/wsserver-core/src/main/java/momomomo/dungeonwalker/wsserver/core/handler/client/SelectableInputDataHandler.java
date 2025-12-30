@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.wsserver.core.handler;
+package momomomo.dungeonwalker.wsserver.core.handler.client;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
@@ -16,13 +16,13 @@ import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static momomomo.dungeonwalker.wsserver.core.handler.HandlingResult.Type.FAILURE;
-import static momomomo.dungeonwalker.wsserver.core.handler.HandlingResult.Type.SUCCESS;
+import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.FAILURE;
+import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.SUCCESS;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Slf4j
 @RequiredArgsConstructor
-public abstract class SelectableInputDataHandler<I extends InputData, P> implements DataHandler<I> {
+public abstract class SelectableInputDataHandler<I extends InputData, P> implements ClientDataHandler<I> {
 
     private final InputDataMapper<I, P> mapper;
     private final InputDataValidator<I> validator;

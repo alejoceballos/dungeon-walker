@@ -4,14 +4,23 @@ websocket:
 
 kafka:
   topic:
-    outbound:
-      game-engine: "game-engine-consumer-topic"
+    game-engine:
+      inbound: "game-engine-producer-topic"
+      outbound: "game-engine-consumer-topic"
 
 spring:
   kafka:
+    consumer:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER:localhost:9092}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: momomomo.dungeonwalker.contract.serializer.engine.EngineMessageDeserializer
+      enable-auto-commit: false
+      concurrency: 3
+      poll-timeout: 3000
     producer:
       bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER:localhost:9092}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: momomomo.dungeonwalker.contract.serializer.ProtoSerializer
+      value-serializer: momomomo.dungeonwalker.contract.serializer.client.ClientRequestSerializer
       acks: 1
       retries: 3

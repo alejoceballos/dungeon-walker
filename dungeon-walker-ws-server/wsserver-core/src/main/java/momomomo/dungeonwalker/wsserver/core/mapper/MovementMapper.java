@@ -16,23 +16,12 @@ public class MovementMapper implements InputDataMapper<Movement, ClientRequest> 
     @Nonnull
     @Override
     public ClientRequest map(@NonNull final String clientId, @NonNull final Movement inputData) {
-        log.debug("---> [MAPPER - Identity] mapping \"{}\"", inputData);
-
-        final var direction = switch (inputData.direction()) {
-            case E -> Direction.E;
-            case W -> Direction.W;
-            case N -> Direction.N;
-            case S -> Direction.S;
-            case NE -> Direction.NE;
-            case NW -> Direction.NW;
-            case SE -> Direction.SE;
-            case SW -> Direction.SW;
-        };
+        log.debug("---> [MAPPER - Movement] mapping \"{}\"", inputData);
 
         return ClientRequest.newBuilder()
                 .setClientId(clientId)
                 .setMovement(MovementProto.Movement.newBuilder()
-                        .setDirection(direction)
+                        .setDirection(Direction.valueOf(inputData.direction().name()))
                         .build())
                 .build();
     }

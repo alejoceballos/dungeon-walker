@@ -7,7 +7,6 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -15,7 +14,6 @@ import org.springframework.kafka.core.ProducerFactory;
 import java.util.Map;
 
 @Slf4j
-@EnableKafka
 @Configuration
 public class KafkaConfig {
 
@@ -25,7 +23,8 @@ public class KafkaConfig {
             @Value("${spring.kafka.producer.key-serializer}") final Class<?> keySerializer,
             @Value("${spring.kafka.producer.value-serializer}") final Class<?> valueSerializer,
             @Value("${spring.kafka.producer.acks}") final String acks,
-            @Value("${spring.kafka.producer.retries}") final int retries) {
+            @Value("${spring.kafka.producer.retries}") final int retries
+    ) {
         log.debug("---> [CONFIG - Kafka] Creating producer factory: {}, {}, {}, {}, {}"
                 , bootstrapServers, keySerializer, valueSerializer, acks, retries);
         return new DefaultKafkaProducerFactory<>(Map.of(

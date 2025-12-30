@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.wsserver.core.handler;
+package momomomo.dungeonwalker.wsserver.core.handler.client;
 
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.nonNull;
-import static momomomo.dungeonwalker.wsserver.core.handler.HandlingResult.Type.SUCCESS;
+import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.SUCCESS;
 
 @Slf4j
 @Component
