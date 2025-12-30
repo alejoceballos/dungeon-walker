@@ -1,11 +1,22 @@
-spring:
+logging:
+  level:
+    root: info
+    org:
+      apache:
+        kafka: warn
+    momomomo:
+      dungeonwalker:
+        wsserver:
+          startup: debug
+          transport: debug
+          core: debug
+          domain: debug
+
+test:
   kafka:
     consumer:
-      group-id: wsserver-consumer-group
-      auto-offset-reset: auto.offset.reset:earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: momomomo.dungeonwalker.contract.serializer.ProtoDeserializer
+      group-id: test
+      value-deserializer: momomomo.dungeonwalker.contract.serializer.client.ClientRequestDeserializer
       enable-auto-commit: false
-      bootstrap-servers: localhost:9092
-      concurrency: 3
-      poll-timeout: 3000
+    producer:
+      value-serializer: momomomo.dungeonwalker.contract.serializer.engine.EngineMessageSerializer

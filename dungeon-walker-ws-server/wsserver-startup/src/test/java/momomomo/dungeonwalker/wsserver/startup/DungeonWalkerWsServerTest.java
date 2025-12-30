@@ -1,9 +1,14 @@
 package momomomo.dungeonwalker.wsserver.startup;
 
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
+import momomomo.dungeonwalker.contract.client.DirectionProto;
+import momomomo.dungeonwalker.contract.engine.CoordinatesProto.Coordinates;
+import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
+import momomomo.dungeonwalker.contract.engine.WalkersPositionsProto.WalkersPositions;
 import momomomo.dungeonwalker.wsserver.domain.input.Direction;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,11 +25,16 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 @Slf4j
@@ -39,7 +49,10 @@ class DungeonWalkerWsServerTest {
     private Integer port;
 
     @Autowired
-    private TestKafkaConsumer consumer;
+    private KafkaConsumer<String, ClientRequest> testKafkaConsumer;
+
+    @Autowired
+    private TestKafkaProducer testKafkaProducer;
 
     @Autowired
     private TestWebSocketHandler testWsHandler;
@@ -50,11 +63,6 @@ class DungeonWalkerWsServerTest {
     static void startContainers() {
         kafka.setPortBindings(List.of("9092:9092"));
         kafka.start();
-    }
-
-    @BeforeEach
-    public void setUp() {
-        consumer.emptyPayloads();
     }
 
     @Test
@@ -75,22 +83,28 @@ class DungeonWalkerWsServerTest {
                 }
                 """;
 
-        wsClient
-                .execute(
+        final var directions = new ArrayList<>(List.of(DirectionProto.Direction.values()));
+        directions.remove(DirectionProto.Direction.UNRECOGNIZED);
+        directions.remove(DirectionProto.Direction.INVALID);
+
+        consumerPoll(directions);
+
+        wsClient.execute(
                         testWsHandler,
-                        new WebSocketHttpHeaders(
-                                new HttpHeaders(
-                                        MultiValueMap.fromSingleValue(
-                                                Map.of(HttpHeaders.AUTHORIZATION, "Basic dXNlcjE6cGFzc3dvcmQx")))),
+                        new WebSocketHttpHeaders(new HttpHeaders(MultiValueMap.fromSingleValue(
+                                Map.of(HttpHeaders.AUTHORIZATION, "Basic dXNlcjE6cGFzc3dvcmQx")))),
                         URI.create("ws://localhost:" + port + "/ws-endpoint"))
                 .thenAccept(session -> {
                     log.info("---> [TEST] - WS Client WebSocket connection succeeded");
+
+                    waitSeconds(5);
+                    consumerPoll(directions);
 
                     try {
                         session.sendMessage(new TextMessage(invalidData));
 
                         Arrays.stream(Direction.values()).forEach(direction -> {
-                            await().atMost(10, TimeUnit.SECONDS);
+                            waitSeconds(3);
 
                             try {
                                 session.sendMessage(new TextMessage(move.formatted(direction.name())));
@@ -108,29 +122,92 @@ class DungeonWalkerWsServerTest {
                     return null;
                 });
 
-        var index = 0;
-        while (true) {
-            try {
-                TimeUnit.SECONDS.sleep(10);
+        waitSeconds(5);
 
-                if (consumer.getPayloads().size() > index) {
-                    final var payload = consumer.getPayloads().get(index++);
-                    log.info("-------------------> {} <-------------------", payload);
-                }
+        while (!directions.isEmpty()) {
+            consumerPoll(directions);
+            waitSeconds(1);
+        }
+    }
 
-            } catch (final InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(ie);
+    @Test
+    public void testServerReceivesEngineMessageAndSendToClient() throws ExecutionException, InterruptedException {
+        wsClient.execute(
+                testWsHandler,
+                new WebSocketHttpHeaders(new HttpHeaders(MultiValueMap.fromSingleValue(
+                        Map.of(HttpHeaders.AUTHORIZATION, "Basic dXNlcjE6cGFzc3dvcmQx")))),
+                URI.create("ws://localhost:" + port + "/ws-endpoint")).get();
+
+        waitSeconds(5);
+
+        IntStream.of(1, 2, 3, 4, 5).forEach(counter -> {
+            final var message = EngineMessage
+                    .newBuilder()
+                    .setWalkerPositions(createWalkersPositions(counter))
+                    .build();
+
+            testKafkaProducer.produce(message).exceptionally(ex -> {
+                throw new RuntimeException(ex);
+            });
+        });
+
+        await()
+                .atMost(60, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(false).isTrue());
+    }
+
+    private WalkersPositions createWalkersPositions(final int counter) {
+        final var builder = WalkersPositions.newBuilder();
+
+        IntStream
+                .of(1, 2, 3, 4, 5)
+                .forEach(id -> builder
+                        .putCoordinatesByWalkerId(
+                                "Walker " + id,
+                                Coordinates
+                                        .newBuilder()
+                                        .setX(counter + id)
+                                        .setY(counter + id)
+                                        .build()));
+
+        return builder.build();
+    }
+
+    private void waitSeconds(final long seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (final InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(ie);
+        }
+    }
+
+    private void consumerPoll(ArrayList<DirectionProto.Direction> directions) {
+        log.info("---> [TEST Poll] - Consumer is polling");
+        final var records = testKafkaConsumer.poll(Duration.ofMillis(200));
+
+        testKafkaConsumer.commitAsync((map, ex) -> {
+            if (ex != null) {
+                throw new RuntimeException(ex);
             }
 
+            map.forEach((key, value) ->
+                    log.info("---> [TEST Poll] - Committed offset {} for partition {}",
+                            value.offset(), key.partition()));
+        });
+
+        log.info("---> [TEST Poll] - Poll count is: {}", records.count());
+
+        for (final var record : records) {
+            log.info("---> [TEST Poll] - Record: {}", record);
+
+            if (record.value().hasMovement()) {
+                directions.remove(record.value().getMovement().getDirection());
+                log.info("---> [TEST Poll] - Removing {} from list", record.value().getMovement().getDirection());
+            }
         }
 
-//        await()
-//                .atMost(3600, TimeUnit.SECONDS)
-//                .until(() -> !consumer.getPayloads().isEmpty());
-//
-//        await()
-//                .atMost(1, TimeUnit.HOURS)
-//                .untilAsserted(() -> assertThat(false).isTrue());
+        log.info("---> [TEST Poll] - Remaining: {}", directions);
     }
+
 }
