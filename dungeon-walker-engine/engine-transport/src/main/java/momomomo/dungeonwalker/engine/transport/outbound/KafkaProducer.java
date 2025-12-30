@@ -19,7 +19,8 @@ public class KafkaProducer implements Sender<EngineMessage> {
 
     public KafkaProducer(
             @Value("${kafka.topic.game-engine.outbound}") final String topic,
-            final KafkaTemplate<@NonNull String, @NonNull EngineMessage> kafkaTemplate) {
+            final KafkaTemplate<@NonNull String, @NonNull EngineMessage> kafkaTemplate
+    ) {
         log.debug("---> [OUTBOUND - Kafka Producer] Bean created. Topic \"{}\". Kafka template: \"{}\"", topic, kafkaTemplate);
         this.topic = topic;
         this.kafkaTemplate = kafkaTemplate;
