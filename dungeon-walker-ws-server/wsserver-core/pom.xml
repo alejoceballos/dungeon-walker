@@ -48,18 +48,18 @@
             <version>${dungeon-walker-contracts.version}</version>
         </dependency>
 
-        <!-- Akka - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+        <!-- Pekko - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
         <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor-typed_3</artifactId>
-            <version>${com.typesafe.akka.version}</version>
+            <groupId>org.apache.pekko</groupId>
+            <artifactId>pekko-actor-typed_3</artifactId>
+            <version>${pekko.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-cluster-sharding-typed_3</artifactId>
-            <version>${com.typesafe.akka.version}</version>
+            <groupId>org.apache.pekko</groupId>
+            <artifactId>pekko-cluster-sharding-typed_3</artifactId>
+            <version>${pekko.version}</version>
         </dependency>
 
         <!-- Apache Commons - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->

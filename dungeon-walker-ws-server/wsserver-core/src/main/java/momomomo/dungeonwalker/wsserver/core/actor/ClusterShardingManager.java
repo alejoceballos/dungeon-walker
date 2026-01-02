@@ -1,9 +1,5 @@
 package momomomo.dungeonwalker.wsserver.core.actor;
 
-import akka.cluster.sharding.typed.javadsl.ClusterSharding;
-import akka.cluster.sharding.typed.javadsl.Entity;
-import akka.cluster.sharding.typed.javadsl.EntityRef;
-import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +8,10 @@ import momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
 import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ConsumerFactory;
+import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
+import org.apache.pekko.cluster.sharding.typed.javadsl.Entity;
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey;
 import org.springframework.stereotype.Component;
 
 @Slf4j
