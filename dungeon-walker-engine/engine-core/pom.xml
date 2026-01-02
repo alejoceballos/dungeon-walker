@@ -42,36 +42,36 @@
             <version>${dungeon-walker-contracts.version}</version>
         </dependency>
 
-        <!-- Akka - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+        <!-- Pekko - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
         <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor-typed_3</artifactId>
-            <version>${com.typesafe.akka.version}</version>
+            <groupId>org.apache.pekko</groupId>
+            <artifactId>pekko-actor-typed_3</artifactId>
+            <version>${pekko.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-persistence-typed_3</artifactId>
-            <version>${com.typesafe.akka.version}</version>
+            <groupId>org.apache.pekko</groupId>
+            <artifactId>pekko-cluster-sharding-typed_3</artifactId>
+            <version>${pekko.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-cluster-sharding-typed_3</artifactId>
-            <version>${com.typesafe.akka.version}</version>
+            <groupId>org.apache.pekko</groupId>
+            <artifactId>pekko-serialization-jackson_3</artifactId>
+            <version>${pekko.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-serialization-jackson_3</artifactId>
-            <version>${com.typesafe.akka.version}</version>
+            <groupId>org.apache.pekko</groupId>
+            <artifactId>pekko-persistence-typed_3</artifactId>
+            <version>${pekko.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.lightbend.akka</groupId>
-            <artifactId>akka-persistence-r2dbc_3</artifactId>
-            <version>${akka-persistence-r2dbc.version}</version>
+            <groupId>org.apache.pekko</groupId>
+            <artifactId>pekko-persistence-r2dbc_3</artifactId>
+            <version>${pekko-persistence-r2dbc.version}</version>
         </dependency>
 
         <!-- PostgreSQL - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
@@ -80,6 +80,12 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgres.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>r2dbc-postgresql</artifactId>
+            <version>${r2dbc-postgresql.version}</version>
         </dependency>
 
         <!-- Apache Commons - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->

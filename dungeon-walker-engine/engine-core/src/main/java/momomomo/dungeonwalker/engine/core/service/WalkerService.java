@@ -1,6 +1,5 @@
 package momomomo.dungeonwalker.engine.core.service;
 
-import akka.cluster.sharding.typed.javadsl.EntityRef;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +13,12 @@ import momomomo.dungeonwalker.engine.domain.model.dungeon.placing.SpiralStrategy
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovementStrategy;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Asleep;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
 
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
-import static akka.actor.typed.javadsl.AskPattern.ask;
+import static org.apache.pekko.actor.typed.javadsl.AskPattern.ask;
 
 @Slf4j
 @RequiredArgsConstructor

@@ -1,13 +1,5 @@
 package momomomo.dungeonwalker.engine.core.actor.walker;
 
-import akka.actor.typed.javadsl.ActorContext;
-import akka.cluster.sharding.typed.javadsl.ClusterSharding;
-import akka.cluster.sharding.typed.javadsl.EntityRef;
-import akka.persistence.typed.PersistenceId;
-import akka.persistence.typed.state.javadsl.CommandHandler;
-import akka.persistence.typed.state.javadsl.CommandHandlerBuilderByState;
-import akka.persistence.typed.state.javadsl.DurableStateBehavior;
-import akka.persistence.typed.state.javadsl.Effect;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.DungeonActor;
@@ -23,6 +15,14 @@ import momomomo.dungeonwalker.engine.domain.model.walker.state.Awake;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Moving;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Stopped;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
+import org.apache.pekko.actor.typed.javadsl.ActorContext;
+import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
+import org.apache.pekko.persistence.typed.PersistenceId;
+import org.apache.pekko.persistence.typed.state.javadsl.CommandHandler;
+import org.apache.pekko.persistence.typed.state.javadsl.CommandHandlerBuilderByState;
+import org.apache.pekko.persistence.typed.state.javadsl.DurableStateBehavior;
+import org.apache.pekko.persistence.typed.state.javadsl.Effect;
 
 @Slf4j
 public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState> {
@@ -70,7 +70,7 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
 
         return Effect()
                 .none()
-                .thenRun(_ -> command.replyTo().tell(new WalkerStateReply(  state.getClass())));
+                .thenRun(_ -> command.replyTo().tell(new WalkerStateReply(state.getClass())));
     }
 
     protected abstract void setStoppedStateCommands(

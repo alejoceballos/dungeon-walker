@@ -1,6 +1,5 @@
 package momomomo.dungeonwalker.engine.core.service;
 
-import akka.cluster.sharding.typed.javadsl.EntityRef;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.ClusterShardingManager;
@@ -9,6 +8,7 @@ import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.UserMovementStrategy;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovementStrategy;
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
 import org.springframework.stereotype.Service;
 
 @Slf4j

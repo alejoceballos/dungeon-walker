@@ -1,6 +1,5 @@
 package momomomo.dungeonwalker.engine.core.service;
 
-import akka.cluster.sharding.typed.javadsl.EntityRef;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.ClusterShardingManager;
@@ -11,6 +10,7 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
 import momomomo.dungeonwalker.engine.core.mapper.RawMapMapper;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -20,10 +20,10 @@ import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
-import static akka.actor.typed.javadsl.AskPattern.ask;
 import static java.lang.System.lineSeparator;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
+import static org.apache.pekko.actor.typed.javadsl.AskPattern.ask;
 
 @Slf4j
 @Service

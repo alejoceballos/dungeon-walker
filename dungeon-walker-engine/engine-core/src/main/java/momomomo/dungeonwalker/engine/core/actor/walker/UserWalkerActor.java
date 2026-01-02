@@ -1,12 +1,5 @@
 package momomomo.dungeonwalker.engine.core.actor.walker;
 
-import akka.actor.typed.Behavior;
-import akka.actor.typed.javadsl.ActorContext;
-import akka.actor.typed.javadsl.Behaviors;
-import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
-import akka.persistence.typed.PersistenceId;
-import akka.persistence.typed.state.javadsl.CommandHandlerBuilderByState;
-import akka.persistence.typed.state.javadsl.Effect;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.MoveWalker;
@@ -20,6 +13,13 @@ import momomomo.dungeonwalker.engine.domain.model.walker.state.Asleep;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Moving;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.Stopped;
 import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
+import org.apache.pekko.actor.typed.Behavior;
+import org.apache.pekko.actor.typed.javadsl.ActorContext;
+import org.apache.pekko.actor.typed.javadsl.Behaviors;
+import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey;
+import org.apache.pekko.persistence.typed.PersistenceId;
+import org.apache.pekko.persistence.typed.state.javadsl.CommandHandlerBuilderByState;
+import org.apache.pekko.persistence.typed.state.javadsl.Effect;
 
 import java.util.List;
 
