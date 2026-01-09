@@ -1,4 +1,6 @@
 package momomomo.dungeonwalker.wsserver.domain.input;
 
-public record Identity() implements InputData {
+import jakarta.annotation.Nullable;
+
+public record Identity(@Nullable String clientId) implements InputData {
 }

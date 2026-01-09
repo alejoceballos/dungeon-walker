@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class MovementMapper implements InputDataMapper<Movement, ClientRequest> {
 
-    @Nonnull
     @Override
-    public ClientRequest map(@NonNull final String clientId, @NonNull final Movement inputData) {
+    @Nonnull
+    public ClientRequest map(@NonNull final Movement inputData) {
         log.debug("---> [MAPPER - Movement] mapping \"{}\"", inputData);
 
         return ClientRequest.newBuilder()
-                .setClientId(clientId)
+                .setClientId(inputData.clientId())
                 .setMovement(MovementProto.Movement.newBuilder()
                         .setDirection(Direction.valueOf(inputData.direction().name()))
                         .build())

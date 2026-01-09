@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("ignoredEngineMessageHandler")
-public class IgnoredEngineMessageHandler implements MessageHandler<EngineMessage, Void> {
+public class IgnoredEngineMessageHandler implements MessageHandler<EngineMessage, ClientConnection, Void> {
 
     private static final String LABEL = "---> [ENGINE HANDLER - Ignore]";
 

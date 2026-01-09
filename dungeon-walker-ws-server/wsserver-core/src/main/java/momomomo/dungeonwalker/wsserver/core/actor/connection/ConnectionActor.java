@@ -2,6 +2,7 @@ package momomomo.dungeonwalker.wsserver.core.actor.connection;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.CloseConnection;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
@@ -13,6 +14,7 @@ import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
 import momomomo.dungeonwalker.wsserver.domain.inbound.Consumer;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ConsumerFactory;
+import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
 import momomomo.dungeonwalker.wsserver.domain.output.Output;
 import momomomo.dungeonwalker.wsserver.domain.output.ServerErrors;
 import momomomo.dungeonwalker.wsserver.domain.output.ServerHeartbeat;
@@ -34,7 +36,8 @@ import java.util.concurrent.CompletableFuture;
 public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private final ConsumerFactory<EngineMessage> consumerFactory;
-    private final MessageHandlerSelector<EngineMessage, Void> messageHandlerSelector;
+    private final MessageHandlerSelector<EngineMessage, ClientConnection, Void> messageHandlerSelector;
+    private final Sender<ClientRequest> sender;
 
     private ClientConnection currentConnection;
     private Consumer<EngineMessage> consumer;
@@ -42,20 +45,23 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     private ConnectionActor(
             @NonNull final ActorContext<ConnectionCommand> context,
             @NonNull final ConsumerFactory<EngineMessage> consumerFactory,
-            @NonNull final MessageHandlerSelector<EngineMessage, Void> messageHandlerSelector
+            @NonNull final MessageHandlerSelector<EngineMessage, ClientConnection, Void> messageHandlerSelector,
+            @NonNull final Sender<ClientRequest> sender
     ) {
         super(context);
         this.consumerFactory = consumerFactory;
         this.messageHandlerSelector = messageHandlerSelector;
+        this.sender = sender;
     }
 
     public static Behavior<ConnectionCommand> create(
             @NonNull final ConsumerFactory<EngineMessage> consumerFactory,
-            @NonNull final MessageHandlerSelector<EngineMessage, Void> messageHandlerSelector
+            @NonNull final MessageHandlerSelector<EngineMessage, ClientConnection, Void> messageHandlerSelector,
+            @NonNull final Sender<ClientRequest> sender
     ) {
         log.debug("---> [ACTOR - Connection] create");
         return Behaviors.setup(context ->
-                new ConnectionActor(context, consumerFactory, messageHandlerSelector));
+                new ConnectionActor(context, consumerFactory, messageHandlerSelector, sender));
     }
 
     @Override
@@ -179,7 +185,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
         command.dataHandlerSelector()
                 .select(command.message().data())
-                .handle(command.connection().getUserId(), command.message().data())
+                .handle(command.message().data(), sender)
                 .thenCompose(result -> {
                     switch (result.type()) {
                         case FAILURE -> {

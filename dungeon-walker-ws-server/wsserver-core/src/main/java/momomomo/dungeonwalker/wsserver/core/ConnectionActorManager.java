@@ -32,7 +32,7 @@ public class ConnectionActorManager implements ConnectionManager {
         log.debug("---> [CONNECTION - Manager] Establish connection for user \"{}\" with session \"{}\"",
                 connection.getUserId(), connection.getSessionId());
         tell(connection, new SetConnection(connection, dateTimeManager, heartbeatConfig));
-        tell(connection, new SendMessageFromClient(connection, dataHandlerSelector, Input.of(new Identity())));
+        tell(connection, new SendMessageFromClient(connection, dataHandlerSelector, Input.of(new Identity(connection.getUserId()))));
     }
 
     @Override
@@ -59,7 +59,8 @@ public class ConnectionActorManager implements ConnectionManager {
 
     private <C extends ConnectionCommand> void tell(
             final ClientConnection connection,
-            final C command) {
+            final C command
+    ) {
         clusterShardingManager.getConnectionEntityRef(connection.getUserId()).tell(command);
     }
 }

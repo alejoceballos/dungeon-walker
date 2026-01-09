@@ -12,12 +12,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class IdentityMapper implements InputDataMapper<Identity, ClientRequest> {
 
-    @Nonnull
     @Override
-    public ClientRequest map(@NonNull final String clientId, @NonNull final Identity inputData) {
+    @Nonnull
+    public ClientRequest map(@NonNull final Identity inputData) {
         log.debug("---> [MAPPER - Identity] mapping \"{}\"", inputData);
+
         return ClientRequest.newBuilder()
-                .setClientId(clientId)
+                .setClientId(inputData.clientId())
                 .setConnection(Connection.newBuilder().build())
                 .build();
     }

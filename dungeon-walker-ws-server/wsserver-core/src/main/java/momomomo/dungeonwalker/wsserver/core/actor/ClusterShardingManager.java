@@ -3,11 +3,14 @@ package momomomo.dungeonwalker.wsserver.core.actor;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.contract.client.ClientRequestProto;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
 import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandlerSelector;
+import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ConsumerFactory;
+import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
 import org.apache.pekko.cluster.sharding.typed.javadsl.Entity;
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
@@ -22,7 +25,8 @@ public class ClusterShardingManager {
     private final ClusterSharding clusterSharding;
     private final EntityTypeKey<ConnectionCommand> connectionEntityTypeKey;
     private final ConsumerFactory<EngineMessage> consumerFactory;
-    private final MessageHandlerSelector<EngineMessage, Void> messageHandlerSelector;
+    private final MessageHandlerSelector<EngineMessage, ClientConnection, Void> messageHandlerSelector;
+    private final Sender<ClientRequestProto.ClientRequest> sender;
 
     @PostConstruct
     public void init() {
@@ -30,7 +34,7 @@ public class ClusterShardingManager {
         clusterSharding.init(
                 Entity.of(
                         connectionEntityTypeKey,
-                        _ -> ConnectionActor.create(consumerFactory, messageHandlerSelector)));
+                        _ -> ConnectionActor.create(consumerFactory, messageHandlerSelector, sender)));
     }
 
     public EntityRef<ConnectionCommand> getConnectionEntityRef(final String id) {

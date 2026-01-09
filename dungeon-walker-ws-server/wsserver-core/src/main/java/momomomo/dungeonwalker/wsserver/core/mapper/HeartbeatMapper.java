@@ -11,9 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class HeartbeatMapper implements InputDataMapper<ClientHeartbeat, ClientRequest> {
 
-    @Nonnull
     @Override
-    public ClientRequest map(@NonNull final String clientId, @NonNull final ClientHeartbeat inputData) {
+    public @Nonnull ClientRequest map(@NonNull final ClientHeartbeat inputData) {
         throw new UnsupportedOperationException("Heartbeat messages are not supposed to be mapped.");
     }
 

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class BroadcastWalkersPositionsHandler implements SelectableMessageHandler<EngineMessage, Void> {
+public class BroadcastWalkersPositionsHandler implements SelectableMessageHandler<EngineMessage, ClientConnection, Void> {
 
     private static final String LABEL = "---> [ENGINE HANDLER - Broadcast Walkers Positions]";
 
@@ -23,7 +23,9 @@ public class BroadcastWalkersPositionsHandler implements SelectableMessageHandle
     public Void handle(@NonNull final EngineMessage message, @NonNull final ClientConnection connection) {
         log.debug("{} Message: \"{}\". Player \"{}\"", LABEL, message, connection.getUserId());
 
-        final var transformedMap = message.getWalkerPositions().getCoordinatesByWalkerIdMap()
+        final var transformedMap = message
+                .getWalkerPositions()
+                .getCoordinatesByWalkerIdMap()
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(
