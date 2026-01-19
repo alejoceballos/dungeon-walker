@@ -3,14 +3,11 @@ package momomomo.dungeonwalker.wsserver.core;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.commons.DateTimeManager;
 import momomomo.dungeonwalker.wsserver.core.actor.ClusterShardingManager;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.CloseConnection;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendMessageFromClient;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SetConnection;
-import momomomo.dungeonwalker.wsserver.core.config.HeartbeatConfig;
-import momomomo.dungeonwalker.wsserver.core.handler.client.DataHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ConnectionManager;
 import momomomo.dungeonwalker.wsserver.domain.input.Identity;
@@ -23,16 +20,13 @@ import org.springframework.stereotype.Component;
 public class ConnectionActorManager implements ConnectionManager {
 
     private final ClusterShardingManager clusterShardingManager;
-    private final DateTimeManager dateTimeManager;
-    private final HeartbeatConfig heartbeatConfig;
-    private final DataHandlerSelector dataHandlerSelector;
 
     @Override
     public void establish(@NonNull final ClientConnection connection) {
         log.debug("---> [CONNECTION - Manager] Establish connection for user \"{}\" with session \"{}\"",
                 connection.getUserId(), connection.getSessionId());
-        tell(connection, new SetConnection(connection, dateTimeManager, heartbeatConfig));
-        tell(connection, new SendMessageFromClient(connection, dataHandlerSelector, Input.of(new Identity(connection.getUserId()))));
+        tell(connection, new SetConnection(connection));
+        tell(connection, new SendMessageFromClient(Input.of(new Identity(connection.getUserId()))));
     }
 
     @Override
@@ -54,7 +48,7 @@ public class ConnectionActorManager implements ConnectionManager {
             return;
         }
 
-        tell(connection, new SendMessageFromClient(connection, dataHandlerSelector, message));
+        tell(connection, new SendMessageFromClient(message));
     }
 
     private <C extends ConnectionCommand> void tell(

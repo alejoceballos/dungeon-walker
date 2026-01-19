@@ -90,6 +90,9 @@
                         <ports>
                             <port>8081</port>
                         </ports>
+                        <jvmFlags>
+                            <jvmFlag>--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED</jvmFlag>
+                        </jvmFlags>
                     </container>
                 </configuration>
             </plugin>

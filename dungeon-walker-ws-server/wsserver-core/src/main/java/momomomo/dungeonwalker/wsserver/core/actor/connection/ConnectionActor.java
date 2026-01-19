@@ -2,6 +2,7 @@ package momomomo.dungeonwalker.wsserver.core.actor.connection;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.commons.DateTimeManager;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.CloseConnection;
@@ -10,6 +11,8 @@ import momomomo.dungeonwalker.wsserver.core.actor.connection.command.PollFromCon
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendHeartbeatToClient;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendMessageFromClient;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SetConnection;
+import momomomo.dungeonwalker.wsserver.core.config.HeartbeatConfig;
+import momomomo.dungeonwalker.wsserver.core.handler.client.DataHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
 import momomomo.dungeonwalker.wsserver.domain.inbound.Consumer;
@@ -37,6 +40,9 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private final ConsumerFactory<EngineMessage> consumerFactory;
     private final MessageHandlerSelector<EngineMessage, ClientConnection, Void> messageHandlerSelector;
+    private final DataHandlerSelector dataHandlerSelector;
+    private final DateTimeManager dateTimeManager;
+    private final HeartbeatConfig heartbeatConfig;
     private final Sender<ClientRequest> sender;
 
     private ClientConnection currentConnection;
@@ -46,22 +52,38 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
             @NonNull final ActorContext<ConnectionCommand> context,
             @NonNull final ConsumerFactory<EngineMessage> consumerFactory,
             @NonNull final MessageHandlerSelector<EngineMessage, ClientConnection, Void> messageHandlerSelector,
+            @NonNull final DataHandlerSelector dataHandlerSelector,
+            @NonNull final DateTimeManager dateTimeManager,
+            @NonNull final HeartbeatConfig heartbeatConfig,
             @NonNull final Sender<ClientRequest> sender
     ) {
         super(context);
         this.consumerFactory = consumerFactory;
         this.messageHandlerSelector = messageHandlerSelector;
+        this.dataHandlerSelector = dataHandlerSelector;
+        this.dateTimeManager = dateTimeManager;
+        this.heartbeatConfig = heartbeatConfig;
         this.sender = sender;
     }
 
     public static Behavior<ConnectionCommand> create(
             @NonNull final ConsumerFactory<EngineMessage> consumerFactory,
             @NonNull final MessageHandlerSelector<EngineMessage, ClientConnection, Void> messageHandlerSelector,
+            @NonNull final DataHandlerSelector dataHandlerSelector,
+            @NonNull final DateTimeManager dateTimeManager,
+            @NonNull final HeartbeatConfig heartbeatConfig,
             @NonNull final Sender<ClientRequest> sender
     ) {
         log.debug("---> [ACTOR - Connection] create");
         return Behaviors.setup(context ->
-                new ConnectionActor(context, consumerFactory, messageHandlerSelector, sender));
+                new ConnectionActor(
+                        context,
+                        consumerFactory,
+                        messageHandlerSelector,
+                        dataHandlerSelector,
+                        dateTimeManager,
+                        heartbeatConfig,
+                        sender));
     }
 
     @Override
@@ -108,13 +130,10 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
             timer.startTimerWithFixedDelay(
                     timerHeartbeatKey,
-                    new SendHeartbeatToClient(
-                            command.connection(),
-                            command.dateTimeManager(),
-                            command.heartbeatConfig()),
+                    new SendHeartbeatToClient(),
                     Duration.of(
-                            command.heartbeatConfig().getDelay(),
-                            ChronoUnit.valueOf(command.heartbeatConfig().getTimeUnit())));
+                            heartbeatConfig.getDelay(),
+                            ChronoUnit.valueOf(heartbeatConfig.getTimeUnit())));
 
             final var timerConsumerPollKey = "timer-consumer-" + actorId();
             log.debug("---> [ACTOR - Connection][{}] setting timer \"{}\"", actorPath(), timerConsumerPollKey);
@@ -165,14 +184,15 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private Behavior<ConnectionCommand> onSendHeartbeatToClient(final SendHeartbeatToClient command) {
         log.debug("---> [ACTOR - Connection][{}] on send heartbeat to \"{}\":\"{}\"",
-                actorPath(), command.connection().getUserId(), command.connection().getSessionId());
+                actorPath(), currentConnection.getUserId(), currentConnection.getSessionId());
 
-        final var output = Output.of(new ServerHeartbeat(
-                command.heartbeatConfig().getDelay(),
-                command.heartbeatConfig().getTimeUnit(),
-                command.dateTimeManager().instantNow()));
+        final var output = Output.of(
+                new ServerHeartbeat(
+                        heartbeatConfig.getDelay(),
+                        heartbeatConfig.getTimeUnit(),
+                        dateTimeManager.instantNow()));
 
-        command.connection().send(output);
+        currentConnection.send(output);
 
         return Behaviors.same();
     }
@@ -181,27 +201,27 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     onSendMessageFromClient(final SendMessageFromClient command) {
         log.debug("---> [ACTOR - Connection][{}] on act on message \"{}\":\"{}\"",
-                actorPath(), command.connection().getUserId(), command.connection().getSessionId());
+                actorPath(), currentConnection.getUserId(), currentConnection.getSessionId());
 
-        command.dataHandlerSelector()
+        dataHandlerSelector
                 .select(command.message().data())
                 .handle(command.message().data(), sender)
                 .thenCompose(result -> {
                     switch (result.type()) {
                         case FAILURE -> {
                             log.error("---> [ACTOR - Connection][{}] Failure sending message for user \"{}\":\"{}\". Result: {}",
-                                    actorPath(), command.connection().getUserId(), command.connection().getSessionId(), result);
-                            command.connection().send(Output.of(new ServerErrors(result.errors())));
+                                    actorPath(), currentConnection.getUserId(), currentConnection.getSessionId(), result);
+                            currentConnection.send(Output.of(new ServerErrors(result.errors())));
                         }
                         case SUCCESS -> {
                             log.debug("---> [ACTOR - Connection][{}] Success sending message for user \"{}\":\"{}\"",
-                                    actorPath(), command.connection().getUserId(), command.connection().getSessionId());
-                            command.connection().send(Output.of(new ServerMessage("Message sent")));
+                                    actorPath(), currentConnection.getUserId(), currentConnection.getSessionId());
+                            currentConnection.send(Output.of(new ServerMessage("Message sent")));
                         }
                         default -> {
                             log.debug("---> [ACTOR - Connection][{}] Ignoring message for user \"{}\":\"{}\"",
-                                    actorPath(), command.connection().getUserId(), command.connection().getSessionId());
-                            command.connection().send(Output.of(new ServerMessage("Message ignored")));
+                                    actorPath(), currentConnection.getUserId(), currentConnection.getSessionId());
+                            currentConnection.send(Output.of(new ServerMessage("Message ignored")));
                         }
                     }
 
@@ -209,9 +229,9 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
                 }).exceptionally(ex -> {
                     log.error("---> [ACTOR - Connection][{}] Error sending message for user  \"{}\":\"{}\". Exception: {}",
-                            actorPath(), command.connection().getUserId(), command.connection().getSessionId(), ex.getMessage());
+                            actorPath(), currentConnection.getUserId(), currentConnection.getSessionId(), ex.getMessage());
 
-                    command.connection().send(Output.of(new ServerErrors(List.of(ex.getMessage()))));
+                    currentConnection.send(Output.of(new ServerErrors(List.of(ex.getMessage()))));
 
                     return CompletableFuture.failedFuture(ex);
                 });

@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="DungeonWalkerEngine" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <module name="engine-startup" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="momomomo.dungeonwalker.engine.startup.DungeonWalkerEngine" />
+    <option name="VM_PARAMETERS" value="--add-opens java.base/jdk.internal.misc=ALL-UNNAMED" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="momomomo.dungeonwalker.engine.startup.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -28,6 +28,7 @@ services:
 
   # After starting the container for the first time (with no volume), in the "dungeon-walker-docker" folder, run:
   # docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
+  
   postgres-db:
     image: postgres:18-alpine
     container_name: postgres-db
@@ -49,6 +50,7 @@ services:
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
+
   dungeon-walker-engine:
     image: alejoceballos/dungeon-walker-engine:v1
     container_name: dungeon-walker-engine
@@ -75,6 +77,7 @@ services:
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
+
   dungeon-walker-ws-server:
     image: alejoceballos/dungeon-walker-ws-server:v1
     container_name: dungeon-walker-ws-server

@@ -46,31 +46,31 @@
 
         <dependency>
             <groupId>org.apache.pekko</groupId>
-            <artifactId>pekko-actor-typed_3</artifactId>
+            <artifactId>pekko-actor-typed_2.13</artifactId>
             <version>${pekko.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.pekko</groupId>
-            <artifactId>pekko-cluster-sharding-typed_3</artifactId>
+            <artifactId>pekko-cluster-sharding-typed_2.13</artifactId>
             <version>${pekko.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.pekko</groupId>
-            <artifactId>pekko-serialization-jackson_3</artifactId>
+            <artifactId>pekko-serialization-jackson_2.13</artifactId>
             <version>${pekko.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.pekko</groupId>
-            <artifactId>pekko-persistence-typed_3</artifactId>
+            <artifactId>pekko-persistence-typed_2.13</artifactId>
             <version>${pekko.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.pekko</groupId>
-            <artifactId>pekko-persistence-r2dbc_3</artifactId>
+            <artifactId>pekko-persistence-r2dbc_2.13</artifactId>
             <version>${pekko-persistence-r2dbc.version}</version>
         </dependency>
 
