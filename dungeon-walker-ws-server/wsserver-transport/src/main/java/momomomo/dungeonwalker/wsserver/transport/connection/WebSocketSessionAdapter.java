@@ -1,6 +1,7 @@
 package momomomo.dungeonwalker.wsserver.transport.connection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.machinezoo.noexception.Exceptions;
 import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -37,11 +38,9 @@ public class WebSocketSessionAdapter implements ClientConnection {
 
     @Override
     public void close() {
-        try {
-            session.close();
-        } catch (final IOException e) {
-            throw new WsServerTransportException(e);
-        }
+        Exceptions
+                .wrap(WsServerTransportException::new)
+                .run(session::close);
     }
 
     @Override

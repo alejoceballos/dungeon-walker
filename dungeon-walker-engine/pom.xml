@@ -26,13 +26,16 @@
         <dungeon-walker-commons.version>0.0.1-SNAPSHOT</dungeon-walker-commons.version>
         <dungeon-walker-spring-commons.version>0.0.1-SNAPSHOT</dungeon-walker-spring-commons.version>
         <dungeon-walker-contracts.version>1.0-SNAPSHOT</dungeon-walker-contracts.version>
+
         <pekko.version>1.4.0</pekko.version>
         <pekko-persistence-r2dbc.version>1.1.0</pekko-persistence-r2dbc.version>
         <r2dbc-postgresql.version>1.1.1.RELEASE</r2dbc-postgresql.version>
 
-        <postgres.version>42.7.3</postgres.version>
-        <jib.version>3.4.4</jib.version>
         <apache-commons-lang.version>3.19.0</apache-commons-lang.version>
+        <postgres.version>42.7.3</postgres.version>
+        <noexception.version>1.9.1</noexception.version>
+        <noexception-slf4j.version>1.0.2</noexception-slf4j.version>
+        <jib.version>3.4.4</jib.version>
 
         <testcontainers.version>1.21.3</testcontainers.version>
     </properties>

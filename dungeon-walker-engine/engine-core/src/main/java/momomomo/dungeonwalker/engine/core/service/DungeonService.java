@@ -1,5 +1,6 @@
 package momomomo.dungeonwalker.engine.core.service;
 
+import com.machinezoo.noexception.Exceptions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.ClusterShardingManager;
@@ -8,6 +9,7 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRepl
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequest;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
 import momomomo.dungeonwalker.engine.core.mapper.RawMapMapper;
+import momomomo.dungeonwalker.engine.domain.exceptions.GetDungeonException;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
@@ -18,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Duration;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionStage;
 
 import static java.lang.System.lineSeparator;
 import static java.util.Objects.requireNonNull;
@@ -42,44 +44,44 @@ public class DungeonService {
 
         final var dungeonId = identityService.dungeonId(level);
 
-        if (InitializedDungeon.class.equals(askForState(dungeonId).value().getClass())) {
-            log.debug("{} Level \"{}\" already initialized", LABEL, level);
-            return;
-        }
-
-        final var fileName = FILE_PATH_PATTERN.formatted(dungeonId);
-
-        try (final var inputStream = getClass().getResourceAsStream(fileName)) {
-            requireNonNull(inputStream);
-
-            try (final var reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                final var rawMap = reader.lines().collect(joining(lineSeparator()));
-                dungeonRef(dungeonId).tell(new SetupDungeon(mapper.map(level, rawMap)));
+        askForState(dungeonId).thenAccept(state -> {
+            if (InitializedDungeon.class.equals(state.value().getClass())) {
+                log.debug("{} Level \"{}\" already initialized", LABEL, level);
+                return;
             }
 
-        } catch (final IOException e) {
-            throw new DungeonServiceException("Unable to set up dungeon level \"%s\".".formatted(level), e);
-        }
+            final var fileName = FILE_PATH_PATTERN.formatted(dungeonId);
+
+
+            try (final var inputStream = getClass().getResourceAsStream(fileName)) {
+                requireNonNull(inputStream);
+
+                try (final var reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                    final var rawMap = reader.lines().collect(joining(lineSeparator()));
+                    dungeonRef(dungeonId).tell(new SetupDungeon(mapper.map(level, rawMap)));
+                }
+
+            } catch (final IOException e) {
+                throw new DungeonServiceException("Unable to set up dungeon level \"%s\".".formatted(level), e);
+            }
+        });
     }
 
     public Dungeon getDungeon(final int level) {
-        final var dungeonId = identityService.dungeonId(level);
-        return askForState(dungeonId).value();
+        return Exceptions
+                .wrap(GetDungeonException::new)
+                .get(() -> askForState(identityService.dungeonId(level))
+                        .toCompletableFuture()
+                        .get()
+                        .value());
     }
 
-    private DungeonStateReply askForState(final String dungeonId) {
-        try {
-            return ask(
-                    dungeonRef(dungeonId),
-                    DungeonStateRequest::new,
-                    Duration.ofSeconds(1L),
-                    cluster.getActorSystem().scheduler())
-                    .toCompletableFuture()
-                    .get();
-
-        } catch (final InterruptedException | ExecutionException e) {
-            throw new DungeonServiceException("Unable to ask dungeon for its state", e);
-        }
+    private CompletionStage<DungeonStateReply> askForState(final String dungeonId) {
+        return ask(
+                dungeonRef(dungeonId),
+                DungeonStateRequest::new,
+                Duration.ofSeconds(1L),
+                cluster.getActorSystem().scheduler());
     }
 
     private EntityRef<DungeonCommand> dungeonRef(final String dungeonId) {

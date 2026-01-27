@@ -8,6 +8,7 @@ import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.UserMovementStrategy;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.WalkerMovementStrategy;
+import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,13 @@ public class PlayerService extends WalkerService {
         log.debug("{} Moving player {} to {}]", LABEL, playerId, direction);
 
         cluster.getUserWalkerEntityRef(playerId).tell(new Move(direction));
+    }
+
+    @Override
+    protected boolean onEnterTheDungeonWhenInStoppedState(
+            final EntityRef<WalkerCommand> walkerRef,
+            final Class<? extends WalkerState> state) {
+        return true;
     }
 
     @Override

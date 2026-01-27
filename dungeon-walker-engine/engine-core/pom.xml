@@ -96,5 +96,14 @@
             <version>${apache-commons-lang.version}</version>
         </dependency>
 
+        <!-- Utilities - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+        <dependency>
+            <groupId>com.machinezoo.noexception</groupId>
+            <artifactId>noexception</artifactId>
+            <version>${noexception.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 </project>

@@ -4,7 +4,7 @@ import momomomo.dungeonwalker.engine.domain.DomainException;
 
 public class CellException extends DomainException {
 
-    public CellException(String message) {
+    public CellException(final String message) {
         super(message);
     }
 

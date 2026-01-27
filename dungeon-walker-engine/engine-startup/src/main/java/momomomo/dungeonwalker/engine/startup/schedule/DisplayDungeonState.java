@@ -1,5 +1,6 @@
 package momomomo.dungeonwalker.engine.startup.schedule;
 
+import com.machinezoo.noexception.slf4j.ExceptionLogging;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.domain.manager.DungeonManager;
@@ -20,14 +21,17 @@ public class DisplayDungeonState {
 
     @Scheduled(initialDelay = 10L, fixedRate = 1L, timeUnit = TimeUnit.SECONDS)
     public void displayDungeon() {
-        final var dungeon = dungeonManager.getDungeon();
+        ExceptionLogging
+                .log(log)
+                .get(dungeonManager::getDungeon)
+                .ifPresent(dungeon -> {
+                    if (dungeon instanceof UninitializedDungeon) {
+                        log.debug("{} Dungeon state: {}", LABEL, dungeon);
+                        return;
+                    }
 
-        if (dungeon instanceof UninitializedDungeon) {
-            log.debug("{} Dungeon state: {}", LABEL, dungeon);
-            return;
-        }
-
-        dungeon.print();
+                    dungeon.print();
+                });
     }
 
 }

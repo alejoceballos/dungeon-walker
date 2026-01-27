@@ -16,7 +16,7 @@ import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
 
 import java.time.Duration;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionStage;
 
 import static org.apache.pekko.actor.typed.javadsl.AskPattern.ask;
 
@@ -36,16 +36,15 @@ public abstract class WalkerService {
         log.debug("{} Entering the dungeon: {}", LABEL, walkerId);
 
         final var walkerRef = getWalkerRef(walkerId);
-        final var state = askForState(walkerRef).value();
 
-        if (onEnterTheDungeonWhenInAsleepState(walkerRef, state)) {
-            log.debug("{} Walker \"{}\" is Asleep", LABEL, walkerId);
-            return;
-        }
+        askForState(walkerRef).thenAccept(state -> {
+            if (onEnterTheDungeonWhenInAsleepState(walkerRef, state.value())) {
+                log.debug("{} Walker \"{}\" is Asleep", LABEL, walkerId);
 
-        if (onEnterTheDungeonWhenInStoppedState(walkerRef, state)) {
-            log.debug("{} Walker \"{}\" is Stopped", LABEL, walkerId);
-        }
+            } else if (onEnterTheDungeonWhenInStoppedState(walkerRef, state.value())) {
+                log.debug("{} Walker \"{}\" is Stopped", LABEL, walkerId);
+            }
+        });
     }
 
     protected boolean onEnterTheDungeonWhenInAsleepState(
@@ -65,26 +64,17 @@ public abstract class WalkerService {
         return true;
     }
 
-    protected boolean onEnterTheDungeonWhenInStoppedState(
-            final EntityRef<WalkerCommand> walkerRef,
-            final Class<? extends WalkerState> state) {
-        return true;
+    private CompletionStage<WalkerStateReply> askForState(final EntityRef<WalkerCommand> walkerRef) {
+        return ask(
+                walkerRef,
+                WalkerStateRequest::new,
+                Duration.ofSeconds(1L),
+                cluster.getActorSystem().scheduler());
     }
 
-    private WalkerStateReply askForState(final EntityRef<WalkerCommand> walkerRef) {
-        try {
-            return ask(
-                    walkerRef,
-                    WalkerStateRequest::new,
-                    Duration.ofSeconds(1L),
-                    cluster.getActorSystem().scheduler())
-                    .toCompletableFuture()
-                    .get();
-
-        } catch (final InterruptedException | ExecutionException e) {
-            throw new DungeonServiceException("Unable to ask dungeon for its state", e);
-        }
-    }
+    protected abstract boolean onEnterTheDungeonWhenInStoppedState(
+            EntityRef<WalkerCommand> walkerRef,
+            Class<? extends WalkerState> state);
 
     protected abstract EntityRef<WalkerCommand> getWalkerRef(String walkerId);
 
