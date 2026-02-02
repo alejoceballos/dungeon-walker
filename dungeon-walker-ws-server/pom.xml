@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.2</version>
+        <version>4.0.1</version>
     </parent>
 
     <groupId>momomomo.dungeonwalker</groupId>
@@ -29,13 +29,13 @@
 
         <pekko.version>1.4.0</pekko.version>
 
-        <apache-commons-lang.version>3.19.0</apache-commons-lang.version>
+        <apache-commons-lang.version>3.20.0</apache-commons-lang.version>
         <apache-commons-collections.version>4.5.0</apache-commons-collections.version>
         <noexception.version>1.9.1</noexception.version>
         <noexception-slf4j.version>1.0.2</noexception-slf4j.version>
-        <jib.version>3.4.4</jib.version>
+        <jib.version>3.5.1</jib.version>
 
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
 
     <modules>
