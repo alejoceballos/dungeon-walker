@@ -4,6 +4,7 @@ import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.commons.conditional.Conditional;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import momomomo.dungeonwalker.wsserver.core.mapper.InputDataMapper;
 import momomomo.dungeonwalker.wsserver.core.validator.InputDataValidator;
@@ -17,6 +18,7 @@ import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.FAILURE;
 import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.SUCCESS;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -38,24 +40,23 @@ public abstract class SelectableInputDataHandler<I extends InputData>
         log.debug("---> [DATA HANDLER - {}] Handling input data: {}", this.getClass().getSimpleName(), inputData);
         final var errors = validator.validate(inputData);
 
-        if (isNotEmpty(errors)) {
-            return CompletableFuture.completedFuture(
-                    HandlingResult.builder()
-                            .type(FAILURE)
-                            .errors(errors.stream()
-                                    .map(ValidationError::toString)
-                                    .toList())
-                            .build());
-        }
-
-        final var mappedData = mapper.map(inputData);
-
-        return sender.send(mappedData)
-                .thenCompose(result -> CompletableFuture.completedFuture(map(result)))
-                .exceptionally(ex -> HandlingResult.builder()
-                        .type(FAILURE)
-                        .errors(List.of(ex.getMessage()))
-                        .build());
+        return Conditional
+                .on(() -> isNotEmpty(errors))
+                .thenGet(() -> completedFuture(
+                        HandlingResult.builder()
+                                .type(FAILURE)
+                                .errors(errors.stream()
+                                        .map(ValidationError::toString)
+                                        .toList())
+                                .build()))
+                .orElseGet(() -> sender
+                        .send(mapper.map(inputData))
+                        .thenCompose(result -> completedFuture(map(result)))
+                        .exceptionally(ex -> HandlingResult.builder()
+                                .type(FAILURE)
+                                .errors(List.of(ex.getMessage()))
+                                .build()))
+                .evaluate();
     }
 
     protected abstract boolean canHandle(@NonNull InputData message);

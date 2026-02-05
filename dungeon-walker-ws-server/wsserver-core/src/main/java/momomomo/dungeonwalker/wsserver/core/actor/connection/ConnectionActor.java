@@ -1,5 +1,7 @@
 package momomomo.dungeonwalker.wsserver.core.actor.connection;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.commons.DateTimeManager;
@@ -151,7 +153,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         });
     }
 
-    private Behavior<ConnectionCommand> onResetConnection(final SetConnection command) {
+    private Behavior<ConnectionCommand> onResetConnection(@NonNull final SetConnection command) {
         log.debug("---> [ACTOR - Connection][{}] on set connection again \"{}\":\"{}\" vs. \"{}\":\"{}\"",
                 actorPath(), userId(), sessionId(), command.connection().getUserId(), command.connection().getSessionId());
 
@@ -169,7 +171,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         return Behaviors.same();
     }
 
-    private Behavior<ConnectionCommand> onCloseConnection(final CloseConnection command) {
+    private Behavior<ConnectionCommand> onCloseConnection(@NonNull final CloseConnection command) {
         log.debug("---> [ACTOR - Connection][{}] on close connection \"{}\":\"{}\"",
                 actorPath(), command.connection().getUserId(), command.connection().getSessionId());
 
@@ -182,7 +184,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         return Behaviors.same();
     }
 
-    private Behavior<ConnectionCommand> onSendHeartbeatToClient(final SendHeartbeatToClient command) {
+    private Behavior<ConnectionCommand> onSendHeartbeatToClient(@NonNull final SendHeartbeatToClient command) {
         log.debug("---> [ACTOR - Connection][{}] on send heartbeat to \"{}\":\"{}\"",
                 actorPath(), currentConnection.getUserId(), currentConnection.getSessionId());
 
@@ -197,9 +199,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         return Behaviors.same();
     }
 
-    private Behavior<ConnectionCommand>
-
-    onSendMessageFromClient(final SendMessageFromClient command) {
+    private Behavior<ConnectionCommand> onSendMessageFromClient(@NonNull final SendMessageFromClient command) {
         log.debug("---> [ACTOR - Connection][{}] on act on message \"{}\":\"{}\"",
                 actorPath(), currentConnection.getUserId(), currentConnection.getSessionId());
 
@@ -239,7 +239,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         return Behaviors.same();
     }
 
-    private Behavior<ConnectionCommand> onPollFromConsumer(final PollFromConsumer command) {
+    private Behavior<ConnectionCommand> onPollFromConsumer(@NonNull final PollFromConsumer command) {
         consumer
                 .poll()
                 .forEach(message ->
@@ -250,22 +250,22 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         return Behaviors.same();
     }
 
-    private String actorPath() {
+    private @Nonnull String actorPath() {
         return getContext().getSelf().path().toString();
     }
 
-    private String actorId() {
+    private @Nonnull String actorId() {
         return getContext().getSelf().path().name();
     }
 
-    private String sessionId() {
+    private @Nullable String sessionId() {
         return Optional
                 .ofNullable(currentConnection)
                 .map(ClientConnection::getSessionId)
                 .orElse(null);
     }
 
-    private String userId() {
+    private @Nullable String userId() {
         return Optional
                 .ofNullable(currentConnection)
                 .map(ClientConnection::getUserId)

@@ -23,7 +23,7 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <dungeon-walker-commons.version>0.0.1-SNAPSHOT</dungeon-walker-commons.version>
+        <dungeon-walker-commons.version>1.0</dungeon-walker-commons.version>
         <dungeon-walker-commons-spring.version>0.0.1-SNAPSHOT</dungeon-walker-commons-spring.version>
         <dungeon-walker-contracts.version>1.0-SNAPSHOT</dungeon-walker-contracts.version>
 

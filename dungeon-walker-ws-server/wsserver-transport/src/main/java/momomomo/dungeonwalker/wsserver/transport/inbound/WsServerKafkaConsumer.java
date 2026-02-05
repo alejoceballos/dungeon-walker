@@ -32,7 +32,7 @@ public class WsServerKafkaConsumer implements Consumer<EngineMessage> {
         final var records = consumer.poll(Duration.ofMillis(100));
         final var messages = new ArrayList<EngineMessage>();
 
-        records.iterator().forEachRemaining(record -> messages.add(record.value()));
+        records.iterator().forEachRemaining(consumerRecord -> messages.add(consumerRecord.value()));
 
         return messages;
     }
