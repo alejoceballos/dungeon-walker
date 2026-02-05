@@ -8,7 +8,7 @@
     <groupId>momomomo.dungeonwalker</groupId>
     <artifactId>dungeon-walker-commons</artifactId>
     <name>Dungeon Walker Commons</name>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -19,6 +19,22 @@
 
         <maven-resources-plugin.version>3.4.0</maven-resources-plugin.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>6.0.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.27.7</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
