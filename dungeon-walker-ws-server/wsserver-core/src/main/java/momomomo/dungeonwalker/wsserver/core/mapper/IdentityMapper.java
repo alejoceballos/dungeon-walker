@@ -17,7 +17,8 @@ public class IdentityMapper implements InputDataMapper<Identity, ClientRequest> 
     public ClientRequest map(@NonNull final Identity inputData) {
         log.debug("---> [MAPPER - Identity] mapping \"{}\"", inputData);
 
-        return ClientRequest.newBuilder()
+        return ClientRequest
+                .newBuilder()
                 .setClientId(inputData.clientId())
                 .setConnection(Connection.newBuilder().build())
                 .build();

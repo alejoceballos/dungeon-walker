@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.FAILURE;
 import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.SUCCESS;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,20 +41,20 @@ public abstract class SelectableInputDataHandler<I extends InputData>
         final var errors = validator.validate(inputData);
 
         return Conditional
-                .on(() -> isNotEmpty(errors))
-                .thenGet(() -> completedFuture(
-                        HandlingResult.builder()
-                                .type(FAILURE)
-                                .errors(errors.stream()
-                                        .map(ValidationError::toString)
-                                        .toList())
-                                .build()))
-                .orElseGet(() -> sender
+                .on(() -> isEmpty(errors))
+                .thenGet(() -> sender
                         .send(mapper.map(inputData))
                         .thenCompose(result -> completedFuture(map(result)))
                         .exceptionally(ex -> HandlingResult.builder()
                                 .type(FAILURE)
                                 .errors(List.of(ex.getMessage()))
+                                .build()))
+                .orElseGet(() -> completedFuture(
+                        HandlingResult.builder()
+                                .type(FAILURE)
+                                .errors(errors.stream()
+                                        .map(ValidationError::toString)
+                                        .toList())
                                 .build()))
                 .evaluate();
     }
@@ -64,7 +64,12 @@ public abstract class SelectableInputDataHandler<I extends InputData>
     private HandlingResult map(@NonNull final SendResult result) {
         final var type = result.status() == SendStatus.SUCCESS ? SUCCESS : FAILURE;
         final List<String> errors = result.status() == SendStatus.FAILURE ? List.of(result.message()) : List.of();
-        return HandlingResult.builder().type(type).errors(errors).build();
+
+        return HandlingResult
+                .builder()
+                .type(type)
+                .errors(errors)
+                .build();
     }
 
 }

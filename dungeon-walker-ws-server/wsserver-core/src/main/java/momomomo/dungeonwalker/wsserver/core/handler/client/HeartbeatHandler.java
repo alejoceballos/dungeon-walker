@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Collections.emptyList;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.SUCCESS;
 
 @Slf4j
@@ -32,8 +33,9 @@ public class HeartbeatHandler extends SelectableInputDataHandler<ClientHeartbeat
             @NonNull final ClientHeartbeat inputData,
             @NonNull final Sender<ClientRequest> unused
     ) {
-        return CompletableFuture.completedFuture(
-                HandlingResult.builder()
+        return completedFuture(
+                HandlingResult
+                        .builder()
                         .type(SUCCESS)
                         .errors(emptyList())
                         .build());

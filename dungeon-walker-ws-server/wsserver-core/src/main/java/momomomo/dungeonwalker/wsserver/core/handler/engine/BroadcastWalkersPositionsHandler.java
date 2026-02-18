@@ -23,18 +23,17 @@ public class BroadcastWalkersPositionsHandler implements SelectableMessageHandle
     public Void handle(@NonNull final EngineMessage message, @NonNull final ClientConnection connection) {
         log.debug("{} Message: \"{}\". Player \"{}\"", LABEL, message, connection.getUserId());
 
-        final var transformedMap = message
-                .getWalkerPositions()
-                .getCoordinatesByWalkerIdMap()
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> new EngineCoordinates(
-                                entry.getValue().getX(),
-                                entry.getValue().getY())));
-
-        connection.send(Output.of(new EngineWalkersCoordinates(transformedMap)));
+        connection.send(Output.of(
+                new EngineWalkersCoordinates(message
+                        .getWalkerPositions()
+                        .getCoordinatesByWalkerIdMap()
+                        .entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                entry -> new EngineCoordinates(
+                                        entry.getValue().getX(),
+                                        entry.getValue().getY()))))));
 
         return null;
     }

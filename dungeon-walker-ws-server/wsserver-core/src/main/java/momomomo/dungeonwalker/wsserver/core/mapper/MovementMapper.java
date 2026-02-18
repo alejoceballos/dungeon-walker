@@ -18,7 +18,8 @@ public class MovementMapper implements InputDataMapper<Movement, ClientRequest> 
     public ClientRequest map(@NonNull final Movement inputData) {
         log.debug("---> [MAPPER - Movement] mapping \"{}\"", inputData);
 
-        return ClientRequest.newBuilder()
+        return ClientRequest
+                .newBuilder()
                 .setClientId(inputData.clientId())
                 .setMovement(MovementProto.Movement.newBuilder()
                         .setDirection(Direction.valueOf(inputData.direction().name()))

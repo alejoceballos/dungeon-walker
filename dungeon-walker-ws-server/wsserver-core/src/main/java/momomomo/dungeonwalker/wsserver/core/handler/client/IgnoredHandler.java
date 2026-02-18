@@ -11,6 +11,7 @@ import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult.Type.FAILURE;
 
 @Slf4j
@@ -23,7 +24,8 @@ public class IgnoredHandler implements MessageHandler<InputData, Sender<ClientRe
     ) {
         log.debug("---> [DATA HANDLER - {}] Ignoring input data: {}", this.getClass().getSimpleName(), message);
 
-        return CompletableFuture.completedFuture(HandlingResult.builder()
+        return completedFuture(HandlingResult
+                .builder()
                 .type(FAILURE)
                 .errors(List.of("This type of data is not yet supported"))
                 .build());
