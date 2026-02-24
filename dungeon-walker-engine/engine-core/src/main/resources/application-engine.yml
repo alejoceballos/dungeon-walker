@@ -1,0 +1,19 @@
+pekko:
+  persistence:
+    r2dbc:
+      dialect: "postgres"
+      connection-factory:
+        driver: "postgres"
+        host: "127.0.0.1"
+        port: "5432"
+        database: "postgres"
+        user: "postgres"
+        password: "postgres"
+  remote:
+    artery:
+      canonical:
+        hostname: "127.0.0.1"
+        port: "2552"
+  cluster:
+    seed-nodes:
+      - "pekko://EngineClusterSystem@127.0.0.1:2552"
