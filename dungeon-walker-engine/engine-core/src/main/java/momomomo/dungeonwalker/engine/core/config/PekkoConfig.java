@@ -7,19 +7,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.guardian.GuardianActor;
 import momomomo.dungeonwalker.engine.core.config.properties.pekko.PekkoProps;
-import momomomo.dungeonwalker.spring.commons.YamlPropertySourceFactory;
 import org.apache.pekko.actor.typed.ActorSystem;
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.PropertySource;
 
 import java.util.Properties;
 
 @Slf4j
 @Configuration
-@PropertySource(value = "classpath:application-engine.yml", factory = YamlPropertySourceFactory.class)
 @RequiredArgsConstructor
 public class PekkoConfig {
 
