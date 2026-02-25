@@ -12,25 +12,27 @@ import org.apache.pekko.actor.typed.javadsl.Receive;
 @Slf4j
 public class GuardianActor extends AbstractBehavior<Void> {
 
+    private static final String LABEL = "---> [ACTOR - Guardian]";
+
     private GuardianActor(@NonNull final ActorContext<Void> context) {
         super(context);
     }
 
     public static Behavior<Void> create() {
-        log.debug("---> [ACTOR - Guardian] create");
+        log.debug("{} create", LABEL);
         return Behaviors.setup(GuardianActor::new);
     }
 
     @Override
     public Receive<Void> createReceive() {
-        log.debug("---> [ACTOR - Guardian] create receive");
+        log.debug("{} create receive", LABEL);
         return newReceiveBuilder()
                 .onSignal(PostStop.class, this::onPostStop)
                 .build();
     }
 
     private Behavior<Void> onPostStop(final PostStop signal) {
-        log.debug("---> [ACTOR - Guardian] on post stop");
+        log.debug("{} on post stop", LABEL);
         return Behaviors.stopped();
     }
 

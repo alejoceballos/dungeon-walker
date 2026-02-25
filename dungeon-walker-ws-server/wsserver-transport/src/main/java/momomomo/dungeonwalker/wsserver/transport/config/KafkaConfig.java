@@ -17,6 +17,8 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
+    private static final String LABEL = "---> [CONFIG - Kafka]";
+
     @Bean
     public ProducerFactory<@NonNull String, @NonNull ClientRequest> producerFactory(
             @Value("${spring.kafka.producer.bootstrap-servers}") final String bootstrapServers,
@@ -25,8 +27,8 @@ public class KafkaConfig {
             @Value("${spring.kafka.producer.acks}") final String acks,
             @Value("${spring.kafka.producer.retries}") final int retries
     ) {
-        log.debug("---> [CONFIG - Kafka] Creating producer factory: {}, {}, {}, {}, {}"
-                , bootstrapServers, keySerializer, valueSerializer, acks, retries);
+        log.debug("{} Creating producer factory: {}, {}, {}, {}, {}",
+                LABEL, bootstrapServers, keySerializer, valueSerializer, acks, retries);
         return new DefaultKafkaProducerFactory<>(Map.of(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer,
@@ -39,7 +41,7 @@ public class KafkaConfig {
     public KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate(
             final ProducerFactory<@NonNull String, @NonNull ClientRequest> producerFactory
     ) {
-        log.debug("---> [CONFIG - Kafka] Creating kafka template");
+        log.debug("{} Creating Kafka template", LABEL);
         return new KafkaTemplate<>(producerFactory);
     }
 

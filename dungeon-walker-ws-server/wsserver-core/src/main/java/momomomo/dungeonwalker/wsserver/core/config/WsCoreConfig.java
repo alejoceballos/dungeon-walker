@@ -9,9 +9,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class WsCoreConfig {
 
+    private static final String LABEL = "---> [WS CORE - Config]";
+
     @Bean
     public DateTimeManager dateTimeManager() {
-        log.info("---> [WS CORE - Config] 'dateTimeManager' bean created");
+        log.info("{} 'dateTimeManager' bean created", LABEL);
         return new DateTimeManager();
     }
 

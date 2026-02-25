@@ -1,4 +1,4 @@
-package momomomo.dungeonwalker.wsserver.core.config;
+package momomomo.dungeonwalker.wsserver.core.config.properties.heartbeat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +12,7 @@ import org.springframework.context.annotation.PropertySource;
 @Configuration
 @ConfigurationProperties(prefix = "heartbeat")
 @PropertySource(value = "classpath:application-core.yml", factory = YamlPropertySourceFactory.class)
-public class HeartbeatConfig {
+public class HeartbeatProps {
 
     private int delay;
     private String timeUnit;

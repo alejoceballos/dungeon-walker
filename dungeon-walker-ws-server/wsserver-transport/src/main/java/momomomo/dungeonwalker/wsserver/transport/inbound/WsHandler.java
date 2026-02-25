@@ -20,17 +20,19 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @RequiredArgsConstructor
 public class WsHandler extends TextWebSocketHandler {
 
+    private static final String LABEL = "---> [WS Server - Handler]";
+
     private final ConnectionManager connectionManager;
     private final ObjectMapper jsonMapper;
 
     @PostConstruct
     public void init() {
-        log.info("---> [WS Server - Handler] Bean created");
+        log.info("{} Bean created", LABEL);
     }
 
     @Override
     public void afterConnectionEstablished(@Nonnull final WebSocketSession session) {
-        log.info("---> [WS Server - Handler] Connection established with session \"{}\"", session.getId());
+        log.info("{} Connection established with session \"{}\"", LABEL, session.getId());
 
         connectionManager.establish(new WebSocketSessionAdapter(session, jsonMapper));
     }
@@ -40,7 +42,7 @@ public class WsHandler extends TextWebSocketHandler {
             @Nonnull final WebSocketSession session,
             @Nonnull final CloseStatus status
     ) {
-        log.info("---> [WS Server - Handler] Connection closed for session \"{}\"", session.getId());
+        log.info("{} Connection closed for session \"{}\"", LABEL, session.getId());
 
         connectionManager.close(new WebSocketSessionAdapter(session, jsonMapper));
     }
@@ -50,14 +52,14 @@ public class WsHandler extends TextWebSocketHandler {
             @Nonnull final WebSocketSession session,
             @Nonnull final TextMessage message
     ) {
-        log.info("---> [WS Server - Handler] Session \"{}\" received the message \"{}\"", session.getId(), message.getPayload());
+        log.info("{} Session \"{}\" received the message \"{}\"", LABEL, session.getId(), message.getPayload());
 
         try {
             final var input = jsonMapper.readValue(message.getPayload(), Input.class);
             connectionManager.handleMessage(new WebSocketSessionAdapter(session, jsonMapper), input);
 
         } catch (final JsonProcessingException e) {
-            log.error("---> [WS Server - Handler] Error parsing message \"{}\"", message.getPayload(), e);
+            log.error("{} Error parsing message \"{}\"", LABEL, message.getPayload(), e);
         }
     }
 

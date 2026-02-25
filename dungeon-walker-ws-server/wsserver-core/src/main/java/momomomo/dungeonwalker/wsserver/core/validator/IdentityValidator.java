@@ -12,10 +12,12 @@ import java.util.List;
 @Component
 public class IdentityValidator implements InputDataValidator<Identity> {
 
+    private static final String LABEL = "---> [VALIDATOR - Identity] ";
+
     @Nonnull
     @Override
     public List<ValidationError> validate(@NonNull final Identity inputData) {
-        log.debug("---> [VALIDATOR - Identity] validating \"{}\"", inputData);
+        log.debug("{} validating \"{}\"", LABEL, inputData);
         return List.of();
     }
 }

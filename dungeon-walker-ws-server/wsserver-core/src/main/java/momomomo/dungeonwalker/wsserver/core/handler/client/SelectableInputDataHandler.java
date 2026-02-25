@@ -28,6 +28,8 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 public abstract class SelectableInputDataHandler<I extends InputData>
         implements MessageHandler<I, Sender<ClientRequest>, CompletableFuture<HandlingResult>> {
 
+    private static final String LABEL = "---> [DATA HANDLER -";
+
     private final InputDataMapper<I, ClientRequest> mapper;
     private final InputDataValidator<I> validator;
 
@@ -37,7 +39,7 @@ public abstract class SelectableInputDataHandler<I extends InputData>
             @NonNull final I inputData,
             @NonNull final Sender<ClientRequest> sender
     ) {
-        log.debug("---> [DATA HANDLER - {}] Handling input data: {}", this.getClass().getSimpleName(), inputData);
+        log.debug("{} {}] Data: {}", LABEL, this.getClass().getSimpleName(), inputData);
         final var errors = validator.validate(inputData);
 
         return Conditional

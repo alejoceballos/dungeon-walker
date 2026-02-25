@@ -19,32 +19,33 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ConnectionActorManager implements ConnectionManager {
 
+    private static final String LABEL = "---> [CONNECTION - Manager]";
     private final ClusterShardingManager clusterShardingManager;
 
     @Override
     public void establish(@NonNull final ClientConnection connection) {
-        log.debug("---> [CONNECTION - Manager] Establish connection for user \"{}\" with session \"{}\"",
-                connection.getUserId(), connection.getSessionId());
+        log.debug("{} Establish connection for user \"{}\" with session \"{}\"",
+                LABEL, connection.getUserId(), connection.getSessionId());
         tell(connection, new SetConnection(connection));
         tell(connection, new SendMessageFromClient(Input.of(new Identity(connection.getUserId()))));
     }
 
     @Override
     public void close(@NonNull final ClientConnection connection) {
-        log.debug("---> [CONNECTION - Manager] Close connection for user \"{}\" with session \"{}\"",
-                connection.getUserId(), connection.getSessionId());
+        log.debug("{} Close connection for user \"{}\" with session \"{}\"",
+                LABEL, connection.getUserId(), connection.getSessionId());
 
         tell(connection, new CloseConnection(connection));
     }
 
     @Override
     public void handleMessage(@NonNull final ClientConnection connection, @NonNull final Input message) {
-        log.debug("---> [CONNECTION - Manager] Message received for user \"{}\" with session \"{}\": {}",
-                connection.getUserId(), connection.getSessionId(), message);
+        log.debug("{} Message received for user \"{}\" with session \"{}\": {}",
+                LABEL, connection.getUserId(), connection.getSessionId(), message);
 
         if (message.data() instanceof Identity) {
-            log.warn("---> [WS Server - Handler] Identity messages are sent when establishing a connection and " +
-                    "are not allowed anymore. Identity Message: \"{}\"", message.data());
+            log.warn("{} Identity messages are sent when establishing a connection and " +
+                    "are not allowed anymore. Identity Message: \"{}\"", LABEL, message.data());
             return;
         }
 

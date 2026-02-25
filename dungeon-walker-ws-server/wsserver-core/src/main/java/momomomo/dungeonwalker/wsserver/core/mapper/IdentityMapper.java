@@ -12,10 +12,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class IdentityMapper implements InputDataMapper<Identity, ClientRequest> {
 
+    private static final String LABEL = "---> [MAPPER - Identity]";
+
     @Override
     @Nonnull
     public ClientRequest map(@NonNull final Identity inputData) {
-        log.debug("---> [MAPPER - Identity] mapping \"{}\"", inputData);
+        log.debug("{} mapping \"{}\"", LABEL, inputData);
 
         return ClientRequest
                 .newBuilder()

@@ -11,10 +11,12 @@ import java.util.List;
 @Component
 public class MovementValidator implements InputDataValidator<Movement> {
 
+    private static final String LABEL = "---> [VALIDATOR - Identity]";
+
     @Nonnull
     @Override
     public List<ValidationError> validate(@Nonnull final Movement inputData) {
-        log.debug("---> [VALIDATOR - Identity] validating \"{}\"", inputData);
+        log.debug("{} validating \"{}\"", LABEL, inputData);
         return List.of();
     }
 }

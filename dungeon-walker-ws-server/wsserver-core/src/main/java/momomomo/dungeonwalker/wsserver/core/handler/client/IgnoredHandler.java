@@ -17,12 +17,14 @@ import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult
 @Slf4j
 public class IgnoredHandler implements MessageHandler<InputData, Sender<ClientRequestProto.ClientRequest>, CompletableFuture<HandlingResult>> {
 
+    private static final String LABEL = "---> [DATA HANDLER -";
+
     @Override
     public @Nonnull CompletableFuture<HandlingResult> handle(
             @NonNull final InputData message,
             @NonNull final Sender<ClientRequestProto.ClientRequest> unused
     ) {
-        log.debug("---> [DATA HANDLER - {}] Ignoring input data: {}", this.getClass().getSimpleName(), message);
+        log.debug("{} {}] Data: {}", LABEL, this.getClass().getSimpleName(), message);
 
         return completedFuture(HandlingResult
                 .builder()

@@ -33,7 +33,9 @@ public class EngineMessageHandlerSelector implements MessageHandlerSelector<Engi
     }
 
     @Override
-    public @Nonnull MessageHandler<EngineMessage, ClientConnection, Void> select(@NonNull final EngineMessage message) {
+    public @Nonnull MessageHandler<EngineMessage, ClientConnection, Void> select(
+            @NonNull final EngineMessage message
+    ) {
         log.error("{} Selecting handler from message \"{}\"", LABEL, message);
 
         return handlers

@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class WsTransportConfig {
 
+    private static final String LABEL = "---> [WS TRANSPORT - Config]";
+
     @Bean
     public JavaTimeModule javaTimeModule() {
         return new JavaTimeModule();
@@ -17,7 +19,7 @@ public class WsTransportConfig {
 
     @Bean
     public ObjectMapper jsonMapper(final JavaTimeModule javaTimeModule) {
-        log.info("---> [WS TRANSPORT - Config] 'jsonMapper' bean created");
+        log.info("{} 'jsonMapper' bean created", LABEL);
         return new ObjectMapper().registerModule(javaTimeModule);
     }
 

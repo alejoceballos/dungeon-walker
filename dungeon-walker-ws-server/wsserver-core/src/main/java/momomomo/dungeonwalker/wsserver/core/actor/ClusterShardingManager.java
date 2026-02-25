@@ -8,7 +8,7 @@ import momomomo.dungeonwalker.contract.client.ClientRequestProto;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
-import momomomo.dungeonwalker.wsserver.core.config.HeartbeatConfig;
+import momomomo.dungeonwalker.wsserver.core.config.properties.heartbeat.HeartbeatProps;
 import momomomo.dungeonwalker.wsserver.core.handler.client.DataHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandlerSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
@@ -17,41 +17,44 @@ import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
 import org.apache.pekko.cluster.sharding.typed.javadsl.Entity;
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
-import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey;
 import org.springframework.stereotype.Component;
+
+import static momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor.ENTITY_TYPE_KEY;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ClusterShardingManager {
 
+    private static final String LABEL = "---> [CLUSTER - Manager]";
+
     private final ClusterSharding clusterSharding;
-    private final EntityTypeKey<ConnectionCommand> connectionEntityTypeKey;
     private final ConsumerFactory<EngineMessage> consumerFactory;
     private final MessageHandlerSelector<EngineMessage, ClientConnection, Void> messageHandlerSelector;
     private final DataHandlerSelector dataHandlerSelector;
     private final DateTimeManager dateTimeManager;
-    private final HeartbeatConfig heartbeatConfig;
+    private final HeartbeatProps heartbeatProps;
     private final Sender<ClientRequestProto.ClientRequest> sender;
 
     @PostConstruct
     public void init() {
-        log.debug("---> [CLUSTER - Manager] Bean initialized");
+        log.debug("{} Bean initializing", LABEL);
+
         clusterSharding.init(
                 Entity.of(
-                        connectionEntityTypeKey,
+                        ENTITY_TYPE_KEY,
                         _ -> ConnectionActor.create(
                                 consumerFactory,
                                 messageHandlerSelector,
                                 dataHandlerSelector,
                                 dateTimeManager,
-                                heartbeatConfig,
+                                heartbeatProps,
                                 sender)));
     }
 
     public EntityRef<ConnectionCommand> getConnectionEntityRef(final String id) {
-        log.debug("---> [CLUSTER - Manager] get connection entity ref \"{}\"", id);
-        return clusterSharding.entityRefFor(connectionEntityTypeKey, id);
+        log.debug("{} get connection entity ref \"{}\"", LABEL, id);
+        return clusterSharding.entityRefFor(ENTITY_TYPE_KEY, id);
     }
 
 }

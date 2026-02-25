@@ -66,7 +66,7 @@ class DungeonWalkerWsServerTest {
     }
 
     @Test
-    public void testServerReceivesWebSocketMessageAndSendToTopic() {
+    void testServerReceivesWebSocketMessageAndSendToTopic() {
         final var invalidData = """
                 {
                     "type": "identity",
@@ -130,8 +130,9 @@ class DungeonWalkerWsServerTest {
         }
     }
 
+    @SuppressWarnings({"java:S3415", "all"})
     @Test
-    public void testServerReceivesEngineMessageAndSendToClient() throws ExecutionException, InterruptedException {
+    void testServerReceivesEngineMessageAndSendToClient() throws ExecutionException, InterruptedException {
         wsClient.execute(
                 testWsHandler,
                 new WebSocketHttpHeaders(new HttpHeaders(MultiValueMap.fromSingleValue(
@@ -173,6 +174,7 @@ class DungeonWalkerWsServerTest {
         return builder.build();
     }
 
+    @SuppressWarnings("java:S2925")
     private void waitSeconds(final long seconds) {
         try {
             TimeUnit.SECONDS.sleep(seconds);
@@ -198,12 +200,12 @@ class DungeonWalkerWsServerTest {
 
         log.info("---> [TEST Poll] - Poll count is: {}", records.count());
 
-        for (final var record : records) {
-            log.info("---> [TEST Poll] - Record: {}", record);
+        for (final var rec : records) {
+            log.info("---> [TEST Poll] - Record: {}", rec);
 
-            if (record.value().hasMovement()) {
-                directions.remove(record.value().getMovement().getDirection());
-                log.info("---> [TEST Poll] - Removing {} from list", record.value().getMovement().getDirection());
+            if (rec.value().hasMovement()) {
+                directions.remove(rec.value().getMovement().getDirection());
+                log.info("---> [TEST Poll] - Removing {} from list", rec.value().getMovement().getDirection());
             }
         }
 

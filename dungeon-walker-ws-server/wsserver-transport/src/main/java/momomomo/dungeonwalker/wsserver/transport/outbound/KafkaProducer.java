@@ -19,13 +19,15 @@ import static momomomo.dungeonwalker.wsserver.domain.outbound.SendStatus.SUCCESS
 @Component
 public class KafkaProducer implements Sender<ClientRequest> {
 
+    private static final String LABEL = "---> [OUTBOUND - Kafka Producer]";
+    
     private final KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate;
     private final String topic;
 
     public KafkaProducer(
             @Value("${kafka.topic.game-engine.outbound}") final String topic,
             final KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate) {
-        log.debug("---> [OUTBOUND - Kafka Producer] Bean created. Topic \"{}\". Kafka template: \"{}\"", topic, kafkaTemplate);
+        log.debug("{} Bean created. Topic \"{}\". Kafka template: \"{}\"", LABEL, topic, kafkaTemplate);
         this.topic = topic;
         this.kafkaTemplate = kafkaTemplate;
     }
@@ -33,16 +35,16 @@ public class KafkaProducer implements Sender<ClientRequest> {
     @Nonnull
     @Override
     public CompletableFuture<SendResult> send(@NonNull final ClientRequest message) {
-        log.debug("---> [OUTBOUND - Kafka Producer] Sending message \"{}\" to topic \"{}\"", message, topic);
+        log.debug("{} Sending message \"{}\" to topic \"{}\"", LABEL, message, topic);
 
         return kafkaTemplate.send(topic, message.getClientId(), message)
                 .thenCompose(_ -> {
-                    log.info("---> [OUTBOUND - Kafka Producer] Message sent successfully to topic \"{}\": {}", topic, message);
+                    log.info("{} Message sent successfully to topic \"{}\": {}", LABEL, topic, message);
                     return CompletableFuture.completedFuture(new SendResult(
                             SUCCESS,
                             "Message sent successfully"));
                 }).exceptionally(ex -> {
-                    log.error("---> [OUTBOUND - Kafka Producer] Error sending message to topic \"{}\": {}", topic, message, ex);
+                    log.error("{} Error sending message to topic \"{}\": {}", LABEL, topic, message, ex);
                     return new SendResult(FAILURE, ex.getMessage());
                 });
     }

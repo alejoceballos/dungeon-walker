@@ -15,12 +15,14 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
 
+    private static final String LABEL = "---> [WEB SOCKET - Config]";
+
     private final WsHandler wsHandler;
     private final WebSocketProps webSocketProps;
 
     @Override
     public void registerWebSocketHandlers(@NonNull final WebSocketHandlerRegistry registry) {
-        log.info("---> [WEB SOCKET - Config] WebSocket handler registered");
+        log.info("{} WebSocket handler registered", LABEL);
         registry.addHandler(
                         wsHandler,
                         webSocketProps.getEndpoint())

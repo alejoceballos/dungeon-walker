@@ -20,12 +20,13 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataHandlerSelector {
 
+    private static final String LABEL = "---> [DATA HANDLER SELECTOR]";
     private final List<SelectableInputDataHandler<? extends InputData>> handlers;
 
     public <I extends InputData>
     MessageHandler<InputData, Sender<ClientRequest>, CompletableFuture<HandlingResult>>
     select(@NonNull final I message) {
-        log.debug("---> [DATA HANDLER SELECTOR] Selecting message handler for input: {}", message);
+        log.debug("{} Selecting message handler for input: {}", LABEL, message);
 
         final var dataHandler = handlers.stream()
                 .filter(byCanHandleData(message))
@@ -33,7 +34,7 @@ public class DataHandlerSelector {
                 .map(toMessageHandler())
                 .orElseGet(IgnoredHandler::new);
 
-        log.debug("---> [DATA HANDLER SELECTOR] Selected message handler: {}", dataHandler.getClass().getSimpleName());
+        log.debug("{} Selected message handler: {}", LABEL, dataHandler.getClass().getSimpleName());
 
         return dataHandler;
     }

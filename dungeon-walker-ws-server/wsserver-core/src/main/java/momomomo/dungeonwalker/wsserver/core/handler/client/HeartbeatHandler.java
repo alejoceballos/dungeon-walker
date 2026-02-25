@@ -21,6 +21,8 @@ import static momomomo.dungeonwalker.wsserver.core.handler.client.HandlingResult
 @Component
 public class HeartbeatHandler extends SelectableInputDataHandler<ClientHeartbeat> {
 
+    private static final String LABEL = "---> [DATA HANDLER -";
+
     public HeartbeatHandler(
             final InputDataMapper<ClientHeartbeat, ClientRequest> mapper,
             final InputDataValidator<ClientHeartbeat> validator
@@ -33,6 +35,8 @@ public class HeartbeatHandler extends SelectableInputDataHandler<ClientHeartbeat
             @NonNull final ClientHeartbeat inputData,
             @NonNull final Sender<ClientRequest> unused
     ) {
+        log.debug("{} {}] Data: {}", LABEL, this.getClass().getSimpleName(), inputData);
+
         return completedFuture(
                 HandlingResult
                         .builder()
