@@ -49,7 +49,8 @@ public abstract class WalkerService {
 
     protected boolean onEnterTheDungeonWhenInAsleepState(
             final EntityRef<WalkerCommand> walkerRef,
-            final Class<? extends WalkerState> state) {
+            final Class<? extends WalkerState> state
+    ) {
         if (!Asleep.class.equals(state)) {
             return false;
         }

@@ -35,7 +35,8 @@ public class UserWalkerActor extends WalkerActor {
 
     private UserWalkerActor(
             @NonNull final ActorContext<WalkerCommand> context,
-            @NonNull final PersistenceId persistenceId) {
+            @NonNull final PersistenceId persistenceId
+    ) {
         log.debug("{}[Path: {}][State: null] constructor", LABEL, context.getSelf().path().name());
         super(context, persistenceId);
     }

@@ -29,7 +29,8 @@ public class NpcService extends WalkerService {
     @Override
     protected boolean onEnterTheDungeonWhenInStoppedState(
             final EntityRef<WalkerCommand> walkerRef,
-            final Class<? extends WalkerState> state) {
+            final Class<? extends WalkerState> state
+    ) {
         if (!Stopped.class.equals(state)) {
             return false;
         }

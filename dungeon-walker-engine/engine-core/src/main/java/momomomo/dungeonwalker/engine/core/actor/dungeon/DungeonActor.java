@@ -39,16 +39,16 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     public static final EntityTypeKey<DungeonCommand> ENTITY_TYPE_KEY =
             EntityTypeKey.create(DungeonCommand.class, "dungeonRef-actor-type-key");
 
-    private final MessageSender sender;
-
     private final ActorContext<DungeonCommand> context;
+    private final MessageSender sender;
 
     private final ClusterSharding cluster;
 
     public DungeonActor(
             final ActorContext<DungeonCommand> context,
             final MessageSender sender,
-            final PersistenceId persistenceId) {
+            final PersistenceId persistenceId
+    ) {
         super(persistenceId);
         this.context = context;
         this.sender = sender;
@@ -58,7 +58,8 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
 
     public static Behavior<DungeonCommand> create(
             final MessageSender sender,
-            final PersistenceId persistenceId) {
+            final PersistenceId persistenceId
+    ) {
         log.debug("{}[persistenceId: {}] create", LABEL, persistenceId.toString());
         return Behaviors.setup(context -> new DungeonActor(context, sender, persistenceId));
     }
@@ -90,7 +91,8 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
 
     private Effect<DungeonState> onDungeonStateRequest(
             final DungeonState state,
-            final DungeonStateRequest command) {
+            final DungeonStateRequest command
+    ) {
         log.debug("{}[path: {}][State: {}] on dungeon state request", LABEL, actorPath(), state(state));
         return Effect()
                 .none()
@@ -99,7 +101,8 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
 
     private Effect<DungeonState> onSetupDungeon(
             final DungeonState state,
-            final SetupDungeon command) {
+            final SetupDungeon command
+    ) {
         log.debug("{}[path: {}][State: {}] on setup dungeonRef", LABEL, actorPath(), state(state));
 
         command.dungeon().print();
@@ -109,7 +112,8 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
 
     private Effect<DungeonState> onPlaceWalker(
             final DungeonState state,
-            final PlaceWalker command) {
+            final PlaceWalker command
+    ) {
         log.debug("{}[path: {}][State: {}] on place walker", LABEL, actorPath(), state(state));
 
         final var coordinates = state.placeThing(
@@ -124,7 +128,8 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
 
     private Effect<DungeonState> onMoveWalker(
             final DungeonState state,
-            final MoveWalker command) {
+            final MoveWalker command
+    ) {
         log.debug("{}[path: {}][State: {}] on move walker", LABEL, actorPath(), state(state));
 
         final var to = state.moveThing(

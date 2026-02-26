@@ -79,7 +79,8 @@ public class AutomatedWalkerActor extends WalkerActor {
     @Override
     protected Effect<WalkerState> onUpdateCoordinates(
             @NonNull final WalkerState state,
-            @NonNull final UpdateCoordinates command) {
+            @NonNull final UpdateCoordinates command
+    ) {
         log.debug("{}[Path: {}][State: {}] on update coordinates", LABEL, actorPath(), state(state));
 
         final var effect = Objects.equals(state.getCurrentCoordinates(), command.coordinates()) ?
@@ -95,7 +96,8 @@ public class AutomatedWalkerActor extends WalkerActor {
 
     protected Effect<WalkerState> onMove(
             @NonNull final WalkerState state,
-            @NonNull final GetMoving command) {
+            @NonNull final GetMoving command
+    ) {
         log.debug("{}[Path: {}][State: {}] on move", LABEL, actorPath(), state(state));
 
         // Ask to be moved to the new coordinates
@@ -111,7 +113,8 @@ public class AutomatedWalkerActor extends WalkerActor {
 
     protected Effect<WalkerState> onAlreadyMoving(
             @NonNull final WalkerState state,
-            @NonNull final GetMoving command) {
+            @NonNull final GetMoving command
+    ) {
         log.debug("{}[Path: {}][State: {}] on already moving", LABEL, actorPath(), state(state));
 
         return Effect().none();
@@ -119,24 +122,25 @@ public class AutomatedWalkerActor extends WalkerActor {
 
     protected Effect<WalkerState> onStop(
             @NonNull final WalkerState state,
-            @NonNull final Stop command) {
+            @NonNull final Stop command
+    ) {
         log.debug("{}[Path: {}][State: {}] on stand still", LABEL, actorPath(), state(state));
         return Effect().none().thenRun(_ -> startTimerToGetMoving(state));
     }
 
     private Effect<WalkerState> onRestartTimer(
             @NonNull final WalkerState state,
-            @NonNull final RestartTimer command) {
+            @NonNull final RestartTimer command
+    ) {
         log.debug("{}[Path: {}][State: {}] on restart timer", LABEL, actorPath(), state(state));
         return Effect().none().thenRun(_ -> startTimerToGetMoving(state));
     }
 
     private void startTimerToGetMoving(@NonNull final WalkerState state) {
-        // Start a counter-delay (in the future, based on the walker velocity). When the timer reaches zero, it will
-        // send to the dungeonRef the next movements it wants to take
-
-        // Wait for some while (it could be the walker speed, the lower the value, the faster it moves) and then
-        // send a self-command to start calculating where to go and to really move
+        // 1. Start a counter-delay (in the future, based on the walker velocity). When the timer reaches zero, it will
+        //    send to the dungeonRef the next movements it wants to take
+        // 3. Wait for some while (it could be the walker speed, the lower the value, the faster it moves) and then
+        //    Send a self-command to start calculating where to go and to really move
         if (nonNull(timer)) {
             timer.cancel();
         }

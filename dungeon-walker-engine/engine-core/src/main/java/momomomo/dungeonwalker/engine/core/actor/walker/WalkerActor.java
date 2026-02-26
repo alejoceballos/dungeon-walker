@@ -35,7 +35,8 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
 
     protected WalkerActor(
             @NonNull final ActorContext<WalkerCommand> context,
-            @NonNull final PersistenceId persistenceId) {
+            @NonNull final PersistenceId persistenceId
+    ) {
         log.debug("{}[Path: {}][State: null] constructor", LABEL, context.getSelf().toString());
         this.cluster = ClusterSharding.get(context.getSystem());
         this.context = context;
@@ -65,7 +66,8 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
 
     private Effect<WalkerState> onWalkerStateRequest(
             final WalkerState state,
-            final WalkerStateRequest command) {
+            final WalkerStateRequest command
+    ) {
         log.debug("{}[path: {}][State: {}] on walker state request", LABEL, actorPath(), state(state));
 
         return Effect()
@@ -81,7 +83,8 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
 
     protected Effect<WalkerState> onWakeUp(
             @NonNull final WalkerState state,
-            @NonNull final WakeUp command) {
+            @NonNull final WakeUp command
+    ) {
         log.debug("{}[Path: {}][State: {}] on enter dungeon", LABEL, actorPath(), state(state));
 
         final var walker = new Awake(

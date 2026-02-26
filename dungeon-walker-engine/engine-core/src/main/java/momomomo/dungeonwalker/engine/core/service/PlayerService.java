@@ -38,7 +38,8 @@ public class PlayerService extends WalkerService {
     @Override
     protected boolean onEnterTheDungeonWhenInStoppedState(
             final EntityRef<WalkerCommand> walkerRef,
-            final Class<? extends WalkerState> state) {
+            final Class<? extends WalkerState> state
+    ) {
         return true;
     }
 
