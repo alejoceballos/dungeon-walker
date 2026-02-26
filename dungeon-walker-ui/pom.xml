@@ -19,6 +19,11 @@
 
     <properties>
         <java.version>25</java.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <jib.version>3.5.1</jib.version>
     </properties>
 
     <dependencies>
@@ -84,6 +89,29 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>${jib.version}</version>
+                <configuration>
+                    <from>
+                        <image>eclipse-temurin:25-jre</image>
+                    </from>
+                    <to>
+                        <image>alejoceballos/dungeon-walker-ui:v1</image>
+                    </to>
+                    <container>
+                        <mainClass>momomomo.dungeonwalker.ui.DungeonWalkerUiApplication</mainClass>
+                        <ports>
+                            <port>8082</port>
+                        </ports>
+                        <jvmFlags>
+                            <jvmFlag>--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED</jvmFlag>
+                        </jvmFlags>
+                    </container>
                 </configuration>
             </plugin>
 
