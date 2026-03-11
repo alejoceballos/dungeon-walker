@@ -8,6 +8,7 @@ import momomomo.dungeonwalker.contract.client.MovementProto.Movement;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,17 +34,8 @@ import static org.awaitility.Awaitility.await;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DungeonWalkerEngineTest {
 
-    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:18-alpine"))
-            .withDatabaseName("postgres")
-            .withUsername("postgres")
-            .withPassword("postgres")
-            .withExposedPorts(5432)
-            .withCopyFileToContainer(
-                    MountableFile.forClasspathResource("init-db.sql"),
-                    "/docker-entrypoint-initdb.d/");
-
-    static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("apache/kafka:4.1.1"))
-            .withExposedPorts(9092);
+    static PostgreSQLContainer<?> postgres;
+    static KafkaContainer kafka;
 
     @Autowired
     private TestKafkaProducer testKafkaProducer;
@@ -53,11 +45,34 @@ class DungeonWalkerEngineTest {
 
     @BeforeAll
     static void startContainers() {
+        postgres = new PostgreSQLContainer<>(
+                DockerImageName.parse("postgres:18-alpine"))
+                .withDatabaseName("postgres")
+                .withUsername("postgres")
+                .withPassword("postgres")
+                .withExposedPorts(5432)
+                .withCopyFileToContainer(
+                        MountableFile.forClasspathResource("init-db.sql"),
+                        "/docker-entrypoint-initdb.d/");
+
         postgres.setPortBindings(List.of("5432:5432"));
         postgres.start();
 
+        kafka = new KafkaContainer(
+                DockerImageName.parse("apache/kafka:4.1.1"))
+                .withExposedPorts(9092);
+
         kafka.setPortBindings(List.of("9092:9092"));
         kafka.start();
+    }
+
+    @AfterAll
+    static void stopContainers() {
+        postgres.stop();
+        postgres.close();
+
+        kafka.stop();
+        kafka.close();
     }
 
     @DynamicPropertySource
@@ -67,8 +82,9 @@ class DungeonWalkerEngineTest {
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 
+    @SuppressWarnings("java:S3415")
     @Test
-    public void testEngineConsumesTopicAndProcessesMessage() {
+    void testEngineConsumesTopicAndProcessesMessage() {
         final var clientId = "user-id";
 
         final var connection = ClientRequest.newBuilder()
@@ -109,8 +125,8 @@ class DungeonWalkerEngineTest {
                     await()
                             .atMost(500, TimeUnit.MILLISECONDS)
                             .until(() -> {
-                                for (final var record : testKafkaConsumer.poll(Duration.ofMillis(100))) {
-                                    log.info("---> [TEST] - Record: {}", record);
+                                for (final var dungeonRecord : testKafkaConsumer.poll(Duration.ofMillis(100))) {
+                                    log.info("---> [TEST] - Record: {}", dungeonRecord);
                                 }
 
                                 return true;

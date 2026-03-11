@@ -1,6 +1,10 @@
 spring:
   application:
     name: dungeon-walker-engine
+  profiles:
+    active: ${APP_PROFILE:dev}
+  config:
+    import: "${CONFIG_SERVER_URL:optional:configserver:http://localhost:8083/}"
 
 server:
   port: 8081
@@ -17,17 +21,3 @@ management:
       show-values: ALWAYS
     configprops:
       show-values: ALWAYS
-
-logging:
-  level:
-    root: ${LOGGING_LEVEL_ROOT:info}
-    org:
-      apache:
-        kafka: ${LOGGING_LEVEL_KAFKA:warn}
-    momomomo:
-      dungeonwalker:
-        engine:
-          startup: ${LOGGING_DW_STARTUP:debug}
-          transport: ${LOGGING_DW_TRANSPORT:debug}
-          core: ${LOGGING_DW_CORE:debug}
-          domain: ${LOGGING_DW_DOMAIN:debug}

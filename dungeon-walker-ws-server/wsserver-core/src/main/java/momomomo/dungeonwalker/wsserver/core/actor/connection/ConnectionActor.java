@@ -44,7 +44,7 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private static final String LABEL = "---> [ACTOR - Connection]";
-    
+
     public static final EntityTypeKey<ConnectionCommand> ENTITY_TYPE_KEY =
             EntityTypeKey.create(ConnectionCommand.class, "connection-actor-type-key");
 
@@ -207,9 +207,14 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     private Behavior<ConnectionCommand> onSendMessageFromClient(@NonNull final SendMessageFromClient command) {
         log.debug("{}[{}] on act on message \"{}\":\"{}\"", LABEL, actorPath(), userId(), sessionId());
 
+        final var data = command
+                .message()
+                .cloneWith(userId())
+                .data();
+
         dataHandlerSelector
-                .select(command.message().data())
-                .handle(command.message().data(), sender)
+                .select(data)
+                .handle(data, sender)
                 .thenCompose(result -> {
                     switch (result.type()) {
                         case FAILURE -> {

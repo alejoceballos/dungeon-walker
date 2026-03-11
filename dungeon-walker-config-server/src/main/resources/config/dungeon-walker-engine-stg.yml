@@ -1,0 +1,58 @@
+# - - STARTUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+logging:
+  level:
+    root: info
+    org:
+      apache:
+        kafka: warn
+    momomomo:
+      dungeonwalker:
+        engine:
+          startup: debug
+          transport: debug
+          core: debug
+          domain: debug
+
+# - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+spring:
+  kafka:
+    consumer:
+      enable-auto-commit: false
+      bootstrap-servers: kafka:29092
+      concurrency: 3
+      poll-timeout: 3000
+    producer:
+      bootstrap-servers: kafka:29092
+      acks: 1
+      retries: 3
+
+kafka:
+  topic:
+    game-engine:
+      inbound: "game-engine-consumer-topic"
+      outbound: "game-engine-producer-topic"
+
+# - - APPLICATION - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+pekko:
+  persistence:
+    r2dbc:
+      dialect: "postgres"
+      connection-factory:
+        driver: "postgres"
+        host: "postgres-db"
+        port: "5432"
+        database: "postgres"
+        user: "postgres"
+        password: "postgres"
+  remote:
+    artery:
+      canonical:
+        hostname: "127.0.0.1"
+        port: "2552"
+  cluster:
+    seed-nodes:
+      - "pekko://EngineClusterSystem@127.0.0.1:2552"
+

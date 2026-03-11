@@ -20,11 +20,13 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class PekkoConfig {
 
+    private static final String LABEL = "---> [PEKKO - Config]";
+
     private final PekkoProps pekko;
 
     @Bean
     public Config pekkoConfiguration() {
-        log.info("---> [PEKKO - Config] bean created");
+        log.info("{} bean created", LABEL);
 
         final var properties = new Properties();
         properties.put("pekko.persistence.r2dbc.dialect", pekko.getPersistence().getR2dbc().getDialect());
@@ -49,14 +51,14 @@ public class PekkoConfig {
     @Bean
     @DependsOn("pekkoConfiguration")
     public ActorSystem<Void> actorSystem(final Config pekkoConfiguration) {
-        log.info("---> [PEKKO - Config] 'actorSystem' bean created");
+        log.info("{} 'actorSystem' bean created", LABEL);
         return ActorSystem.create(GuardianActor.create(), "EngineClusterSystem", pekkoConfiguration);
     }
 
     @Bean
     @DependsOn("actorSystem")
     public ClusterSharding clusterSharding(@NonNull final ActorSystem<Void> actorSystem) {
-        log.info("---> [PEKKO - Config] 'clusterSharding' bean created");
+        log.info("{} 'clusterSharding' bean created", LABEL);
         return ClusterSharding.get(actorSystem);
     }
 

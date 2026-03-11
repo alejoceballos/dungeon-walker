@@ -49,7 +49,7 @@ public class ConnectionActorManager implements ConnectionManager {
             return;
         }
 
-        tell(connection, new SendMessageFromClient(message));
+        tell(connection, new SendMessageFromClient(message.cloneWith(connection.getUserId())));
     }
 
     private <C extends ConnectionCommand> void tell(

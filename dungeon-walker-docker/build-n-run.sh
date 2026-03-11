@@ -6,6 +6,10 @@ docker volume rm $(docker volume ls -q)
 docker image rm alejoceballos/dungeon-walker-ws-server:v1
 docker image rm alejoceballos/dungeon-walker-engine:v1
 docker image rm alejoceballos/dungeon-walker-ui:v1
+docker image rm alejoceballos/dungeon-walker-config-server:v1
+
+cd ../dungeon-walker-config-server || exit
+mvn clean install jib:dockerBuild -U -DskipTests
 
 cd ../dungeon-walker-engine || exit
 mvn clean install jib:dockerBuild -U -DskipTests
@@ -18,3 +22,4 @@ mvn clean install jib:dockerBuild -U -DskipTests
 
 cd ../dungeon-walker-docker || exit
 docker-compose up
+

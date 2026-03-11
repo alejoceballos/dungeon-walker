@@ -41,4 +41,13 @@ public record Input(
         return new Input(MOVEMENT, movement);
     }
 
+    public Input cloneWith(final String clientId) {
+        return switch (data) {
+            case Identity _ -> Input.of(new Identity(clientId));
+            case final ClientHeartbeat heartbeat -> Input.of(new ClientHeartbeat(clientId, heartbeat.timestamp()));
+            case final Movement movement -> Input.of(new Movement(clientId, movement.direction()));
+            default -> throw new IllegalStateException("Unexpected value: " + data);
+        };
+    }
+
 }

@@ -1,3 +1,5 @@
+# - - STARTUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 logging:
   level:
     root: info
@@ -12,22 +14,9 @@ logging:
           core: debug
           domain: debug
 
-test:
-  kafka:
-    consumer:
-      group-id: test
-      value-deserializer: momomomo.dungeonwalker.contract.serializer.client.ClientRequestDeserializer
-      enable-auto-commit: false
-    producer:
-      value-serializer: momomomo.dungeonwalker.contract.serializer.engine.EngineMessageSerializer
+# - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 spring:
-  cloud:
-    config:
-      enabled: false
-
-  # - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   kafka:
     consumer:
       enable-auto-commit: false
@@ -45,7 +34,7 @@ kafka:
       inbound: "game-engine-producer-topic"
       outbound: "game-engine-consumer-topic"
 
-# - - CORE  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - CORE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 heartbeat:
   delay: 10
@@ -59,4 +48,4 @@ pekko:
         port: "2551"
   cluster:
     seed-nodes:
-      - "pekko://WsServerClusterSystem@${pekko.remote.artery.canonical.hostname}:${pekko.remote.artery.canonical.port}"
+      - "pekko://WsServerClusterSystem@127.0.0.1:2551"

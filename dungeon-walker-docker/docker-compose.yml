@@ -51,29 +51,32 @@ services:
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
 
+  dungeon-walker-config-server:
+    image: alejoceballos/dungeon-walker-config-server:v1
+    container_name: dungeon-walker-config-server
+    ports:
+      - "8083:8083"
+    networks:
+      - dungeon-walker-network
+    depends_on:
+      - kafka
+      - postgres-db
+
+  # To create this container's image, go to the folder where this project is located and run:
+  # mvn clean install jib:dockerBuild -DskipTests
+
   dungeon-walker-engine:
     image: alejoceballos/dungeon-walker-engine:v1
     container_name: dungeon-walker-engine
     ports:
       - "8081:8081"
     environment:
-      POSTGRES_HOST: postgres-db
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_DB: postgres
-      POSTGRES_PASSWORD: postgres
-      KAFKA_BOOTSTRAP_SERVER: kafka:29092
-      LOGGING_LEVEL_ROOT: INFO
-      LOGGING_LEVEL_KAFKA: WARN
-      LOGGING_DW_STARTUP: DEBUG
-      LOGGING_DW_TRANSPORT: DEBUG
-      LOGGING_DW_CORE: DEBUG
-      LOGGING_DW_DOMAIN: DEBUG
+      APP_PROFILE: stg
+      CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
     networks:
       - dungeon-walker-network
     depends_on:
-      - kafka
-      - postgres-db
+      - dungeon-walker-config-server
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
@@ -84,17 +87,15 @@ services:
     ports:
       - "8080:8080"
     environment:
-      KAFKA_BOOTSTRAP_SERVER: kafka:29092
-      LOGGING_LEVEL_ROOT: INFO
-      LOGGING_LEVEL_KAFKA: WARN
-      LOGGING_DW_STARTUP: DEBUG
-      LOGGING_DW_TRANSPORT: DEBUG
-      LOGGING_DW_CORE: DEBUG
-      LOGGING_DW_DOMAIN: DEBUG
+      APP_PROFILE: stg
+      CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
     networks:
       - dungeon-walker-network
     depends_on:
       - dungeon-walker-engine
+
+  # To create this container's image, go to the folder where this project is located and run:
+  # mvn clean install jib:dockerBuild -DskipTests
 
   dungeon-walker-ui:
     image: alejoceballos/dungeon-walker-ui:v1

@@ -50,9 +50,9 @@ public class PekkoConfig {
 
     @Bean
     @DependsOn("actorSystem")
-    public ClusterSharding clusterSharding(@NonNull final ActorSystem<Void> guardian) {
+    public ClusterSharding clusterSharding(@NonNull final ActorSystem<Void> actorSystem) {
         log.info("{} 'clusterSharding' bean created", LABEL);
-        return ClusterSharding.get(guardian);
+        return ClusterSharding.get(actorSystem);
     }
 
 }

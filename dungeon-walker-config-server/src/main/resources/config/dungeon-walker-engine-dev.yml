@@ -1,6 +1,11 @@
+# - - STARTUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 logging:
   level:
     root: info
+    org:
+      apache:
+        kafka: warn
     momomomo:
       dungeonwalker:
         engine:
@@ -9,22 +14,9 @@ logging:
           core: debug
           domain: debug
 
-test:
-  kafka:
-    producer:
-      value-serializer: momomomo.dungeonwalker.contract.serializer.client.ClientRequestSerializer
-    consumer:
-      group-id: test
-      value-deserializer: momomomo.dungeonwalker.contract.serializer.engine.EngineMessageDeserializer
-      enable-auto-commit: true
+# - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 spring:
-  cloud:
-    config:
-      enabled: false
-
-  # - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   kafka:
     consumer:
       enable-auto-commit: false
@@ -42,7 +34,7 @@ kafka:
       inbound: "game-engine-consumer-topic"
       outbound: "game-engine-producer-topic"
 
-# - - CORE  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - CORE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 pekko:
   persistence:
@@ -62,4 +54,5 @@ pekko:
         port: "2552"
   cluster:
     seed-nodes:
-      - "pekko://EngineClusterSystem@${pekko.remote.artery.canonical.hostname}:${pekko.remote.artery.canonical.port}"
+      - "pekko://EngineClusterSystem@127.0.0.1:2552"
+
