@@ -9,10 +9,19 @@ mvn clean -U
 cd ../dungeon-walker-contracts
 mvn clean -U
 
+cd ../dungeon-walker-ui
+mvn clean -U
+
 cd ../dungeon-walker-engine
 mvn clean -U
 
 cd ../dungeon-walker-ws-server
+mvn clean -U
+
+cd ../dungeon-walker-discovery-server
+mvn clean -U
+
+cd ../dungeon-walker-config-server
 mvn clean -U
 
 cd ..

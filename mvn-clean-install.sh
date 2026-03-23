@@ -10,10 +10,19 @@ cd ../dungeon-walker-contracts
 #sh protobuf.sh
 mvn clean install -U
 
+cd ../dungeon-walker-config-server
+mvn clean install -U -DskipTests
+
+cd ../dungeon-walker-discovery-server
+mvn clean install -U -DskipTests
+
 cd ../dungeon-walker-engine
 mvn clean install -U -DskipTests
 
 cd ../dungeon-walker-ws-server
+mvn clean install -U -DskipTests
+
+cd ../dungeon-walker-ui
 mvn clean install -U -DskipTests
 
 cd ..
