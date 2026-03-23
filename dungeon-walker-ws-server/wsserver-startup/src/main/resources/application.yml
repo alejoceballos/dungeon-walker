@@ -15,9 +15,12 @@ management:
       exposure:
         include: "*"
   endpoint:
-    shutdown:
-      access: unrestricted
+    shutdown: # Enable the shutdown endpoint allowing to gracefully shut down the service
+      access: unrestricted # Allow shutdown endpoint to be accessed without authentication.
     env:
       show-values: ALWAYS
     configprops:
       show-values: ALWAYS
+  info:
+    env:
+      enabled: true # Enable the environment info endpoint.

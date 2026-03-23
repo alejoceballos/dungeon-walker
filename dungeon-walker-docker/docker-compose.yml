@@ -65,6 +65,23 @@ services:
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
 
+  dungeon-walker-discovery-server:
+    image: alejoceballos/dungeon-walker-discovery-server:v1
+    container_name: dungeon-walker-discovery-server
+    ports:
+      - "8084:8084"
+    environment:
+      APP_PROFILE: stg
+      CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+    networks:
+      - dungeon-walker-network
+    depends_on:
+      - dungeon-walker-config-server
+
+
+  # To create this container's image, go to the folder where this project is located and run:
+  # mvn clean install jib:dockerBuild -DskipTests
+
   dungeon-walker-engine:
     image: alejoceballos/dungeon-walker-engine:v1
     container_name: dungeon-walker-engine
@@ -76,7 +93,7 @@ services:
     networks:
       - dungeon-walker-network
     depends_on:
-      - dungeon-walker-config-server
+      - dungeon-walker-discovery-server
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests

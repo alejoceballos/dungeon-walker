@@ -1,0 +1,10 @@
+# - - EUREKA - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    fetchRegistry: false # enable to fetch registry details of other microservices
+    registerWithEureka: false # do not self-register to the Eureka server
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:8084/eureka/
