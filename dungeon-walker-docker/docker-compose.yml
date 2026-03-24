@@ -1,5 +1,7 @@
 services:
 
+  # - - - - KAFKA - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   kafka:
     image: apache/kafka:4.1.1
     hostname: kafka
@@ -26,6 +28,8 @@ services:
     networks:
       - dungeon-walker-network
 
+  # - - - - POSTGRES - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   # After starting the container for the first time (with no volume), in the "dungeon-walker-docker" folder, run:
   # docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
   
@@ -48,6 +52,8 @@ services:
     networks:
       - dungeon-walker-network
 
+  # - - - - CONFIG SERVER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
 
@@ -56,11 +62,19 @@ services:
     container_name: dungeon-walker-config-server
     ports:
       - "8083:8083"
+    healthcheck:
+      test: "curl --fail --silent http://localhost:8083/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - dungeon-walker-network
     depends_on:
       - kafka
       - postgres-db
+
+  # - - - - DISCOVERY SERVER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
@@ -73,11 +87,19 @@ services:
     environment:
       APP_PROFILE: stg
       CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+    healthcheck:
+      test: "curl --fail --silent http://localhost:8084/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - dungeon-walker-network
     depends_on:
-      - dungeon-walker-config-server
+      dungeon-walker-config-server:
+        condition: service_healthy
 
+  # - - - - ENGINE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
@@ -90,10 +112,19 @@ services:
     environment:
       APP_PROFILE: stg
       CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+    healthcheck:
+      test: "curl --fail --silent http://localhost:8081/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - dungeon-walker-network
     depends_on:
-      - dungeon-walker-discovery-server
+      dungeon-walker-discovery-server:
+        condition: service_healthy
+
+  # - - - - WEBSOCKET SERVER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
@@ -106,10 +137,19 @@ services:
     environment:
       APP_PROFILE: stg
       CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+    healthcheck:
+      test: "curl --fail --silent http://localhost:8080/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - dungeon-walker-network
     depends_on:
-      - dungeon-walker-engine
+      dungeon-walker-engine:
+        condition: service_healthy
+
+  # - - - - UI - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
@@ -122,7 +162,8 @@ services:
     networks:
       - dungeon-walker-network
     depends_on:
-      - dungeon-walker-ws-server
+      dungeon-walker-ws-server:
+        condition: service_healthy
 
 networks:
   dungeon-walker-network:

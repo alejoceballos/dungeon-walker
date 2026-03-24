@@ -2,7 +2,7 @@
 
 ## Kafka
 
-If you run [build-n-run.sh](build-n-run.sh) to start the containers, no topic creation may be needed. If not, after the 
+If you run [build-n-run.sh](build-n-run-service-images.sh) to start the containers, no topic creation may be needed. If not, after the 
 container has started, run the following command:
 ```shell
 docker exec -i kafka opt/kafka/bin/kafka-topics.sh \

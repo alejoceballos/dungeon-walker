@@ -1,4 +1,4 @@
-# Dungeon Walker
+# Dungeon Walker Engine
 
 A dungeon game engine to help me study Pekko (a fork of Akka), Kafka and other technologies.
 

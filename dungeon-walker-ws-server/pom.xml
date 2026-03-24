@@ -93,7 +93,7 @@
                 <version>${jib.version}</version>
                 <configuration>
                     <from>
-                        <image>eclipse-temurin:25-jre</image>
+                        <image>alejoceballos/eclipse-temurin-25-jre-with-curl:v1</image>
                     </from>
                     <to>
                         <image>alejoceballos/dungeon-walker-ws-server:v1</image>
