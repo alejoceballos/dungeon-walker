@@ -1,5 +1,29 @@
 # - - STARTUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown: # Enable the shutdown endpoint allowing to gracefully shut down the service
+      access: unrestricted # Allow shutdown endpoint to be accessed without authentication.
+    env:
+      show-values: ALWAYS
+    configprops:
+      show-values: ALWAYS
+  info:
+    env:
+      enabled: true # Enable the environment info endpoint.
+
+info: # The data to be displayed in the info endpoint.
+  app:
+    name: "dungeon-walker-ws-server"
+    description: "Dungeon Walker WebSocket Server (STG)"
+
 logging:
   level:
     root: info
@@ -22,11 +46,6 @@ eureka:
     registerWithEureka: true # self-register to the Eureka server
     serviceUrl:
       defaultZone: http://dungeon-walker-discovery-server:8084/eureka/
-
-info: # The data to be displayed in the info endpoint.
-  app:
-    name: "dungeon-walker-ws-server"
-    description: "Dungeon Walker WebSocket Server (STG)"
 
 # - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

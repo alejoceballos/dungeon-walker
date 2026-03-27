@@ -12,26 +12,3 @@ spring:
           discovery:        # 2. Connect to the gateway server
             locator:        # 3. locate the gateway routes of other services
               enabled: true # 4. Use the same to forward the traffic from external clients
-
-server:
-  port: 8085
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  health:
-    readiness-state:
-      enabled: true
-    liveness-state:
-      enabled: true
-  endpoint:
-    health:
-      probes:
-        enabled: true
-    gateway:
-      access: unrestricted # Enable gateway-related endpoints inside the actuator
-  info:
-    env:
-      enabled: true # Enable the environment info endpoint.

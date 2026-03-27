@@ -1,3 +1,31 @@
+server:
+  port: 8085
+
+info: # The data to be displayed in the info endpoint.
+  app:
+    name: "dungeon-walker-gateway-server"
+    description: "Dungeon Walker Gateway Server (DEV)"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
+    gateway:
+      access: unrestricted # Enable gateway-related endpoints inside the actuator
+  info:
+    env:
+      enabled: true # Enable the environment info endpoint.
+
 eureka:
   instance:
     preferIpAddress: true
@@ -6,11 +34,6 @@ eureka:
     registerWithEureka: true # self-register to the Eureka server
     serviceUrl:
       defaultZone: http://localhost:8084/eureka/
-
-info: # The data to be displayed in the info endpoint.
-  app:
-    name: "dungeon-walker-gateway-server"
-    description: "Dungeon Walker Gateway Server (DEV)"
 
 logging:
   level:
