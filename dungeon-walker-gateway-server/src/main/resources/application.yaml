@@ -12,3 +12,4 @@ spring:
           discovery:        # 2. Connect to the gateway server
             locator:        # 3. locate the gateway routes of other services
               enabled: true # 4. Use the same to forward the traffic from external clients
+              lower-case-service-id: true # 5. Converted service ID to lowercase
