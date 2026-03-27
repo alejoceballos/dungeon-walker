@@ -1,30 +1,14 @@
 services:
 
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   # - - - - KAFKA - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   kafka:
-    image: apache/kafka:4.1.1
-    hostname: kafka
-    container_name: kafka
-    ports:
-      - "9092:9092"     # Port for Kafka broker
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
-      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
-      CLUSTER_ID: dungeon-walker-kafka-cluster
+    extends:
+      file: docker-compose-infra.yml
+      service: kafka
     networks:
       - dungeon-walker-network
 
@@ -34,23 +18,20 @@ services:
   # docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
   
   postgres-db:
-    image: postgres:18-alpine
-    container_name: postgres-db
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+    extends:
+      file: docker-compose-infra.yml
+      service: postgres-db
     healthcheck:
       test: [ 'CMD', 'pg_isready', "-q", "-d", "postgres", "-U", "postgres" ]
       interval: 5s
       retries: 5
       start_period: 5s
       timeout: 5s
-    volumes:
-      - ./ddl-scripts:/docker-entrypoint-initdb.d
     networks:
       - dungeon-walker-network
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # - - - - CONFIG SERVER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -149,6 +130,31 @@ services:
       dungeon-walker-engine:
         condition: service_healthy
 
+  # - - - - GATEWAY SERVER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # To create this container's image, go to the folder where this project is located and run:
+  # mvn clean install jib:dockerBuild -DskipTests
+
+  dungeon-walker-gateway-server:
+    image: alejoceballos/dungeon-walker-gateway-server:v1
+    container_name: dungeon-walker-gateway-server
+    ports:
+      - "8085:8085"
+    environment:
+      APP_PROFILE: stg
+      CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+    healthcheck:
+      test: "curl --fail --silent http://localhost:8085/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - dungeon-walker-network
+    depends_on:
+      dungeon-walker-ws-server:
+        condition: service_healthy
+
   # - - - - UI - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # To create this container's image, go to the folder where this project is located and run:
@@ -162,8 +168,11 @@ services:
     networks:
       - dungeon-walker-network
     depends_on:
-      dungeon-walker-ws-server:
+      dungeon-walker-gateway-server:
         condition: service_healthy
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 networks:
   dungeon-walker-network:

@@ -1,0 +1,20 @@
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    fetchRegistry: true # enable to fetch registry details of other microservices
+    registerWithEureka: true # self-register to the Eureka server
+    serviceUrl:
+      defaultZone: http://localhost:8084/eureka/
+
+info: # The data to be displayed in the info endpoint.
+  app:
+    name: "dungeon-walker-gateway-server"
+    description: "Dungeon Walker Gateway Server (DEV)"
+
+logging:
+  level:
+    root: info
+    momomomo:
+      dungeonwalker:
+        gateway: debug

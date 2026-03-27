@@ -2,6 +2,8 @@
 
 A Spring Cloud Discovery Server that will be used to register all the services in the Dungeon Walker ecosystem.
 
+> See [Spring Cloud Netflix](https://docs.spring.io/spring-cloud-netflix/) reference.
+
 ### Create a new Spring Project
 
 ### In `pom-xml`, the main dependencies:
@@ -45,21 +47,6 @@ Add the following properties to enable health checks:
 Enable the shutdown endpoint allowing to gracefully shut down the service:
 
 - management.endpoint.shutdown.access: unrestricted
-
-In case of any service using Spring Security, remember to configure a bypass for the actuator endpoints:
-
-```java
-@Bean
-public SecurityFilterChain securityWebFilterChain(final HttpSecurity http) {
-    return http
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/actuator/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-            .build();
-}
-```
 
 ### Eureka dashboard
 

@@ -35,7 +35,7 @@
         <noexception-slf4j.version>1.0.2</noexception-slf4j.version>
         <jib.version>3.5.1</jib.version>
 
-        <spring-cloud.version>2025.1.0</spring-cloud.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
 
         <testcontainers.version>1.21.4</testcontainers.version>
     </properties>

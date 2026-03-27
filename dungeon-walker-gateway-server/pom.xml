@@ -12,10 +12,9 @@
     </parent>
 
     <groupId>momomomo.dungeonwalker</groupId>
-    <artifactId>dungeon-walker-engine</artifactId>
-    <name>Dungeon Walker Engine Parent</name>
+    <artifactId>dungeon-walker-gateway-server</artifactId>
+    <name>Dungeon Walker Gateway Server</name>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>pom</packaging>
 
     <properties>
         <java.version>25</java.version>
@@ -23,43 +22,44 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <dungeon-walker-commons.version>1.0</dungeon-walker-commons.version>
-        <dungeon-walker-spring-commons.version>0.0.1-SNAPSHOT</dungeon-walker-spring-commons.version>
-        <dungeon-walker-contracts.version>1.0-SNAPSHOT</dungeon-walker-contracts.version>
-
-        <pekko.version>1.4.0</pekko.version>
-        <pekko-persistence-r2dbc.version>1.1.0</pekko-persistence-r2dbc.version>
-        <r2dbc-postgresql.version>1.1.1.RELEASE</r2dbc-postgresql.version>
-
-        <apache-commons-lang.version>3.20.0</apache-commons-lang.version>
-        <postgres.version>42.7.3</postgres.version>
-        <noexception.version>1.9.1</noexception.version>
-        <noexception-slf4j.version>1.0.2</noexception-slf4j.version>
-        <jib.version>3.5.1</jib.version>
-
         <spring-cloud.version>2025.1.1</spring-cloud.version>
 
-        <testcontainers.version>1.21.4</testcontainers.version>
+        <jib.version>3.5.1</jib.version>
     </properties>
 
-    <modules>
-        <module>engine-domain</module>
-        <module>engine-core</module>
-        <module>engine-transport</module>
-        <module>engine-startup</module>
-    </modules>
-
     <dependencies>
+
+        <!-- Spring Boot - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
         </dependency>
+
     </dependencies>
 
     <dependencyManagement>
@@ -77,16 +77,8 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
             <plugin>
@@ -98,12 +90,12 @@
                         <image>alejoceballos/eclipse-temurin-25-jre-with-curl:v1</image>
                     </from>
                     <to>
-                        <image>alejoceballos/dungeon-walker-engine:v1</image>
+                        <image>alejoceballos/dungeon-walker-gateway-server:v1</image>
                     </to>
                     <container>
-                        <mainClass>momomomo.dungeonwalker.engine.startup.DungeonWalkerEngine</mainClass>
+                        <mainClass>momomomo.dungeonwalker.gateway.DungeonWalkerGatewayServer</mainClass>
                         <ports>
-                            <port>8081</port>
+                            <port>8083</port>
                         </ports>
                         <jvmFlags>
                             <jvmFlag>--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED</jvmFlag>

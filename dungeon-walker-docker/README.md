@@ -1,9 +1,19 @@
 # Container Environments for Dungeon Walker
 
+<!-- TOC -->
+* [Container Environments for Dungeon Walker](#container-environments-for-dungeon-walker)
+  * [Kafka](#kafka)
+    * [Using IJ's Kafka Plugin](#using-ijs-kafka-plugin)
+      * [IJ's Kafka Plugin Producer](#ijs-kafka-plugin-producer)
+      * [IJ's Kafka Plugin Consumer](#ijs-kafka-plugin-consumer)
+  * [PostgreSQL](#postgresql)
+<!-- TOC -->
+
 ## Kafka
 
-If you run [build-n-run.sh](build-n-run-service-images.sh) to start the containers, no topic creation may be needed. If not, after the 
-container has started, run the following command:
+If you run [build-n-run-service-images.sh](build-n-run-all-service.sh) to start the containers, no topic creation
+may be needed. If not, after the container has started, run the following command:
+
 ```shell
 docker exec -i kafka opt/kafka/bin/kafka-topics.sh \
 --create \
@@ -22,17 +32,18 @@ docker exec -i kafka opt/kafka/bin/kafka-topics.sh \
 4. Bootstrap servers: `127.0.0.1:9092`
 5. Authentication: `None`
 6. Schema Registry (Optional):
-   - Type:`None`
+    - Type:`None`
 
 #### IJ's Kafka Plugin Producer
 
 - Topic: `game-engine-consumer-topic`
 - Key:
-  - Type: `String`
-  - Value: `user-id`
+    - Type: `String`
+    - Value: `user-id`
 - Value:
-  - Type: `Protobuf (Custom)`
-  - Schema: `Explicit`
+    - Type: `Protobuf (Custom)`
+    - Schema: `Explicit`
+
 ```protobuf
 syntax = "proto3";
 
@@ -63,13 +74,16 @@ enum Direction {
   NW = 7;
 }
 ```
-  - Payloads:
+
+- Payloads:
+
 ```json
 {
   "client_id": "user-id",
   "connection": {}
 }
 ```
+
 ```json
 {
   "client_id": "user-id",
@@ -87,6 +101,7 @@ enum Direction {
 - Value:
     - Type: `Protobuf (Custom)`
     - Schema: `Explicit`
+
 ```protobuf
 syntax = "proto3";
 
@@ -117,16 +132,18 @@ enum Direction {
   NW = 7;
 }
 ```
+
 - Range and Filters
-  - Start from: Latests
-  - Limit: None
-  - Filter: None
+    - Start from: Latests
+    - Limit: None
+    - Filter: None
 
 ## PostgreSQL
 
-The schema in the [create_tables_postgres.sql](ddl-scripts/create_tables_postgres.sql) file should be run when the 
-PostgreSQL container is started for the first time. If for some reason the schema is not created, run the following 
+The schema in the [create_tables_postgres.sql](ddl-scripts/create_tables_postgres.sql) file should be run when the
+PostgreSQL container is started for the first time. If for some reason the schema is not created, run the following
 command in the `dungeon-walker-docker` root folder:
+
 ```shell
 docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
 ```

@@ -2,6 +2,8 @@
 
 A centralized configuration server for all Dungeon Walker services.
 
+> See [Spring Cloud Config](https://docs.spring.io/spring-cloud-config/) reference.
+
 ### Create a new Spring Project
 
 ### In `pom-xml`, the main dependencies:
