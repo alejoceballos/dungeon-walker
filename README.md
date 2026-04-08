@@ -11,6 +11,22 @@ A dungeon game engine to help me study Kafka, Akka, WebSockets, Microservices an
 - Communication between the client and the services is done through WebSockets
 - Spring Cloud is used to manage the services
 
+## Table of Contents
+
+<!-- TOC -->
+
+* [Dungeon Walker](#dungeon-walker)
+    * [Table of Contents](#table-of-contents)
+    * [The game core](#the-game-core)
+    * [The glue between the client and the game](#the-glue-between-the-client-and-the-game)
+    * [The client](#the-client)
+        * [The UI (Work in Progress)](#the-ui-work-in-progress)
+    * [The (Micro) Services Infrastructure](#the-micro-services-infrastructure)
+    * [Support Modules](#support-modules)
+* [Run the application](#run-the-application)
+
+<!-- TOC -->
+
 ## The game core
 
 - [dungeon-walker-engine](dungeon-walker-engine/README.md)
@@ -27,6 +43,11 @@ Stalled! Uses React. Connects to the web server through WebSockets to get real-t
 Uses Websockets to receive and send info to and from a client and kafka to communicate with the core game engine.
 
 ## The client
+
+Currently, the only way to test the communication to the Web Socket server is through Postman. There is a UI coming up,
+but it will take a little bit longer.
+
+### The UI (Work in Progress)
 
 - [dungeon-walker-ui](dungeon-walker-ui/README.md)
 
@@ -47,7 +68,7 @@ Currently, it is just a simple HTML5 log page using vanilla Javascript to displa
 
 1. Have Docker installed
 2. In the [dungeon-walker-docker](dungeon-walker-docker) folder:
-   1. Run: `sh` [build-jre-image-with-curl.sh](dungeon-walker-docker/build-jre-image-with-curl.sh)
-   2. Run: `sh` [build-n-run-service-images.sh](dungeon-walker-docker/build-n-run-service-images.sh)
+    1. Run: `sh` [build-jre-image-with-curl.sh](dungeon-walker-docker/build-jre-image-with-curl.sh)
+    2. Run: `sh` [build-n-run-service-images.sh](dungeon-walker-docker/build-n-run-service-images.sh)
 3. Open a browser and go to: [http://localhost:8082](http://localhost:8082)
 4. You can also check the containers' logs

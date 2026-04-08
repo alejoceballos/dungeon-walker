@@ -2,7 +2,7 @@
 
 To be defined...
 
-## Using POstman
+## Using Postman
 
 How to connect to the WebSocket Server using Postman?
 
