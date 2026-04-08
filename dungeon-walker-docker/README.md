@@ -11,7 +11,7 @@
 
 ## Kafka
 
-If you run [build-n-run-service-images.sh](build-n-run-all-service.sh) to start the containers, no topic creation
+If you run [build-n-run-service-images.sh](build-n-run-all-services.sh) to start the containers, no topic creation
 may be needed. If not, after the container has started, run the following command:
 
 ```shell

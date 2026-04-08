@@ -1,24 +1,9 @@
 #!/bin/sh
 
-cd ..
-
-cd ../dungeon-walker-config-server || exit
-mvn clean install jib:dockerBuild -U -DskipTests
-
-cd ../dungeon-walker-discovery-server || exit
-mvn clean install jib:dockerBuild -U -DskipTests
-
-cd ../dungeon-walker-gateway-server || exit
-mvn clean install jib:dockerBuild -U -DskipTests
-
-cd ../dungeon-walker-engine || exit
-mvn clean install jib:dockerBuild -U -DskipTests
-
-cd ../dungeon-walker-ws-server || exit
-mvn clean install jib:dockerBuild -U -DskipTests
-
-cd ../dungeon-walker-ui || exit
-mvn clean install jib:dockerBuild -U -DskipTests
-
-cd ../dungeon-walker-docker/build-service-images || exit
+sh build-dungeon-walker-config-server.sh
+sh build-dungeon-walker-discovery-server.sh
+sh build-dungeon-walker-gateway-server.sh
+sh build-dungeon-walker-engine.sh
+sh build-dungeon-walker-ws-server.sh
+# sh build-dungeon-walker-ui.sh
 

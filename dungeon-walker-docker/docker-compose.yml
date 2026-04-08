@@ -160,16 +160,16 @@ services:
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
 
-  dungeon-walker-ui:
-    image: alejoceballos/dungeon-walker-ui:v1
-    container_name: dungeon-walker-ui
-    ports:
-      - "8082:8082"
-    networks:
-      - dungeon-walker-network
-    depends_on:
-      dungeon-walker-gateway-server:
-        condition: service_healthy
+#  dungeon-walker-ui:
+#    image: alejoceballos/dungeon-walker-ui:v1
+#    container_name: dungeon-walker-ui
+#    ports:
+#      - "8082:8082"
+#    networks:
+#      - dungeon-walker-network
+#    depends_on:
+#      dungeon-walker-gateway-server:
+#        condition: service_healthy
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
