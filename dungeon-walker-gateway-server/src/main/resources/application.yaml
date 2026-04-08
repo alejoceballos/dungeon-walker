@@ -8,8 +8,8 @@ spring:
   cloud:
     gateway:
       server:
-        webflux:            # 1. Cloud Gateway WebFlux Server
-          discovery:        # 2. Connect to the gateway server
-            locator:        # 3. locate the gateway routes of other services
-              enabled: true # 4. Use the same to forward the traffic from external clients
+        webflux: # 1. Cloud Gateway WebFlux Server
+          discovery: # 2. Connect to the gateway server
+            locator: # 3. locate the gateway routes of other services
+              enabled: false # 4. Use true to forward the traffic from external clients, false will enforce configuring a RouteLocator
               lower-case-service-id: true # 5. Converted service ID to lowercase
