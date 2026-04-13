@@ -7,6 +7,7 @@
       * [IJ's Kafka Plugin Producer](#ijs-kafka-plugin-producer)
       * [IJ's Kafka Plugin Consumer](#ijs-kafka-plugin-consumer)
   * [PostgreSQL](#postgresql)
+  * [Grafana](#grafana)
 <!-- TOC -->
 
 ## Kafka
@@ -147,3 +148,21 @@ command in the `dungeon-walker-docker` root folder:
 ```shell
 docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
 ```
+
+## Grafana
+
+The whole development Grafana container configuration is based on the official Grafana Loki documentation. Check: 
+[Grafana Loki - Quick strat](https://grafana.com/docs/loki/latest/get-started/quick-start/quick-start/)
+
+From there it will be able to download:
+```shell
+wget https://raw.githubusercontent.com/grafana/loki/main/examples/getting-started/loki-config.yaml -O loki-config.yaml
+wget https://raw.githubusercontent.com/grafana/loki/main/examples/getting-started/alloy-local-config.yaml -O alloy-local-config.yaml
+wget https://raw.githubusercontent.com/grafana/loki/main/examples/getting-started/docker-compose.yaml -O docker-compose.yaml
+```
+
+The first two files are [grafana/loki-config.yaml](grafana/loki-config.yaml) and 
+[grafana/alloy-local-config.yaml](grafana/alloy-local-config.yaml). The third file was copied to the root folder as 
+[docker-compose-grafana.yml](docker-compose-grafana.yml).
+
+All files were adapted to the `dungeon-walker-docker` environment and naming conventions.
