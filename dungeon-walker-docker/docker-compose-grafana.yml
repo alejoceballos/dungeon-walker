@@ -21,7 +21,7 @@ services:
     depends_on:
       - grafana-minio
     networks:
-      - grafana-network
+      - dungeon-walker-network
 
   grafana-loki-write:
     image: grafana/loki:3.6.10
@@ -43,7 +43,7 @@ services:
     depends_on:
       - grafana-minio
     networks:
-      - grafana-network
+      - dungeon-walker-network
 
   grafana-loki-backend:
     image: grafana/loki:3.6.10
@@ -63,7 +63,7 @@ services:
     depends_on:
       - grafana-nginx-gateway
     networks:
-      - grafana-network
+      - dungeon-walker-network
 
   # - - - - ALLOY - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -79,7 +79,7 @@ services:
     depends_on:
       - grafana-nginx-gateway
     networks:
-      - grafana-network
+      - dungeon-walker-network
 
   # - - - - GRAFANA - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -118,7 +118,7 @@ services:
     depends_on:
       - grafana-nginx-gateway
     networks:
-      - grafana-network
+      - dungeon-walker-network
 
   # - - - - NGINX - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -190,7 +190,7 @@ services:
       - grafana-loki-read
       - grafana-loki-write
     networks:
-      - grafana-network
+      - dungeon-walker-network
 
   # - - - - MINIO (S3-like) - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -219,7 +219,7 @@ services:
       timeout: 20s
       retries: 5
     networks:
-      - grafana-network
+      - dungeon-walker-network
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -227,11 +227,9 @@ services:
     image: mingrammer/flog
     command: -f json -d 200ms -l
     networks:
-      - grafana-network
+      - dungeon-walker-network
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 networks:
-  grafana-network:
-    name: grafana-network
-    driver: bridge
+  dungeon-walker-network:

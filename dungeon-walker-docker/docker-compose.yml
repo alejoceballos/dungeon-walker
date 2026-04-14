@@ -33,6 +33,81 @@ services:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+  # - - - - LOKI - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  grafana-loki-read:
+    extends:
+      file: docker-compose-grafana.yml
+      service: grafana-loki-read
+    depends_on:
+      - grafana-minio
+    networks:
+      - dungeon-walker-network
+
+  grafana-loki-write:
+    extends:
+      file: docker-compose-grafana.yml
+      service: grafana-loki-write
+    depends_on:
+      - grafana-minio
+    networks:
+      - dungeon-walker-network
+
+  grafana-loki-backend:
+    extends:
+      file: docker-compose-grafana.yml
+      service: grafana-loki-backend
+    depends_on:
+      - grafana-minio
+    networks:
+      - dungeon-walker-network
+
+  # - - - - ALLOY - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  grafana-alloy:
+    extends:
+      file: docker-compose-grafana.yml
+      service: grafana-alloy
+    depends_on:
+      - grafana-nginx-gateway
+    networks:
+      - dungeon-walker-network
+
+  # - - - - GRAFANA - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  grafana:
+    extends:
+      file: docker-compose-grafana.yml
+      service: grafana
+    depends_on:
+      - grafana-nginx-gateway
+    networks:
+      - dungeon-walker-network
+
+  # - - - - NGINX - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  grafana-nginx-gateway:
+    extends:
+      file: docker-compose-grafana.yml
+      service: grafana-nginx-gateway
+    depends_on:
+      - grafana-loki-read
+      - grafana-loki-write
+    networks:
+      - dungeon-walker-network
+
+  # - - - - MINIO (S3-like) - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  grafana-minio:
+    extends:
+      file: docker-compose-grafana.yml
+      service: grafana-minio
+    networks:
+      - dungeon-walker-network
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   # - - - - CONFIG SERVER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # To create this container's image, go to the folder where this project is located and run:
@@ -160,16 +235,16 @@ services:
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
 
-#  dungeon-walker-ui:
-#    image: alejoceballos/dungeon-walker-ui:v1
-#    container_name: dungeon-walker-ui
-#    ports:
-#      - "8082:8082"
-#    networks:
-#      - dungeon-walker-network
-#    depends_on:
-#      dungeon-walker-gateway-server:
-#        condition: service_healthy
+  #  dungeon-walker-ui:
+  #    image: alejoceballos/dungeon-walker-ui:v1
+  #    container_name: dungeon-walker-ui
+  #    ports:
+  #      - "8082:8082"
+  #    networks:
+  #      - dungeon-walker-network
+  #    depends_on:
+  #      dungeon-walker-gateway-server:
+  #        condition: service_healthy
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
