@@ -1,10 +1,13 @@
 #!/bin/sh
 
-docker container stop  grafana-loki-read
+docker container stop prometheus
+docker container rm prometheus
+
+docker container stop grafana-loki-read
 docker container rm  grafana-loki-read
 
 docker container stop  grafana-loki-write
-docker container rm  grafana-loki-wwrite
+docker container rm  grafana-loki-write
 
 docker container stop  grafana-loki-backend
 docker container rm  grafana-loki-backend

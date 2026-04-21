@@ -11,7 +11,7 @@ services:
       - "7946"
       - "9095"
     volumes:
-      - ./grafana/loki-config.yaml:/etc/loki/config.yaml
+      - ./observability/loki-config.yaml:/etc/loki/config.yaml
     healthcheck:
       test: [ "CMD", "/usr/bin/loki", "-health" ]
       start_period: 30s
@@ -33,7 +33,7 @@ services:
       - "7946"
       - "9095"
     volumes:
-      - ./grafana/loki-config.yaml:/etc/loki/config.yaml
+      - ./observability/loki-config.yaml:/etc/loki/config.yaml
     healthcheck:
       test: [ "CMD", "/usr/bin/loki", "-health" ]
       start_period: 30s
@@ -53,7 +53,7 @@ services:
       - "3100"
       - "7946"
     volumes:
-      - ./grafana/loki-config.yaml:/etc/loki/config.yaml
+      - ./observability/loki-config.yaml:/etc/loki/config.yaml
     healthcheck:
       test: [ "CMD", "/usr/bin/loki", "-health" ]
       start_period: 30s
@@ -72,7 +72,7 @@ services:
     container_name: grafana-alloy
     command: "run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy"
     volumes:
-      - ./grafana/alloy-local-config.yaml:/etc/alloy/config.alloy:ro
+      - ./observability/alloy-local-config.yaml:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "12345:12345"
@@ -96,20 +96,9 @@ services:
       - sh
       - -euc
       - |
-        mkdir -p /etc/grafana/provisioning/datasources
-        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
-        apiVersion: 1
-        datasources:
-          - name: Loki
-            type: loki
-            access: proxy
-            url: http://grafana-nginx-gateway:3100
-            jsonData:
-              httpHeaderName1: "X-Scope-OrgID"
-            secureJsonData:
-              httpHeaderValue1: "tenant1"
-        EOF
         /run.sh
+    volumes:
+      - ./observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasource.yml
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
       interval: 10s
@@ -200,7 +189,7 @@ services:
     ports:
       - "9000"
     volumes:
-      - ./grafana/minio-data:/data
+      - ./observability/minio-data:/data
     environment:
       - MINIO_ROOT_USER=loki
       - MINIO_ROOT_PASSWORD=supersecret
@@ -226,6 +215,21 @@ services:
   flog:
     image: mingrammer/flog
     command: -f json -d 200ms -l
+    networks:
+      - dungeon-walker-network
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # - - - - PROMETHEUS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  prometheus:
+    image: prom/prometheus:v3.11.2
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - dungeon-walker-network
 

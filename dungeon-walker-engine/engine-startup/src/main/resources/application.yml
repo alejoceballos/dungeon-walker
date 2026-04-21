@@ -5,3 +5,31 @@ spring:
     active: ${APP_PROFILE:dev}
   config:
     import: "${CONFIG_SERVER_URL:optional:configserver:http://localhost:8083/}"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    shutdown: # Enable the shutdown endpoint allowing to gracefully shut down the service
+      access: unrestricted # Allow shutdown endpoint to be accessed without authentication.
+    health:
+      probes:
+        enabled: true
+    env:
+      show-values: ALWAYS
+    configprops:
+      show-values: ALWAYS
+  info:
+    env:
+      enabled: true # Enable the environment info endpoint.
+  metrics:
+    tags:
+      application: ${spring.application.name}
+

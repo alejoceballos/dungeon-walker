@@ -13,3 +13,26 @@ spring:
             locator: # 3. locate the gateway routes of other services
               enabled: false # 4. Use true to forward the traffic from external clients, false will enforce configuring a RouteLocator
               lower-case-service-id: true # 5. Converted service ID to lowercase
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    gateway:
+      access: unrestricted # Enable gateway-related endpoints inside the actuator
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true # Enable the environment info endpoint.
+  metrics:
+    tags:
+      application: ${spring.application.name}

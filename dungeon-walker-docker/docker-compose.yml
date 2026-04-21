@@ -16,7 +16,7 @@ services:
 
   # After starting the container for the first time (with no volume), in the "dungeon-walker-docker" folder, run:
   # docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
-  
+
   postgres-db:
     extends:
       file: docker-compose-infra.yml
@@ -37,7 +37,7 @@ services:
 
   grafana-loki-read:
     extends:
-      file: docker-compose-grafana.yml
+      file: docker-compose-observability.yml
       service: grafana-loki-read
     depends_on:
       - grafana-minio
@@ -46,7 +46,7 @@ services:
 
   grafana-loki-write:
     extends:
-      file: docker-compose-grafana.yml
+      file: docker-compose-observability.yml
       service: grafana-loki-write
     depends_on:
       - grafana-minio
@@ -55,7 +55,7 @@ services:
 
   grafana-loki-backend:
     extends:
-      file: docker-compose-grafana.yml
+      file: docker-compose-observability.yml
       service: grafana-loki-backend
     depends_on:
       - grafana-minio
@@ -66,7 +66,7 @@ services:
 
   grafana-alloy:
     extends:
-      file: docker-compose-grafana.yml
+      file: docker-compose-observability.yml
       service: grafana-alloy
     depends_on:
       - grafana-nginx-gateway
@@ -77,7 +77,7 @@ services:
 
   grafana:
     extends:
-      file: docker-compose-grafana.yml
+      file: docker-compose-observability.yml
       service: grafana
     depends_on:
       - grafana-nginx-gateway
@@ -88,7 +88,7 @@ services:
 
   grafana-nginx-gateway:
     extends:
-      file: docker-compose-grafana.yml
+      file: docker-compose-observability.yml
       service: grafana-nginx-gateway
     depends_on:
       - grafana-loki-read
@@ -100,8 +100,20 @@ services:
 
   grafana-minio:
     extends:
-      file: docker-compose-grafana.yml
+      file: docker-compose-observability.yml
       service: grafana-minio
+    networks:
+      - dungeon-walker-network
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # - - - - PROMETHEUS - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  prometheus:
+    extends:
+      file: docker-compose-observability.yml
+      service: prometheus
     networks:
       - dungeon-walker-network
 

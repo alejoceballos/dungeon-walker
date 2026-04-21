@@ -161,8 +161,8 @@ wget https://raw.githubusercontent.com/grafana/loki/main/examples/getting-starte
 wget https://raw.githubusercontent.com/grafana/loki/main/examples/getting-started/docker-compose.yaml -O docker-compose.yaml
 ```
 
-The first two files are [grafana/loki-config.yaml](grafana/loki-config.yaml) and 
-[grafana/alloy-local-config.yaml](grafana/alloy-local-config.yaml). The third file was copied to the root folder as 
-[docker-compose-grafana.yml](docker-compose-grafana.yml).
+The first two files are [grafana/loki-config.yaml](observability/loki-config.yaml) and 
+[grafana/alloy-local-config.yaml](observability/alloy-local-config.yaml). The third file was copied to the root folder as 
+[docker-compose-grafana.yml](docker-compose-observability.yml).
 
 All files were adapted to the `dungeon-walker-docker` environment and naming conventions.

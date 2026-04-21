@@ -1,0 +1,29 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: "dungeon-walker-config-server"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["dungeon-walker-config-server:8083"]
+
+  - job_name: "dungeon-walker-discovery-server"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["dungeon-walker-discovery-server:8084"]
+
+  - job_name: "dungeon-walker-gateway-server"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["dungeon-walker-gateway-server:8085"]
+
+  - job_name: "dungeon-walker-ws-server"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["dungeon-walker-ws-server:8080"]
+
+  - job_name: "dungeon-walker-engine"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["dungeon-walker-engine:8081"]
