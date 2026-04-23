@@ -14,7 +14,8 @@ public class GatewayConfig {
                 .routes()
                 .route(ps -> ps
                         .path("/ws-server/**")
-                        .uri("lb:ws://DUNGEON-WALKER-WS-SERVER"))
+                        .filters(f -> f.rewritePath("/ws-server/(?<segment>.*)", "/${segment}"))
+                        .uri("lb://dungeon-walker-ws-server"))
                 .build();
     }
 

@@ -33,9 +33,11 @@
         <apache-commons-collections.version>4.5.0</apache-commons-collections.version>
         <noexception.version>1.9.1</noexception.version>
         <noexception-slf4j.version>1.0.2</noexception-slf4j.version>
-        <jib.version>3.5.1</jib.version>
 
         <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <otel.version>2.26.1</otel.version>
+
+        <jib.version>3.5.1</jib.version>
 
         <testcontainers.version>1.21.4</testcontainers.version>
     </properties>

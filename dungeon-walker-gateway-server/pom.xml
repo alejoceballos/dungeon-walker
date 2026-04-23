@@ -23,7 +23,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <spring-cloud.version>2025.1.1</spring-cloud.version>
-
+        <otel.version>2.26.1</otel.version>
+ 
         <jib.version>3.5.1</jib.version>
     </properties>
 
@@ -58,6 +59,15 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Open Telemetry - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+        <dependency>
+            <groupId>io.opentelemetry.javaagent</groupId>
+            <artifactId>opentelemetry-javaagent</artifactId>
+            <version>${otel.version}</version>
             <scope>runtime</scope>
         </dependency>
 

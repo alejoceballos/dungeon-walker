@@ -117,5 +117,14 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Open Telemetry - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+        <dependency>
+            <groupId>io.opentelemetry.javaagent</groupId>
+            <artifactId>opentelemetry-javaagent</artifactId>
+            <version>${otel.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
     </dependencies>
 </project>

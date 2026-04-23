@@ -21,5 +21,8 @@ docker container rm grafana
 docker container stop grafana-nginx-gateway
 docker container rm grafana-nginx-gateway
 
+docker container stop grafana-tempo
+docker container rm grafana-tempo
+
 docker container stop grafana-minio
 docker container rm grafana-minio

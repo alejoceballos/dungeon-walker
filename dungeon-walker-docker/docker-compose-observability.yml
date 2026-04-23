@@ -71,13 +71,28 @@ services:
     image: grafana/alloy:v1.15.0
     container_name: grafana-alloy
     command: "run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy"
+    ports:
+      - "12345:12345"
     volumes:
       - ./observability/alloy-local-config.yaml:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "12345:12345"
     depends_on:
       - grafana-nginx-gateway
+    networks:
+      - dungeon-walker-network
+
+  # - - - - TEMPO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  grafana-tempo:
+    image: grafana/tempo:2.10.4
+    container_name: grafana-tempo
+    command: "-config.file=/etc/tempo-config.yml"
+    ports:
+      - "3110:3100"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./observability/tempo-config.yml:/etc/tempo-config.yml
     networks:
       - dungeon-walker-network
 

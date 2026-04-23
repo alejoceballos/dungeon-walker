@@ -73,6 +73,15 @@ services:
     networks:
       - dungeon-walker-network
 
+  # - - - - TEMPO - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  grafana-tempo:
+    extends:
+      file: docker-compose-observability.yml
+      service: grafana-tempo
+    networks:
+      - dungeon-walker-network
+
   # - - - - GRAFANA - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   grafana:
@@ -130,11 +139,17 @@ services:
     container_name: dungeon-walker-config-server
     ports:
       - "8083:8083"
+    environment:
+      JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.26.1.jar"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://grafana-tempo:4318"
+      OTEL_METRICS_EXPORTER: "none"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_SERVICE_NAME: "dungeon-walker-config-server"
     healthcheck:
       test: "curl --fail --silent http://localhost:8083/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     networks:
       - dungeon-walker-network
@@ -155,11 +170,16 @@ services:
     environment:
       APP_PROFILE: stg
       CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+      JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.26.1.jar"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://grafana-tempo:4318"
+      OTEL_METRICS_EXPORTER: "none"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_SERVICE_NAME: "dungeon-walker-discovery-server"
     healthcheck:
       test: "curl --fail --silent http://localhost:8084/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     networks:
       - dungeon-walker-network
@@ -180,11 +200,16 @@ services:
     environment:
       APP_PROFILE: stg
       CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+      JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.26.1.jar"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://grafana-tempo:4318"
+      OTEL_METRICS_EXPORTER: "none"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_SERVICE_NAME: "dungeon-walker-engine"
     healthcheck:
       test: "curl --fail --silent http://localhost:8081/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     networks:
       - dungeon-walker-network
@@ -205,11 +230,16 @@ services:
     environment:
       APP_PROFILE: stg
       CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+      JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.26.1.jar"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://grafana-tempo:4318"
+      OTEL_METRICS_EXPORTER: "none"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_SERVICE_NAME: "dungeon-walker-ws-server"
     healthcheck:
       test: "curl --fail --silent http://localhost:8080/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     networks:
       - dungeon-walker-network
@@ -230,11 +260,16 @@ services:
     environment:
       APP_PROFILE: stg
       CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+      JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.26.1.jar"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://grafana-tempo:4318"
+      OTEL_METRICS_EXPORTER: "none"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_SERVICE_NAME: "dungeon-walker-gateway-server"
     healthcheck:
       test: "curl --fail --silent http://localhost:8085/actuator/health/readiness | grep UP || exit 1"
-      interval: 10s
+      interval: 20s
       timeout: 5s
-      retries: 10
+      retries: 20
       start_period: 10s
     networks:
       - dungeon-walker-network
