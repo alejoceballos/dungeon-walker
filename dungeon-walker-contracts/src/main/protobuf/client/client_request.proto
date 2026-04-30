@@ -4,6 +4,7 @@ package contract.client;
 
 import "client/connection.proto";
 import "client/movement.proto";
+import "client/leave_dungeon.proto";
 
 option java_package = "momomomo.dungeonwalker.contract.client";
 option java_outer_classname = "ClientRequestProto";
@@ -13,5 +14,6 @@ message ClientRequest {
   oneof data {
     Connection connection = 2;
     Movement movement = 3;
+    LeaveDungeon leave_dungeon = 4;
   }
 }

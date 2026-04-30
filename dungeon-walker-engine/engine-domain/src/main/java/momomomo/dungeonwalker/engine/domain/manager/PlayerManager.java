@@ -1,12 +1,12 @@
 package momomomo.dungeonwalker.engine.domain.manager;
 
-import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
 
 public interface PlayerManager {
 
-    void enterTheDungeon(@Nonnull final String playerId);
+    void enterTheDungeon(@NonNull final String playerId);
 
-    void move(@Nonnull final String playerId, @Nonnull final Direction direction);
+    void move(@NonNull final String playerId, @NonNull final Direction direction);
 
 }

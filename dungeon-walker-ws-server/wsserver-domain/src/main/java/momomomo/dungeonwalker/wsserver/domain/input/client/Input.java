@@ -1,0 +1,62 @@
+package momomomo.dungeonwalker.wsserver.domain.input.client;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.NonNull;
+
+public record Input(
+        @NonNull String type,
+        @JsonTypeInfo(
+                use = JsonTypeInfo.Id.NAME,
+                include = JsonTypeInfo.As.EXTERNAL_PROPERTY,
+                property = "type",
+                visible = true)
+        @JsonSubTypes({
+                @JsonSubTypes.Type(
+                        value = Identity.class,
+                        name = IDENTITY),
+                @JsonSubTypes.Type(
+                        value = ClientHeartbeat.class,
+                        name = HEARTBEAT),
+                @JsonSubTypes.Type(
+                        value = Movement.class,
+                        name = MOVEMENT),
+                @JsonSubTypes.Type(
+                        value = Leave.class,
+                        name = LEAVE)
+        })
+        @NonNull InputData data
+) {
+
+    public static final String IDENTITY = "identity";
+    public static final String HEARTBEAT = "heartbeat";
+    public static final String MOVEMENT = "movement";
+    public static final String LEAVE = "leave";
+
+    public static Input of(final Identity identity) {
+        return new Input(IDENTITY, identity);
+    }
+
+    public static Input of(final ClientHeartbeat heartbeat) {
+        return new Input(HEARTBEAT, heartbeat);
+    }
+
+    public static Input of(final Movement movement) {
+        return new Input(MOVEMENT, movement);
+    }
+
+    public static Input of(final Leave leave) {
+        return new Input(LEAVE, leave);
+    }
+
+    public Input cloneWith(final String clientId) {
+        return switch (data) {
+            case Identity _ -> Input.of(new Identity(clientId));
+            case final ClientHeartbeat heartbeat -> Input.of(new ClientHeartbeat(clientId, heartbeat.timestamp()));
+            case final Movement movement -> Input.of(new Movement(clientId, movement.direction()));
+            case final Leave _ -> Input.of(new Leave(clientId));
+            default -> throw new IllegalStateException("Unexpected value: " + data);
+        };
+    }
+
+}

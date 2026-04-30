@@ -1,9 +1,9 @@
 package momomomo.dungeonwalker.engine.domain.outbound;
 
-import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 
 public interface Sender<M> {
 
-    void send(@Nonnull M message);
+    void send(@NonNull M message);
 
 }

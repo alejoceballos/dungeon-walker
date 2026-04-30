@@ -25,14 +25,16 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
+    private static final String LABEL = "---> [CONFIG - Kafka]";
+
     @Bean
     public ConsumerFactory<@NonNull String, @NonNull ClientRequest> consumerFactory(
             @Value("${spring.kafka.consumer.bootstrap-servers}") final String bootstrapServers,
             @Value("${spring.kafka.consumer.key-deserializer}") final Class<?> keyDeserializer,
             @Value("${spring.kafka.consumer.value-deserializer}") final Class<?> valueDeserializer
     ) {
-        log.debug("---> [KAFKA - Config] Creating consumer factory: {}, {}, {}",
-                bootstrapServers, keyDeserializer, valueDeserializer);
+        log.debug("{} Creating consumer factory: {}, {}, {}", LABEL, bootstrapServers, keyDeserializer, valueDeserializer);
+
         return new DefaultKafkaConsumerFactory<>(Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializer,
@@ -46,8 +48,8 @@ public class KafkaConfig {
             @Value("${spring.kafka.consumer.poll-timeout}") final long pollTimeout,
             final ConsumerFactory<@NonNull String, @NonNull ClientRequest> consumerFactory
     ) {
-        log.debug("---> [KAFKA - Config] Creating kafka listener container factory: {}, {}, {}",
-                concurrency, pollTimeout, consumerFactory);
+        log.debug("{} Creating kafka listener container factory: {}, {}, {}", LABEL, concurrency, pollTimeout, consumerFactory);
+
         final var factory = new ConcurrentKafkaListenerContainerFactory<@NonNull String, @NonNull ClientRequest>();
         factory.setConsumerFactory(consumerFactory);
         factory.setConcurrency(concurrency);
@@ -64,8 +66,9 @@ public class KafkaConfig {
             @Value("${spring.kafka.producer.acks}") final String acks,
             @Value("${spring.kafka.producer.retries}") final int retries
     ) {
-        log.debug("---> [CONFIG - Kafka] Creating producer factory: {}, {}, {}, {}, {}"
-                , bootstrapServers, keySerializer, valueSerializer, acks, retries);
+        log.debug("{} Creating producer factory: {}, {}, {}, {}, {}",
+                LABEL, bootstrapServers, keySerializer, valueSerializer, acks, retries);
+
         return new DefaultKafkaProducerFactory<>(Map.of(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer,
@@ -78,7 +81,8 @@ public class KafkaConfig {
     public KafkaTemplate<@NonNull String, @NonNull EngineMessage> kafkaTemplate(
             final ProducerFactory<@NonNull String, @NonNull EngineMessage> producerFactory
     ) {
-        log.debug("---> [CONFIG - Kafka] Creating kafka template");
+        log.debug("{} Creating Kafka template", LABEL);
+
         return new KafkaTemplate<>(producerFactory);
     }
 

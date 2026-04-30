@@ -1,9 +1,9 @@
 package momomomo.dungeonwalker.wsserver.domain.handler;
 
-import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 
 public interface MessageHandler<M, S, R> {
 
-    R handle(@Nonnull M message, @Nonnull S sender);
+    R handle(@NonNull M message, @NonNull S sender);
 
 }

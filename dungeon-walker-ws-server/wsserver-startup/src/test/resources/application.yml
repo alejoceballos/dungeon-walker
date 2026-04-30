@@ -4,6 +4,9 @@ logging:
     org:
       apache:
         kafka: warn
+      springframework:
+        kafka:
+          listener: warn
     momomomo:
       dungeonwalker:
         wsserver:
@@ -11,7 +14,6 @@ logging:
           transport: debug
           core: debug
           domain: debug
-
 test:
   kafka:
     consumer:
@@ -25,19 +27,24 @@ spring:
   cloud:
     config:
       enabled: false
+    discovery:
+      enabled: false
 
   # - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   kafka:
     consumer:
       enable-auto-commit: false
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
       concurrency: 3
       poll-timeout: 3000
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
       acks: 1
       retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 kafka:
   topic:

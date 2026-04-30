@@ -5,7 +5,8 @@ websocket:
 spring:
   kafka:
     consumer:
-      auto-offset-reset: earliest
+      group-id: ws-server-consumer-group
+      auto-offset-reset: auto.offset.reset:earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: momomomo.dungeonwalker.contract.serializer.engine.EngineMessageDeserializer
     producer:

@@ -1,10 +1,10 @@
 package momomomo.dungeonwalker.engine.domain.mapper;
 
-import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 
 public interface DungeonMapper<T> {
 
-    @Nonnull Dungeon map(int dungeonLevel, @Nonnull T original);
+    @NonNull Dungeon map(int dungeonLevel, @NonNull T original);
 
 }

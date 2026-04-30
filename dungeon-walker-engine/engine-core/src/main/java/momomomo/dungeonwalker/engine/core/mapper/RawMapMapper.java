@@ -1,6 +1,5 @@
 package momomomo.dungeonwalker.engine.core.mapper;
 
-import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import momomomo.dungeonwalker.engine.core.service.IdentityService;
@@ -20,7 +19,7 @@ public class RawMapMapper implements DungeonMapper<String> {
 
     private final IdentityService identityService;
 
-    public @Nonnull Dungeon map(
+    public @NonNull Dungeon map(
             final int dungeonLevel,
             @NonNull final String rawMap
     ) {

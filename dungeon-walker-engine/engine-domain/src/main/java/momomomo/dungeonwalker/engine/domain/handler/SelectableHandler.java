@@ -1,9 +1,9 @@
 package momomomo.dungeonwalker.engine.domain.handler;
 
-import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 
 public interface SelectableHandler<M> extends MessageHandler<M> {
 
-    boolean shouldHandle(@Nonnull M message);
+    boolean shouldHandle(@NonNull M message);
 
 }

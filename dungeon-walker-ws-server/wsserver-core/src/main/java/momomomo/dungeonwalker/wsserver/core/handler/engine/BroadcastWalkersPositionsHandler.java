@@ -39,7 +39,7 @@ public class BroadcastWalkersPositionsHandler implements SelectableMessageHandle
     }
 
     @Override
-    public boolean canHandle(@NonNull EngineMessage message) {
+    public boolean canHandle(@NonNull final EngineMessage message) {
         return message.hasWalkerPositions();
     }
 }

@@ -1,18 +1,22 @@
 package momomomo.dungeonwalker.wsserver.domain.inbound;
 
-import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 import momomomo.dungeonwalker.wsserver.domain.output.Output;
 
 public interface ClientConnection {
 
-    @Nonnull
+    @NonNull
     String getSessionId();
 
-    @Nonnull
+    @NonNull
     String getUserId();
 
     void close();
 
-    void send(@Nonnull Output message);
+    boolean isOpen();
+
+    boolean isClosed();
+
+    void send(@NonNull Output message);
 
 }

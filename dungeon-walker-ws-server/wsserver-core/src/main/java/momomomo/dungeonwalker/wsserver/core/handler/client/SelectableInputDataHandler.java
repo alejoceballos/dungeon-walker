@@ -1,16 +1,12 @@
 package momomomo.dungeonwalker.wsserver.core.handler.client;
 
-import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.commons.conditional.Conditional;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
-import momomomo.dungeonwalker.wsserver.core.mapper.InputDataMapper;
-import momomomo.dungeonwalker.wsserver.core.validator.InputDataValidator;
-import momomomo.dungeonwalker.wsserver.core.validator.ValidationError;
 import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandler;
-import momomomo.dungeonwalker.wsserver.domain.input.InputData;
+import momomomo.dungeonwalker.wsserver.domain.input.client.InputData;
 import momomomo.dungeonwalker.wsserver.domain.outbound.SendResult;
 import momomomo.dungeonwalker.wsserver.domain.outbound.SendStatus;
 import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
@@ -34,7 +30,7 @@ public abstract class SelectableInputDataHandler<I extends InputData>
     private final InputDataValidator<I> validator;
 
     @Override
-    @Nonnull
+    @NonNull
     public CompletableFuture<HandlingResult> handle(
             @NonNull final I inputData,
             @NonNull final Sender<ClientRequest> sender

@@ -9,6 +9,6 @@ option java_outer_classname = "EngineMessageProto";
 
 message EngineMessage {
   oneof data {
-    WalkersPositions walkerPositions = 2;
+    WalkersPositions walkerPositions = 1;
   }
 }

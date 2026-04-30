@@ -1,6 +1,5 @@
 package momomomo.dungeonwalker.spring.commons;
 
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +14,11 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class YamlPropertySourceFactory implements PropertySourceFactory {
 
-    @Nonnull
+    @NonNull
     @Override
-    public PropertySource<?> createPropertySource(@Nullable String name, @NonNull EncodedResource encodedResource) {
+    public PropertySource<?> createPropertySource(
+            @Nullable final String name,
+            @NonNull final EncodedResource encodedResource) {
         log.debug("---> [PROPERTY SOURCE FACTORY] creating property source for \"{}\":\"{}\"",
                 name, encodedResource.getResource().getFilename());
 

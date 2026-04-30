@@ -1,6 +1,5 @@
 package momomomo.dungeonwalker.engine.domain.model.walker.moving;
 
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -28,7 +27,7 @@ import static momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction
 public class SameDirectionOrRandomOtherwise implements WalkerMovementStrategy {
 
     @Override
-    public @Nonnull List<Coordinates> nextCoordinates(
+    public @NonNull List<Coordinates> nextCoordinates(
             @Nullable final Coordinates previousCoordinates,
             @NonNull final Coordinates currentCoordinates) {
         final var nextCoordinates = new ArrayList<Coordinates>();

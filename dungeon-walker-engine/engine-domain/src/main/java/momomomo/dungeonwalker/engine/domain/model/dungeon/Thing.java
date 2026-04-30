@@ -1,9 +1,10 @@
 package momomomo.dungeonwalker.engine.domain.model.dungeon;
 
-import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 
 public interface Thing {
 
-    @Nonnull String getDungeonId();
+    @NonNull
+    String getDungeonId();
 
 }

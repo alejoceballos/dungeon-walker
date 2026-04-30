@@ -1,14 +1,17 @@
 package momomomo.dungeonwalker.wsserver.domain.inbound;
 
-import jakarta.annotation.Nonnull;
-import momomomo.dungeonwalker.wsserver.domain.input.Input;
+import lombok.NonNull;
+import momomomo.dungeonwalker.wsserver.domain.input.client.Input;
+import momomomo.dungeonwalker.wsserver.domain.input.engine.EngineMessageData;
 
 public interface ConnectionManager {
 
-    void establish(@Nonnull ClientConnection connection);
+    void establish(@NonNull ClientConnection connection);
 
-    void close(@Nonnull ClientConnection connection);
+    void close(@NonNull ClientConnection connection);
 
-    void handleMessage(@Nonnull ClientConnection connection, @Nonnull Input message);
+    void handleMessage(@NonNull ClientConnection connection, @NonNull Input message);
+
+    void handleMessage(@NonNull EngineMessageData message);
 
 }

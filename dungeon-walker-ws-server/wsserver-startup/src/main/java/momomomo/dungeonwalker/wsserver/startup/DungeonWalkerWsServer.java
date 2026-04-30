@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication(scanBasePackages = "momomomo.dungeonwalker.wsserver")
 public class DungeonWalkerWsServer {
 
-    static void main(String[] args) {
+    static void main(final String[] args) {
         log.info("Starting Dungeon Walker Websocket Server...");
 
         SpringApplication.run(DungeonWalkerWsServer.class, args);

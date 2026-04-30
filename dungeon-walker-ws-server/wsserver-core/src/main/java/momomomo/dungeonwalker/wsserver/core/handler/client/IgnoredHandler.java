@@ -1,11 +1,10 @@
 package momomomo.dungeonwalker.wsserver.core.handler.client;
 
-import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto;
 import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandler;
-import momomomo.dungeonwalker.wsserver.domain.input.InputData;
+import momomomo.dungeonwalker.wsserver.domain.input.client.InputData;
 import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
 
 import java.util.List;
@@ -20,7 +19,7 @@ public class IgnoredHandler implements MessageHandler<InputData, Sender<ClientRe
     private static final String LABEL = "---> [DATA HANDLER -";
 
     @Override
-    public @Nonnull CompletableFuture<HandlingResult> handle(
+    public @NonNull CompletableFuture<HandlingResult> handle(
             @NonNull final InputData message,
             @NonNull final Sender<ClientRequestProto.ClientRequest> unused
     ) {

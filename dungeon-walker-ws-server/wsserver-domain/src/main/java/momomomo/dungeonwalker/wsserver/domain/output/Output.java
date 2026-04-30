@@ -31,7 +31,7 @@ public record Output(
     public static final String HEARTBEAT = "heartbeat";
     public static final String SERVER_ERRORS = "server-errors";
     public static final String SERVER_MESSAGE = "server-message";
-    public static final String WALKERS_COORDINATES = "Walkers-coordinates";
+    public static final String WALKERS_COORDINATES = "walkers-coordinates";
 
     public static Output of(final ServerHeartbeat heartbeat) {
         return new Output(HEARTBEAT, heartbeat);

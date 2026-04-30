@@ -1,12 +1,12 @@
 package momomomo.dungeonwalker.wsserver.domain.outbound;
 
-import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 
 import java.util.concurrent.CompletableFuture;
 
 public interface Sender<M> {
 
-    @Nonnull
-    CompletableFuture<SendResult> send(@Nonnull M message);
+    @NonNull
+    CompletableFuture<SendResult> send(@NonNull M message);
 
 }

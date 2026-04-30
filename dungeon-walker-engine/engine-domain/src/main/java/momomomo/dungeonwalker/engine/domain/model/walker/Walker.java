@@ -1,6 +1,5 @@
 package momomomo.dungeonwalker.engine.domain.model.walker;
 
-import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -13,9 +12,9 @@ import java.util.List;
 public class Walker implements Thing {
 
     public Walker(
-            @Nonnull final String id,
-            @Nonnull final WalkerType type,
-            @Nonnull final WalkerMovementStrategy movingStrategy,
+            @NonNull final String id,
+            @NonNull final WalkerType type,
+            @NonNull final WalkerMovementStrategy movingStrategy,
             final String dungeonId) {
         this.id = id;
         this.type = type;
@@ -24,15 +23,15 @@ public class Walker implements Thing {
     }
 
     @Getter
-    @Nonnull
+    @NonNull
     private final String id;
 
     @Getter
-    @Nonnull
+    @NonNull
     private final WalkerType type;
 
     @Getter
-    @Nonnull
+    @NonNull
     private final WalkerMovementStrategy movingStrategy;
 
     @Getter
@@ -47,11 +46,11 @@ public class Walker implements Thing {
     @Setter
     private Coordinates currentCoordinates;
 
-    public @Nonnull List<Coordinates> possibleCoordinatesTo() {
+    public @NonNull List<Coordinates> possibleCoordinatesTo() {
         return movingStrategy.nextCoordinates(previousCoordinates, currentCoordinates);
     }
 
-    public @Nonnull Walker updateCoordinates(@NonNull final Coordinates coordinates) {
+    public @NonNull Walker updateCoordinates(@NonNull final Coordinates coordinates) {
         this.previousCoordinates = this.currentCoordinates;
         this.currentCoordinates = coordinates;
         return this;

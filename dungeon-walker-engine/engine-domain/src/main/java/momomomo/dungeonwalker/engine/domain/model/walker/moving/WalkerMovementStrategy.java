@@ -2,8 +2,8 @@ package momomomo.dungeonwalker.engine.domain.model.walker.moving;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import lombok.NonNull;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 
 import java.util.List;
@@ -15,9 +15,9 @@ import java.util.List;
 })
 public interface WalkerMovementStrategy {
 
-    @Nonnull
+    @NonNull
     List<Coordinates> nextCoordinates(
             @Nullable Coordinates previousCoordinates,
-            @Nonnull Coordinates currentCoordinates);
+            @NonNull Coordinates currentCoordinates);
 
 }

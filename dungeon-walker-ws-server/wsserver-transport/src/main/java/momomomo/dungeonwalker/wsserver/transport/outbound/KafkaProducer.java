@@ -1,6 +1,5 @@
 package momomomo.dungeonwalker.wsserver.transport.outbound;
 
-import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
@@ -20,7 +19,7 @@ import static momomomo.dungeonwalker.wsserver.domain.outbound.SendStatus.SUCCESS
 public class KafkaProducer implements Sender<ClientRequest> {
 
     private static final String LABEL = "---> [OUTBOUND - Kafka Producer]";
-    
+
     private final KafkaTemplate<@NonNull String, @NonNull ClientRequest> kafkaTemplate;
     private final String topic;
 
@@ -32,7 +31,7 @@ public class KafkaProducer implements Sender<ClientRequest> {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CompletableFuture<SendResult> send(@NonNull final ClientRequest message) {
         log.debug("{} Sending message \"{}\" to topic \"{}\"", LABEL, message, topic);

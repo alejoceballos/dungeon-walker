@@ -5,15 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.commons.DateTimeManager;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto;
-import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
 import momomomo.dungeonwalker.wsserver.core.config.properties.heartbeat.HeartbeatProps;
 import momomomo.dungeonwalker.wsserver.core.handler.client.DataHandlerSelector;
-import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandlerSelector;
-import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
-import momomomo.dungeonwalker.wsserver.domain.inbound.ConsumerFactory;
 import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
+import org.apache.pekko.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.pubsub.Topic;
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
 import org.apache.pekko.cluster.sharding.typed.javadsl.Entity;
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
@@ -29,8 +27,7 @@ public class ClusterShardingManager {
     private static final String LABEL = "---> [CLUSTER - Manager]";
 
     private final ClusterSharding clusterSharding;
-    private final ConsumerFactory<EngineMessage> consumerFactory;
-    private final MessageHandlerSelector<EngineMessage, ClientConnection, Void> messageHandlerSelector;
+    private final ActorRef<Topic.Command<ConnectionCommand>> connectionBroadcastTopic;
     private final DataHandlerSelector dataHandlerSelector;
     private final DateTimeManager dateTimeManager;
     private final HeartbeatProps heartbeatProps;
@@ -44,8 +41,7 @@ public class ClusterShardingManager {
                 Entity.of(
                         ENTITY_TYPE_KEY,
                         _ -> ConnectionActor.create(
-                                consumerFactory,
-                                messageHandlerSelector,
+                                connectionBroadcastTopic,
                                 dataHandlerSelector,
                                 dateTimeManager,
                                 heartbeatProps,

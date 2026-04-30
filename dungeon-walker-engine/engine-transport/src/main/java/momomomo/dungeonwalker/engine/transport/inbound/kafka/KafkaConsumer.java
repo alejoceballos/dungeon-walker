@@ -26,24 +26,24 @@ public class KafkaConsumer {
             properties = {"${spring.kafka.consumer.auto-offset-reset}"}
     )
     public void consume(
-            final ConsumerRecord<String, ClientRequest> record,
+            final ConsumerRecord<String, ClientRequest> consumerRecord,
             final Acknowledgment ack
     ) {
-        log.info("{} Message received: \"{}\":\"{}\"", LABEL, record.key(), record.value());
+        log.info("{} Message received: \"{}\":\"{}\"", LABEL, consumerRecord.key(), consumerRecord.value());
 
         handlers.stream()
-                .filter(handler -> handler.shouldHandle(record.value()))
+                .filter(handler -> handler.shouldHandle(consumerRecord.value()))
                 .findFirst()
-                .map(handler -> handler.handle(record.value()))
+                .map(handler -> handler.handle(consumerRecord.value()))
                 .orElse(new NoHandlerResult(
-                        record.value(),
+                        consumerRecord.value(),
                         new IllegalArgumentException("No handler found for message")))
                 .onSuccess(proto -> {
-                    log.info("{} Message successful processed: \"{}\"/\"{}\"", LABEL, record.key(), proto);
+                    log.info("{} Message successful processed: \"{}\"/\"{}\"", LABEL, consumerRecord.key(), proto);
                     ack.acknowledge();
                 })
                 .onFailure((proto, throwable) -> {
-                    log.error("{} Message processing failure: \"{}\"/\"{}\": {}", LABEL, record.key(), proto, throwable.getMessage());
+                    log.error("{} Message processing failure: \"{}\"/\"{}\": {}", LABEL, consumerRecord.key(), proto, throwable.getMessage());
                     ack.acknowledge();
                 });
     }

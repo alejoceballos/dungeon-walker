@@ -1,12 +1,11 @@
 package momomomo.dungeonwalker.wsserver.core.handler.client;
 
-import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import momomomo.dungeonwalker.wsserver.domain.handler.MessageHandler;
-import momomomo.dungeonwalker.wsserver.domain.input.InputData;
+import momomomo.dungeonwalker.wsserver.domain.input.client.InputData;
 import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
 import org.springframework.stereotype.Component;
 
@@ -40,13 +39,13 @@ public class DataHandlerSelector {
     }
 
     private static <I extends InputData>
-    @Nonnull Predicate<SelectableInputDataHandler<? extends InputData>>
-    byCanHandleData(@NonNull I data) {
+    @NonNull Predicate<SelectableInputDataHandler<? extends InputData>>
+    byCanHandleData(@NonNull final I data) {
         return handler -> handler.canHandle(data);
     }
 
     @SuppressWarnings("unchecked")
-    private static @Nonnull
+    private static @NonNull
     Function<SelectableInputDataHandler<? extends InputData>,
             MessageHandler<InputData,
                     Sender<ClientRequest>,

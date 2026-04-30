@@ -3,7 +3,7 @@ package momomomo.dungeonwalker.wsserver.transport.config;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.wsserver.transport.inbound.WsHandler;
+import momomomo.dungeonwalker.wsserver.transport.inbound.websocket.WsHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;

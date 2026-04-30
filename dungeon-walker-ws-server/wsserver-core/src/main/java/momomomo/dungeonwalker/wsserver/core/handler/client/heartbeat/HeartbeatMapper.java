@@ -1,0 +1,19 @@
+package momomomo.dungeonwalker.wsserver.core.handler.client.heartbeat;
+
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
+import momomomo.dungeonwalker.wsserver.core.handler.client.InputDataMapper;
+import momomomo.dungeonwalker.wsserver.domain.input.client.ClientHeartbeat;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+public class HeartbeatMapper implements InputDataMapper<ClientHeartbeat, ClientRequest> {
+
+    @Override
+    public @NonNull ClientRequest map(@NonNull final ClientHeartbeat inputData) {
+        throw new UnsupportedOperationException("Heartbeat messages are not supposed to be mapped.");
+    }
+
+}

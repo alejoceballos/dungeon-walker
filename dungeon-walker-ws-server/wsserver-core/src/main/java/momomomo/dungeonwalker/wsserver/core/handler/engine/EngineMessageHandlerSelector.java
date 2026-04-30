@@ -1,6 +1,5 @@
 package momomomo.dungeonwalker.wsserver.core.handler.engine;
 
-import jakarta.annotation.Nonnull;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
@@ -33,7 +32,7 @@ public class EngineMessageHandlerSelector implements MessageHandlerSelector<Engi
     }
 
     @Override
-    public @Nonnull MessageHandler<EngineMessage, ClientConnection, Void> select(
+    public @NonNull MessageHandler<EngineMessage, ClientConnection, Void> select(
             @NonNull final EngineMessage message
     ) {
         log.error("{} Selecting handler from message \"{}\"", LABEL, message);

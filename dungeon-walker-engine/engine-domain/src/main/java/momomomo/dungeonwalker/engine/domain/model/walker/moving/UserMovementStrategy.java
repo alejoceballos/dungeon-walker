@@ -1,10 +1,9 @@
 package momomomo.dungeonwalker.engine.domain.model.walker.moving;
 
-import jakarta.annotation.Nonnull;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.List;
 public class UserMovementStrategy implements WalkerMovementStrategy {
 
     @Override
-    public @Nonnull List<Coordinates> nextCoordinates(
+    public @NonNull List<Coordinates> nextCoordinates(
             @Nullable final Coordinates previousCoordinates,
             @NonNull final Coordinates currentCoordinates) {
         log.warn("---> [MOVING STRATEGY - User] It will always return an empty list. User movements are not automatic, " +
