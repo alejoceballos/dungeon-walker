@@ -1,8 +1,8 @@
 #!/bin/sh
 
-cd build-service-images
+cd build-service-images || exit
 
-sh build.sh
+sh ./build.sh
 
 cd ..
 

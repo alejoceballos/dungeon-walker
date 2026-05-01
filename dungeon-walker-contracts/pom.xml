@@ -102,6 +102,7 @@
                 <executions>
                     <execution>
                         <id>generate</id>
+                        <phase>process-sources</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
