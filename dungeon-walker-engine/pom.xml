@@ -8,12 +8,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version>
+        <version>4.0.6</version>
     </parent>
 
     <groupId>momomomo.dungeonwalker</groupId>
     <artifactId>dungeon-walker-engine</artifactId>
-    <name>Dungeon Walker Engine Parent</name>
+    <name>Dungeon Walker Engine</name>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 

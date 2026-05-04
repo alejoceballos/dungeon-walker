@@ -49,7 +49,7 @@ but it will take a little bit longer.
 
 ### The UI (Work in Progress)
 
-- [dungeon-walker-ui](dungeon-walker-ui/README.md)
+- [dungeon-walker-ui](dungeon-walker-ui-html/README.md)
 
 Currently, it is just a simple HTML5 log page using vanilla Javascript to display the game events.
 

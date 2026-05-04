@@ -282,9 +282,9 @@ services:
   # To create this container's image, go to the folder where this project is located and run:
   # mvn clean install jib:dockerBuild -DskipTests
 
-  #  dungeon-walker-ui:
-  #    image: alejoceballos/dungeon-walker-ui:v1
-  #    container_name: dungeon-walker-ui
+  #  dungeon-walker-ui-html:
+  #    image: alejoceballos/dungeon-walker-ui-html:v1
+  #    container_name: dungeon-walker-ui-html
   #    ports:
   #      - "8082:8082"
   #    networks:

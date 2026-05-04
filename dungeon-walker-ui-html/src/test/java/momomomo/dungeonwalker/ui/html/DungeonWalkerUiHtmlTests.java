@@ -1,10 +1,10 @@
-package momomomo.dungeonwalker.ui;
+package momomomo.dungeonwalker.ui.html;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class DungeonWalkerUiApplicationTests {
+class DungeonWalkerUiHtmlTests {
 
 	@Test
 	void contextLoads() {

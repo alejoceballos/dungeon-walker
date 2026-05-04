@@ -1,6 +1,6 @@
 spring:
   application:
-    name: dungeon-walker-ui
+    name: dungeon-walker-ui-html
 
 server:
   port: 8082

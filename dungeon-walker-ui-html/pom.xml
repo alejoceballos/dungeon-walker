@@ -12,10 +12,9 @@
     </parent>
 
     <groupId>momomomo.dungeonwalker</groupId>
-    <artifactId>dungeon-walker-ui</artifactId>
+    <artifactId>dungeon-walker-ui-html</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>dungeon-walker-ui</name>
-    <description>dungeon-walker-ui</description>
+    <name>Dungeon Walker UI (HTML version)</name>
 
     <properties>
         <java.version>25</java.version>
@@ -101,7 +100,7 @@
                         <image>alejoceballos/eclipse-temurin-25-jre-with-curl:v1</image>
                     </from>
                     <to>
-                        <image>alejoceballos/dungeon-walker-ui:v1</image>
+                        <image>alejoceballos/dungeon-walker-ui-html:v1</image>
                     </to>
                     <container>
                         <mainClass>momomomo.dungeonwalker.ui.DungeonWalkerUiApplication</mainClass>

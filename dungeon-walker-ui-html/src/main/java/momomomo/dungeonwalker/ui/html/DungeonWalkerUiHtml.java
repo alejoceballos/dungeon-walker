@@ -1,13 +1,13 @@
-package momomomo.dungeonwalker.ui;
+package momomomo.dungeonwalker.ui.html;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DungeonWalkerUiApplication {
+public class DungeonWalkerUiHtml {
 
     static void main(final String[] args) {
-        SpringApplication.run(DungeonWalkerUiApplication.class, args);
+        SpringApplication.run(DungeonWalkerUiHtml.class, args);
     }
 
 }
