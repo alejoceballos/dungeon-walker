@@ -6,5 +6,5 @@ sh ./build.sh
 
 cd ..
 
-docker-compose up
+docker-compose up -d
 

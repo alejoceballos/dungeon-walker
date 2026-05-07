@@ -8,6 +8,11 @@
       * [IJ's Kafka Plugin Consumer](#ijs-kafka-plugin-consumer)
   * [PostgreSQL](#postgresql)
   * [Grafana](#grafana)
+  * [Keycloack](#keycloack)
+      * [1) Create a client, 1rst step](#1-create-a-client-1rst-step)
+      * [2) Create a client, 2nd step](#2-create-a-client-2nd-step)
+      * [3) Create a client, 3rd step](#3-create-a-client-3rd-step)
+      * [4) Request the token](#4-request-the-token)
 <!-- TOC -->
 
 ## Kafka
@@ -166,3 +171,24 @@ The first two files are [grafana/loki-config.yaml](observability/loki-config.yam
 [docker-compose-grafana.yml](docker-compose-observability.yml).
 
 All files were adapted to the `dungeon-walker-docker` environment and naming conventions.
+
+## Keycloack
+
+- Username: admin
+- Password: admin
+
+#### 1) Create a client, 1rst step
+
+<img src="README.files/keycloak/create-client-01.png" title="Create client - Step 1" alt="Create a client"/>
+
+#### 2) Create a client, 2nd step
+
+<img src="README.files/keycloak/create-client-02.png" title="Create client - Step 2" alt="Other settings"/>
+
+#### 3) Create a client, 3rd step
+
+<img src="README.files/keycloak/create-client-03.png" title="Create client - Step 3" alt="Credentials"/>
+
+#### 4) Request the token
+
+<img src="README.files/keycloak/request-token-01.png" title="Request token" alt="Request token"/>

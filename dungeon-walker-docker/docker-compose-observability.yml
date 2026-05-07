@@ -225,14 +225,6 @@ services:
     networks:
       - dungeon-walker-network
 
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  flog:
-    image: mingrammer/flog
-    command: -f json -d 200ms -l
-    networks:
-      - dungeon-walker-network
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

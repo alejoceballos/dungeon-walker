@@ -3,6 +3,15 @@ services:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+  # - - - - KEYCLOACK - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  keycloak-auth-server:
+    extends:
+      file: docker-compose-auth.yml
+      service: keycloak-auth-server
+    networks:
+      - dungeon-walker-network
+
   # - - - - KAFKA - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   kafka:
@@ -265,6 +274,7 @@ services:
       OTEL_METRICS_EXPORTER: "none"
       OTEL_LOGS_EXPORTER: "none"
       OTEL_SERVICE_NAME: "dungeon-walker-gateway-server"
+      AUTH_SERVER_URL: "http://keycloak-auth-server:8080/realms/master/protocol/openid-connect/certs"
     healthcheck:
       test: "curl --fail --silent http://localhost:8085/actuator/health/readiness | grep UP || exit 1"
       interval: 20s
