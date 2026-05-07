@@ -16,6 +16,10 @@ public class GatewayConfig {
                         .path("/ws-server/**")
                         .filters(f -> f.rewritePath("/ws-server/(?<segment>.*)", "/${segment}"))
                         .uri("lb://dungeon-walker-ws-server"))
+                .route(ps -> ps
+                        .path("/engine/**")
+                        .filters(f -> f.rewritePath("/engine/(?<segment>.*)", "/${segment}"))
+                        .uri("lb://dungeon-walker-engine"))
                 .build();
     }
 

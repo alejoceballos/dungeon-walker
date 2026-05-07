@@ -18,14 +18,17 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private static final String LABEL = "---> [WEB SOCKET - Config]";
 
     private final WsHandler wsHandler;
+    private final JwtHandshakeInterceptor jwtInterceptor;
     private final WebSocketProps webSocketProps;
 
     @Override
     public void registerWebSocketHandlers(@NonNull final WebSocketHandlerRegistry registry) {
         log.info("{} WebSocket handler registered", LABEL);
-        registry.addHandler(
+        registry
+                .addHandler(
                         wsHandler,
                         webSocketProps.getEndpoint())
+                .addInterceptors(jwtInterceptor)
                 .setAllowedOriginPatterns(
                         webSocketProps.getAllowedOriginPatterns());
     }

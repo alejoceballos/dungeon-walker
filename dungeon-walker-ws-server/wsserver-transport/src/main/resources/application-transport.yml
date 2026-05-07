@@ -1,5 +1,5 @@
 websocket:
-  endpoint: /ws-endpoint
+  endpoint: "/ws-endpoint"
   allowed-origin-patterns: "*"
 
 spring:

@@ -44,6 +44,11 @@ spring:
       bootstrap-servers: kafka:29092
       acks: 1
       retries: 3
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://keycloak-auth-server:8080/realms/master/protocol/openid-connect/certs"
 
 kafka:
   topic:

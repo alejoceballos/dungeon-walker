@@ -7,19 +7,17 @@ spring:
     import: "${CONFIG_SERVER_URL:optional:configserver:http://localhost:8083/}"
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      default-filters:
-        - name: DedupeResponseHeader
-          args:
-            name: Access-Control-Allow-Origin
-            strategy: RETAIN_FIRST
-        - name: DedupeResponseHeader
-          args:
-            name: Access-Control-Allow-Credentials
-            strategy: RETAIN_FIRST
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: false
+              lower-case-service-id: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "${AUTH_SERVER_URL:http://localhost:8087/realms/master/protocol/openid-connect/certs}"
 
 management:
   endpoints:
