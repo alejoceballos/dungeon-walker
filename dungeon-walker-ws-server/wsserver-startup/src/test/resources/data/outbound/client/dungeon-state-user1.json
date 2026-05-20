@@ -1,0 +1,11 @@
+{
+  "type": "dungeon-state",
+  "data": {
+    "values": {
+      "user1": {
+        "x": 1,
+        "y": 1
+      }
+    }
+  }
+}

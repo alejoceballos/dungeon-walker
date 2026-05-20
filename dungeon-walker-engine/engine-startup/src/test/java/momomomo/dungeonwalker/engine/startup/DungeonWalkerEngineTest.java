@@ -2,8 +2,8 @@ package momomomo.dungeonwalker.engine.startup;
 
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
-import momomomo.dungeonwalker.contract.client.ConnectionProto.Connection;
 import momomomo.dungeonwalker.contract.client.DirectionProto;
+import momomomo.dungeonwalker.contract.client.EnterDungeonProto.EnterDungeon;
 import momomomo.dungeonwalker.contract.client.MovementProto.Movement;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.engine.domain.model.walker.moving.Direction;
@@ -76,7 +76,7 @@ class DungeonWalkerEngineTest {
     }
 
     @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
+    static void configureProperties(final DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
@@ -89,7 +89,7 @@ class DungeonWalkerEngineTest {
 
         final var connection = ClientRequest.newBuilder()
                 .setClientId(clientId)
-                .setConnection(Connection.newBuilder().build())
+                .setEnterDungeon(EnterDungeon.newBuilder().build())
                 .build();
 
         testKafkaProducer

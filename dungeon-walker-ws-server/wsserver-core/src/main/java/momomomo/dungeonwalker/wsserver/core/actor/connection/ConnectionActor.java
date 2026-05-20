@@ -4,23 +4,29 @@ import jakarta.annotation.Nullable;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.commons.DateTimeManager;
+import momomomo.dungeonwalker.commons.conditional.Conditional;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
+import momomomo.dungeonwalker.contract.client.DirectionProto.Direction;
+import momomomo.dungeonwalker.contract.client.EnterDungeonProto.EnterDungeon;
+import momomomo.dungeonwalker.contract.client.LeaveDungeonProto.LeaveDungeon;
+import momomomo.dungeonwalker.contract.client.MovementProto.Movement;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.CloseConnection;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SendHeartbeatToClient;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.SetConnection;
-import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.client.SendMessageToEngine;
-import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.engine.SendWalkersPositionToClient;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.client.AuthenticateFromClient;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.client.MovementFromClient;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.engine.BroadcastDungeonState;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.engine.EnteredTheDungeon;
 import momomomo.dungeonwalker.wsserver.core.config.properties.heartbeat.HeartbeatProps;
-import momomomo.dungeonwalker.wsserver.core.handler.client.DataHandlerSelector;
-import momomomo.dungeonwalker.wsserver.domain.inbound.ClientConnection;
-import momomomo.dungeonwalker.wsserver.domain.input.client.Input;
-import momomomo.dungeonwalker.wsserver.domain.input.client.Leave;
-import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
-import momomomo.dungeonwalker.wsserver.domain.output.Output;
-import momomomo.dungeonwalker.wsserver.domain.output.ServerErrors;
-import momomomo.dungeonwalker.wsserver.domain.output.ServerHeartbeat;
-import momomomo.dungeonwalker.wsserver.domain.output.ServerMessage;
+import momomomo.dungeonwalker.wsserver.domain.auth.Authorizer;
+import momomomo.dungeonwalker.wsserver.domain.data.client.output.Output;
+import momomomo.dungeonwalker.wsserver.domain.data.client.output.ServerErrors;
+import momomomo.dungeonwalker.wsserver.domain.data.client.output.ServerHeartbeat;
+import momomomo.dungeonwalker.wsserver.domain.data.client.output.ServerMessage;
+import momomomo.dungeonwalker.wsserver.domain.data.engine.output.EngineOutbound;
+import momomomo.dungeonwalker.wsserver.domain.outbound.ClientOutbound;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.Behavior;
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior;
@@ -33,11 +39,9 @@ import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
-import static java.util.concurrent.CompletableFuture.failedFuture;
+import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Slf4j
 public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
@@ -47,75 +51,143 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     public static final EntityTypeKey<ConnectionCommand> ENTITY_TYPE_KEY =
             EntityTypeKey.create(ConnectionCommand.class, "connection-actor-type-key");
 
-    private final DataHandlerSelector dataHandlerSelector;
     private final DateTimeManager dateTimeManager;
     private final HeartbeatProps heartbeatProps;
-    private final Sender<ClientRequest> sender;
+    private final Authorizer authorizer;
+    private final EngineOutbound<ClientRequest> engineOutbound;
 
-    private ClientConnection clientConnection;
+    private ClientOutbound clientOutbound;
+    private String clientId;
 
     private ConnectionActor(
             @NonNull final ActorContext<ConnectionCommand> context,
             @NonNull final ActorRef<Topic.Command<ConnectionCommand>> connectionBroadcastTopic,
-            @NonNull final DataHandlerSelector dataHandlerSelector,
             @NonNull final DateTimeManager dateTimeManager,
             @NonNull final HeartbeatProps heartbeatProps,
-            @NonNull final Sender<ClientRequest> sender
+            @NonNull final Authorizer authorizer,
+            @NonNull final EngineOutbound<ClientRequest> engineOutbound
     ) {
         super(context);
-        this.dataHandlerSelector = dataHandlerSelector;
         this.dateTimeManager = dateTimeManager;
         this.heartbeatProps = heartbeatProps;
-        this.sender = sender;
+        this.authorizer = authorizer;
+        this.engineOutbound = engineOutbound;
 
         connectionBroadcastTopic.tell(Topic.subscribe(context.getSelf()));
     }
 
     public static Behavior<ConnectionCommand> create(
             @NonNull final ActorRef<Topic.Command<ConnectionCommand>> connectionBroadcastTopic,
-            @NonNull final DataHandlerSelector dataHandlerSelector,
             @NonNull final DateTimeManager dateTimeManager,
             @NonNull final HeartbeatProps heartbeatProps,
-            @NonNull final Sender<ClientRequest> sender
+            @NonNull final Authorizer authorizer,
+            @NonNull final EngineOutbound<ClientRequest> sender
     ) {
         log.debug("{} create", LABEL);
         return Behaviors.setup(context ->
                 new ConnectionActor(
                         context,
                         connectionBroadcastTopic,
-                        dataHandlerSelector,
                         dateTimeManager,
                         heartbeatProps,
+                        authorizer,
                         sender));
     }
 
     @Override
     public Receive<ConnectionCommand> createReceive() {
-        log.debug("{}[{}] create receive", LABEL, actorId());
+        log.debug(logShortMessage("Initial (Create/Receive) state"));
         return newReceiveBuilder()
                 .onMessage(SetConnection.class, this::onSetConnection)
                 .build();
     }
 
     public Receive<ConnectionCommand> connected() {
-        log.debug("{}[{}] session connection", LABEL, actorId());
+        log.debug(logShortMessage("Connected state"));
         return newReceiveBuilder()
-                .onMessage(SetConnection.class, this::onResetConnection)
+                .onMessage(CloseConnection.class, this::onCloseConnection)
+                .onMessage(AuthenticateFromClient.class, this::onAuthenticateFromClient)
+                .build();
+    }
+
+    public Receive<ConnectionCommand> authenticated() {
+        log.debug(logFullMessage("Authenticated state"));
+        return newReceiveBuilder()
                 .onMessage(CloseConnection.class, this::onCloseConnection)
                 .onMessage(SendHeartbeatToClient.class, this::onSendHeartbeatToClient)
-                .onMessage(SendMessageToEngine.class, this::onSendMessageToEngine)
-                .onMessage(SendWalkersPositionToClient.class, this::onSendWalkersPositionToClient)
+                .onMessage(EnteredTheDungeon.class, this::onEnteredTheDungeon)
+                .build();
+    }
+
+    public Receive<ConnectionCommand> inPLay() {
+        log.debug(logFullMessage("In-play state"));
+        return newReceiveBuilder()
+                .onMessage(CloseConnection.class, this::onCloseConnection)
+                .onMessage(SendHeartbeatToClient.class, this::onSendHeartbeatToClient)
+                .onMessage(BroadcastDungeonState.class, this::onBroadcastDungeonState)
+                .onMessage(MovementFromClient.class, this::onMovementFromClient)
                 .build();
     }
 
     private Behavior<ConnectionCommand> onSetConnection(final SetConnection command) {
-        clientConnection = command.connection();
-        log.debug(logMessage("on set connection"));
+        log.debug(logShortMessage("On set connection"));
+        clientOutbound = command.connection();
+        clientOutbound.send(Output.of(new ServerMessage("Connected")));
+        return connected();
+    }
 
+    private Behavior<ConnectionCommand> onCloseConnection(final CloseConnection command) {
+        log.debug(logFullMessage("on close connection"));
 
         return Behaviors.withTimers(timer -> {
-            final var timerHeartbeatKey = "timer-heartbeat-" + actorId();
-            log.debug("{}[{}] setting timer \"{}\"", LABEL, actorPath(), timerHeartbeatKey);
+            final var timerHeartbeatKey = "timer-heartbeat-" + logActorId();
+
+            if (timer.isTimerActive(timerHeartbeatKey)) {
+                log.debug(logFullMessage("cancelling active {} timer due to connection close"), timerHeartbeatKey);
+                timer.cancel(timerHeartbeatKey);
+
+            } else {
+                log.debug(logFullMessage("{} timer not active. Continuing on closing connection"), timerHeartbeatKey);
+            }
+
+            if (nonNull(clientId)) {
+                engineOutbound.send(ClientRequest
+                        .newBuilder()
+                        .setClientId(clientId)
+                        .setLeaveDungeon(LeaveDungeon
+                                .newBuilder()
+                                .build())
+                        .build());
+            }
+
+            return Behaviors.stopped();
+        });
+    }
+
+    private Behavior<ConnectionCommand> onAuthenticateFromClient(final AuthenticateFromClient command) {
+        log.debug(logShortMessage("on authenticate"));
+
+        clientId = authorizer.authorize(command.credentials());
+
+        if (isBlank(clientId)) {
+            log.debug(logShortMessage("Failed to authorize"));
+            tellSelfTo(new CloseConnection());
+            return Behaviors.same();
+        }
+
+        /*
+         * TODO: Security flaw!
+         *  If another actor is logged with the same client id, meaning it has connected to the WebSocket from two
+         *  different clients, the process must be as follows:
+         *    1. Remove the client from the game (send "leave" to the engine with the current client id)
+         *    2. Log it out (from the other actor, send a "session.close")
+         *    3. Only then, set the timers below and so on
+         *  That's a security flow that must be dealt separately, synchronously.
+         */
+
+        return Behaviors.withTimers(timer -> {
+            final var timerHeartbeatKey = "timer-heartbeat-" + clientId;
+            log.debug("{}[{}] setting timer \"{}\"", LABEL, clientId, timerHeartbeatKey);
 
             if (timer.isTimerActive(timerHeartbeatKey)) {
                 timer.cancel(timerHeartbeatKey);
@@ -128,63 +200,27 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
                             heartbeatProps.getDelay(),
                             ChronoUnit.valueOf(heartbeatProps.getTimeUnit())));
 
-            return connected();
+            engineOutbound
+                    .send(ClientRequest
+                            .newBuilder()
+                            .setClientId(clientId)
+                            .setEnterDungeon(EnterDungeon.newBuilder().build())
+                            .build())
+                    .thenAccept(_ -> clientOutbound
+                            .send(Output.of(new ServerMessage("Authentication successful. Entering the dungeon"))))
+                    .exceptionally(_ -> {
+                        clientOutbound
+                                .send(Output.of(new ServerErrors(
+                                        List.of("Authentication successful, but failed to enter the dungeon"))));
+                        return null;
+                    });
+
+            return authenticated();
         });
     }
 
-    private Behavior<ConnectionCommand> onResetConnection(@NonNull final SetConnection command) {
-        final var cmdUserId = command.connection().getUserId();
-        final var cmdSessionId = command.connection().getSessionId();
-
-        log.debug("{}[{}] on set connection again \"{}\":\"{}\" vs. \"{}\":\"{}\"",
-                LABEL, actorPath(), userId(), sessionId(), cmdUserId, cmdSessionId);
-
-        if (!Objects.equals(clientConnection.getSessionId(), cmdSessionId)) {
-            log.warn("{}[{}] Resetting connection since sessions has changed \"{}\":\"{}\" vs. \"{}\":\"{}\"",
-                    LABEL, actorPath(), userId(), sessionId(), cmdUserId, cmdSessionId);
-            clientConnection.close();
-            clientConnection = command.connection();
-
-        } else {
-            log.warn("{}[{}] Connection with same session ID will not be reset \"{}\":\"{}\"",
-                    LABEL, actorPath(), userId(), sessionId());
-        }
-
-        return Behaviors.same();
-    }
-
-    private Behavior<ConnectionCommand> onCloseConnection(@NonNull final CloseConnection command) {
-        final var cmdSessionId = command.connection().getSessionId();
-
-        log.debug("{}[{}] on close connection \"{}\":\"{}\"", LABEL, actorPath(), command.connection().getUserId(), cmdSessionId);
-
-        if (isSameConnection(command.connection())) {
-            log.debug("{}[{}] closing connection \"{}\":\"{}\"", LABEL, actorPath(), command.connection().getUserId(), cmdSessionId);
-
-            return Behaviors.withTimers(timer -> {
-                final var timerHeartbeatKey = "timer-heartbeat-" + actorId();
-
-                if (timer.isTimerActive(timerHeartbeatKey)) {
-                    log.debug("{}[{}] cancelling active {} timer due to connection close \"{}\":\"{}\"",
-                            LABEL, actorPath(), timerHeartbeatKey, command.connection().getUserId(), cmdSessionId);
-                    timer.cancel(timerHeartbeatKey);
-
-                } else {
-                    log.debug("{}[{}] {} timer not active. Continue to close connection \"{}\":\"{}\"",
-                            LABEL, actorPath(), timerHeartbeatKey, command.connection().getUserId(), cmdSessionId);
-                }
-
-                getContext().getSelf().tell(new SendMessageToEngine(Input.of(new Leave(userId()))));
-
-                return Behaviors.stopped();
-            });
-        }
-
-        return Behaviors.same();
-    }
-
-    private Behavior<ConnectionCommand> onSendHeartbeatToClient(@NonNull final SendHeartbeatToClient command) {
-        log.debug(logMessage("on send heartbeat to"));
+    private Behavior<ConnectionCommand> onSendHeartbeatToClient(final SendHeartbeatToClient command) {
+        log.debug(logFullMessage("on send heartbeat to"));
 
         final var output = Output.of(
                 new ServerHeartbeat(
@@ -192,91 +228,88 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
                         heartbeatProps.getTimeUnit(),
                         dateTimeManager.instantNow()));
 
-        clientConnection.send(output);
+        clientOutbound.send(output);
 
         return Behaviors.same();
     }
 
-    private Behavior<ConnectionCommand> onSendMessageToEngine(@NonNull final SendMessageToEngine command) {
-        log.debug(logMessage("on act on message"));
+    private Behavior<ConnectionCommand> onEnteredTheDungeon(final EnteredTheDungeon command) {
+        log.debug(logFullMessage("on entered the dungeon"));
 
-        final var data = command
-                .message()
-                .cloneWith(userId())
-                .data();
+        if (!command.clientId().equals(clientId)) {
+            log.debug(
+                    logFullMessage("[on entered the dungeon] Client {} in command does not match actor's client {}. Ignoring command."),
+                    command.clientId(),
+                    clientId);
+            return Behaviors.same();
+        }
 
-        dataHandlerSelector
-                .select(data)
-                .handle(data, sender)
-                .thenCompose(result -> {
-                    switch (result.type()) {
-                        case FAILURE -> {
-                            log.error("{}[{}] Failure sending message for user \"{}\":\"{}\". Result: {}",
-                                    LABEL, actorPath(), userId(), sessionId(), result);
-                            clientConnection.send(Output.of(new ServerErrors(result.errors())));
-                        }
-                        case SUCCESS -> {
-                            log.debug("{}[{}] Success sending message for user \"{}\":\"{}\"",
-                                    LABEL, actorPath(), userId(), sessionId());
-                            clientConnection.send(Output.of(new ServerMessage("Message sent")));
-                        }
-                        default -> {
-                            log.debug("{}[{}] Ignoring message for user \"{}\":\"{}\"",
-                                    LABEL, actorPath(), userId(), sessionId());
-                            clientConnection.send(Output.of(new ServerMessage("Message ignored")));
-                        }
-                    }
+        clientOutbound.send(Output.of(command.toDomain()));
 
-                    return CompletableFuture.completedFuture(null);
+        return inPLay();
+    }
 
-                }).exceptionally(ex -> {
-                    log.error("{}[{}] Error sending message for user  \"{}\":\"{}\". Data: {}. Exception: {}",
-                            LABEL, actorPath(), userId(), sessionId(), data, ex.getMessage());
+    private Behavior<ConnectionCommand> onBroadcastDungeonState(final BroadcastDungeonState command) {
+        log.debug(logFullMessage("on send walkers position to client"));
 
-                    clientConnection.send(Output.of(new ServerErrors(List.of(ex.getMessage()))));
+        clientOutbound.send(Output.of(command.toDomain()));
 
-                    return failedFuture(ex);
+        return Behaviors.same();
+    }
+
+    private Behavior<ConnectionCommand> onMovementFromClient(final MovementFromClient command) {
+        log.debug(logFullMessage("on movement from client"));
+
+        final String direction = command.direction().name();
+
+        engineOutbound
+                .send(ClientRequest
+                        .newBuilder()
+                        .setClientId(clientId)
+                        .setMovement(Movement
+                                .newBuilder()
+                                .setDirection(Direction.valueOf(direction))
+                                .build())
+                        .build())
+                .thenAccept(_ -> clientOutbound
+                        .send(Output.of(new ServerMessage("Movements to \"%s\" sent".formatted(direction)))))
+                .exceptionally(_ -> {
+                    clientOutbound
+                            .send(Output.of(new ServerErrors(
+                                    List.of("Could not send movement to \"%s\"".formatted(direction)))));
+                    return null;
                 });
 
         return Behaviors.same();
     }
 
-    private Behavior<ConnectionCommand> onSendWalkersPositionToClient(final SendWalkersPositionToClient command) {
-        log.debug(logMessage("on send walkers position to client"));
-
-        clientConnection.send(Output.of(command.toDomain()));
-
-        return Behaviors.same();
+    private void tellSelfTo(@NonNull final ConnectionCommand command) {
+        getContext().getSelf().tell(command);
     }
 
-    private @NonNull String actorPath() {
+    private @NonNull String logActorPath() {
         return getContext().getSelf().path().toString();
     }
 
-    private @NonNull String actorId() {
+    private @NonNull String logActorId() {
         return getContext().getSelf().path().name();
     }
 
-    private @Nullable String sessionId() {
-        return Optional
-                .ofNullable(clientConnection)
-                .map(ClientConnection::getSessionId)
-                .orElse(null);
+    private @Nullable String logClientId() {
+        return Conditional
+                .on(() -> StringUtils.isNotBlank(clientId))
+                .thenGet(() -> clientId)
+                .orElseGet(() -> "** unavailable **")
+                .evaluate();
     }
 
-    private @Nullable String userId() {
-        return Optional
-                .ofNullable(clientConnection)
-                .map(ClientConnection::getUserId)
-                .orElse(null);
+    private String logShortMessage(final String message) {
+        return "%s[%s]: %s".formatted(LABEL, logActorId(), message);
     }
 
-    private boolean isSameConnection(final ClientConnection connection) {
-        return Objects.equals(sessionId(), connection.getSessionId());
-    }
-
-    private String logMessage(final String message) {
-        return "%s[%s] %s \"%s\":\"%s\"".formatted(LABEL, actorPath(), message, userId(), sessionId());
+    private String logFullMessage(final String message) {
+        // ---> [ACTOR - Connection][akka://system/user/sharding/connection-actor-type-key/123][some-user-name]: message
+        return "%s[%s][%s]: %s".formatted(LABEL, logActorPath(), logClientId(), message);
     }
 
 }

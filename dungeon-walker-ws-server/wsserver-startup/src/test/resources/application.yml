@@ -32,6 +32,13 @@ spring:
 
   # - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://localhost:8087/realms/dungeon-walker-realm/protocol/openid-connect/certs"
+          issuer-uri: "http://localhost:8087/realms/dungeon-walker-realm"
+
   kafka:
     consumer:
       enable-auto-commit: false

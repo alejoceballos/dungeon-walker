@@ -49,14 +49,23 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
 
         final var builder = newCommandHandlerBuilder();
 
-        builder.forAnyState()
-                .onCommand(WalkerStateRequest.class, this::onWalkerStateRequest);
+        builder
+                .forAnyState()
+                .onCommand(
+                        WalkerStateRequest.class,
+                        this::onWalkerStateRequest);
 
-        builder.forStateType(Asleep.class)
-                .onCommand(WakeUp.class, this::onWakeUp);
+        builder
+                .forStateType(Asleep.class)
+                .onCommand(
+                        WakeUp.class,
+                        this::onWakeUp);
 
-        builder.forStateType(Awake.class)
-                .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates);
+        builder
+                .forStateType(Awake.class)
+                .onCommand(
+                        UpdateCoordinates.class,
+                        this::onUpdateCoordinates);
 
         setStoppedStateCommands(builder.forStateType(Stopped.class));
         setMovingStateCommands(builder.forStateType(Moving.class));
@@ -72,7 +81,9 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
 
         return Effect()
                 .none()
-                .thenRun(_ -> command.replyTo().tell(new WalkerStateReply(state.getClass())));
+                .thenRun(_ -> command
+                        .replyTo()
+                        .tell(new WalkerStateReply(state.getClass())));
     }
 
     protected abstract void setStoppedStateCommands(
@@ -119,7 +130,7 @@ public abstract class WalkerActor extends DurableStateBehavior<WalkerCommand, Wa
         return context.getSelf().path().name();
     }
 
-    protected String state(@NonNull WalkerState state) {
+    protected String state(@NonNull final WalkerState state) {
         return state.getClass().getSimpleName();
     }
 

@@ -8,8 +8,8 @@ import momomomo.dungeonwalker.contract.client.ClientRequestProto;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
 import momomomo.dungeonwalker.wsserver.core.config.properties.heartbeat.HeartbeatProps;
-import momomomo.dungeonwalker.wsserver.core.handler.client.DataHandlerSelector;
-import momomomo.dungeonwalker.wsserver.domain.outbound.Sender;
+import momomomo.dungeonwalker.wsserver.domain.auth.Authorizer;
+import momomomo.dungeonwalker.wsserver.domain.data.engine.output.EngineOutbound;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.pubsub.Topic;
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
@@ -28,10 +28,10 @@ public class ClusterShardingManager {
 
     private final ClusterSharding clusterSharding;
     private final ActorRef<Topic.Command<ConnectionCommand>> connectionBroadcastTopic;
-    private final DataHandlerSelector dataHandlerSelector;
     private final DateTimeManager dateTimeManager;
     private final HeartbeatProps heartbeatProps;
-    private final Sender<ClientRequestProto.ClientRequest> sender;
+    private final Authorizer authorizer;
+    private final EngineOutbound<ClientRequestProto.ClientRequest> sender;
 
     @PostConstruct
     public void init() {
@@ -42,9 +42,9 @@ public class ClusterShardingManager {
                         ENTITY_TYPE_KEY,
                         _ -> ConnectionActor.create(
                                 connectionBroadcastTopic,
-                                dataHandlerSelector,
                                 dateTimeManager,
                                 heartbeatProps,
+                                authorizer,
                                 sender)));
     }
 

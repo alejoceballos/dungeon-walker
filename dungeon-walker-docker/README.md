@@ -9,10 +9,16 @@
   * [PostgreSQL](#postgresql)
   * [Grafana](#grafana)
   * [Keycloack](#keycloack)
+    * [Application AUthorization Flow](#application-authorization-flow)
       * [1) Create a client, 1rst step](#1-create-a-client-1rst-step)
       * [2) Create a client, 2nd step](#2-create-a-client-2nd-step)
       * [3) Create a client, 3rd step](#3-create-a-client-3rd-step)
       * [4) Request the token](#4-request-the-token)
+    * [Authorization Code Grant Type Flow](#authorization-code-grant-type-flow)
+      * [1) Extend session timeout](#1-extend-session-timeout)
+      * [2) Create the client](#2-create-the-client)
+      * [3) Check client's secret](#3-check-clients-secret)
+      * [4) Create the user](#4-create-the-user)
 <!-- TOC -->
 
 ## Kafka
@@ -177,6 +183,8 @@ All files were adapted to the `dungeon-walker-docker` environment and naming con
 - Username: admin
 - Password: admin
 
+### Application AUthorization Flow
+
 #### 1) Create a client, 1rst step
 
 <img src="README.files/keycloak/create-client-01.png" title="Create client - Step 1" alt="Create a client"/>
@@ -192,3 +200,82 @@ All files were adapted to the `dungeon-walker-docker` environment and naming con
 #### 4) Request the token
 
 <img src="README.files/keycloak/request-token-01.png" title="Request token" alt="Request token"/>
+
+### Authorization Code Grant Type Flow
+
+#### 1) Extend session timeout
+ 
+- Realm settings:
+  - Sessions:
+    - SSO Session Settings
+      - SSO Session Idle: 30 minutes
+      - SSO Session Max: 10 hours
+    - Client session settings
+      - Client Session Idle: 30 minutes
+      - Client Session Max: 10 hours
+    - Offline session settings
+      - Offline Session Idle: 30 Days
+      - Client Offline Session Idle: 10 Hours
+      - Offline Session Max Limited: Disabled
+    - Login settings:
+      - Login Timeout: 30 minutes
+      - Login action timeout: 10 hours
+  - Tokens:
+    - General:
+      - OAuth 2.0 Device Code Lifespan: 1 Hour
+      - Lifetime of the Request URI for Pushed Authorization Request: 1 Hour
+    - Access tokens
+      - Access token lifespan: 30 minutes
+      - Access token lifespan for implicit flow: 1 Hour
+      - Client Login Timeout: 1 Hour
+
+
+
+#### 2) Create the client
+
+- Clients:
+  - Create Client: 
+    - Generale Settings:
+      - Client type: OpenID Connect 
+      - Client ID: auth-code-grant-type-flow
+      - Name: Authorization Code Grant Type Flow
+    - Capability config:
+      - Client authentication: ON
+      - Authenticated flow:
+        - Standard flow: YES
+        - ... All others: NO
+    - Login settings:
+      - Valid Redirect URIs: * (since we don't have a UI for now)
+      - Web origins: * (for now accept request from cross-domains)
+      - ... All others: <empty>
+    - Save
+
+#### 3) Check client's secret
+
+- Clients:
+  - auth-code-grant-type-flow:
+    - Credentials:
+      - Client secret: Q3QTk5FQybkXHsqEJvTesNaQOyFnL8iF
+
+#### 4) Create the user
+
+- Users:
+  - Add User:
+    - Email verified: ON
+    - Username: user1
+    - Email: user1@momomomo.com
+    - Create
+  - Credentials:
+    - Set password:
+      - Password: password1
+      - Temporary: OFF
+      - Save
+
+#### Postman
+
+
+
+
+
+
+

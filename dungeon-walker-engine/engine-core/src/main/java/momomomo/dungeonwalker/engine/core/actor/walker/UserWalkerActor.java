@@ -63,7 +63,7 @@ public class UserWalkerActor extends WalkerActor {
 
     @Override
     protected void setMovingStateCommands(
-            @NonNull CommandHandlerBuilderByState<WalkerCommand, Moving, WalkerState> builder
+            @NonNull final CommandHandlerBuilderByState<WalkerCommand, Moving, WalkerState> builder
     ) {
         builder
                 .onCommand(UpdateCoordinates.class, this::onUpdateCoordinates)

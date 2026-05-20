@@ -1,5 +1,6 @@
 package momomomo.dungeonwalker.wsserver.startup.steps;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.cucumber.java.Before;
@@ -8,10 +9,10 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.contract.client.ClientRequestProto;
+import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.wsserver.startup.DungeonWalkerWsServerIntegrationTests;
 import momomomo.dungeonwalker.wsserver.startup.support.TestClientWebSocketHandler;
@@ -20,35 +21,35 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 import java.io.IOException;
-import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
-import static org.apache.commons.lang3.StringUtils.upperCase;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrationTests {
 
+    private static final long WAIT_VALUE = 100;
+    private static final TimeUnit WAIT_UNIT = MILLISECONDS;
+
+    private static final String TO_CLIENT_FILE = "data/outbound/client/%s.json";
+    private static final String TO_ENGINE_FILE = "data/outbound/engine/%s-%s.json";
+    private static final String FROM_CLIENT_FILE = "data/inbound/client/%s-%s.json";
+    private static final String FROM_ENGINE_FILE = "data/inbound/engine/%s-%s.json";
+
     @Autowired
-    private KafkaConsumer<String, ClientRequestProto.ClientRequest> testKafkaConsumer;
+    private KafkaConsumer<String, ClientRequest> testKafkaConsumer;
 
     @Autowired
     private TestKafkaProducer testKafkaProducer;
@@ -57,208 +58,146 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
     private TestClientWebSocketHandler clientWsHandler;
 
     private final WebSocketClient wsClient = new StandardWebSocketClient();
-    private final Map<String, LoggedUser> loggedUsers = new HashMap<>();
-
-    private final List<List<ConsumerRecord<String, ClientRequestProto.ClientRequest>>> messagesToEngineByProcess = new ArrayList<>();
-    private final List<String> messagesSentByClient = new ArrayList<>();
-    private final List<String> messagesSentByEngine = new ArrayList<>();
+    private final ConcurrentMap<String, ClientContext> clientsContext = new ConcurrentHashMap<>();
 
     @Before
     public void scenarioSetUp() {
         clientWsHandler.getState().clear();
-        loggedUsers.clear();
-        messagesToEngineByProcess.clear();
-        messagesSentByClient.clear();
-        messagesSentByEngine.clear();
     }
 
-    @Given("a user {string} with password {string} as client {string}")
-    public void storeUserCredentials(
-            final String user,
-            final String password,
-            final String clientId) {
-        final var credentialsToEncode = "%s:%s".formatted(user, password);
-        final var encodedCredentials = Base64.getEncoder().encodeToString(credentialsToEncode.getBytes());
-        loggedUsers.put(clientId, new LoggedUser(user, password, encodedCredentials));
-    }
-
-    @Given("the client {string} sends a connection request to the WebSocket server")
-    public void sendWebSocketConnectionRequest(final String clientId) {
-        final var encodedCredentials = "Basic %s".formatted(loggedUsers.get(clientId).getEncodedCredentials());
-
+    @Given("client {string} sends a connection request to the WebSocket server")
+    public void clientConnects(final String clientLabel) {
         wsClient
-                .execute(
-                        clientWsHandler,
-                        new WebSocketHttpHeaders(
-                                new HttpHeaders(MultiValueMap.fromSingleValue(
-                                        Map.of(HttpHeaders.AUTHORIZATION, encodedCredentials)))),
-                        URI.create("ws://localhost:" + port + "/ws-endpoint"))
-                .thenAccept(loggedUsers.get(clientId)::setSession);
+                .execute(clientWsHandler, "ws://localhost:" + port + "/ws-endpoint")
+                .thenAccept(wsSession -> {
+                    clientsContext.put(clientLabel, new ClientContext());
+                    final var context = clientsContext.get(clientLabel);
+                    context.setSession(wsSession);
+                });
     }
 
-    @When("the WebSocket server process the messages")
-    public void serverProcess() {
-        final List<ConsumerRecord<String, ClientRequestProto.ClientRequest>> messagesToEngine = new ArrayList<>();
+    @When("the WebSocket server establishes a connection with client {string}")
+    public void assertServerEstablishesConnection(final String clientLabel) {
+        waitFor(WAIT_VALUE, WAIT_UNIT);
+
+        final var wsClientSession = clientWsHandler
+                .getState()
+                .afterConnectionEstablished()
+                .stream()
+                .filter(wsSession -> {
+                    final var context = clientsContext.get(clientLabel);
+                    return context.getSession().equals(wsSession);
+                });
+
+        assertThat(wsClientSession).hasSize(1);
+    }
+
+    @Then("client {string} receives the following message(s) from the WebSocket server:")
+    public void clientReceiveMessage(
+            final String clientLabel,
+            final List<String> messageNames
+    ) throws JsonProcessingException {
+        waitFor(WAIT_VALUE, WAIT_UNIT);
+
+        final var receivedMessages = clientWsHandler
+                .getState()
+                .handleTextMessage()
+                .stream()
+                .filter(pair -> {
+                    final var session = clientsContext.get(clientLabel).getSession();
+                    return session.equals(pair.getLeft());
+                })
+                .map(Pair::getRight)
+                .toList();
+
+        for (var index = 0; index < messageNames.size(); index++) {
+            final var filePath = TO_CLIENT_FILE.formatted(messageNames.get(index).replace(" ", "-"));
+            final var expectedJson = readResourceAsJson(filePath);
+
+            final var messageToCheckIndex = receivedMessages.size() - messageNames.size() + index;
+            final var actualJson = jsonMapper.readTree(receivedMessages.get(messageToCheckIndex));
+
+            assertThat(actualJson).isEqualTo(expectedJson);
+        }
+    }
+
+    @And("client {string} sends a(n) {string} {string} message to the WebSocket server")
+    public void clientSendsMessage(
+            final String clientLabel,
+            final String filePrefix,
+            final String fileSuffix
+    ) throws IOException {
+        waitFor(WAIT_VALUE, WAIT_UNIT);
+
+        final var filePath = FROM_CLIENT_FILE.formatted(filePrefix, fileSuffix);
+        final var tokenResponse = requestToken();
+        final var token = jsonMapper.readTree(tokenResponse).get("access_token").asText();
+        final var json = readResourceAsString(filePath).replace("{{ACCESS_TOKEN}}", token);
+
+        clientsContext
+                .get(clientLabel)
+                .getSession()
+                .sendMessage(new TextMessage(json));
+    }
+
+    @Then("the WebSocket server sends client {string}'s {string} {string} request to the Engine")
+    public void serverSendsMessage(
+            final String clientLabel,
+            final String filePrefix,
+            final String fileSuffix
+    ) throws InvalidProtocolBufferException, JsonProcessingException {
+        waitFor(WAIT_VALUE, WAIT_UNIT);
+
+        final List<ConsumerRecord<String, ClientRequest>> messagesToEngine = new ArrayList<>();
 
         for (final var consumerRecord : testKafkaConsumer.poll(Duration.ofMillis(500))) {
             messagesToEngine.add(consumerRecord);
         }
 
-        messagesToEngineByProcess.add(messagesToEngine);
         testKafkaConsumer.commitSync();
+
+        assertThat(messagesToEngine).hasSize(1);
+
+        final var protoAsJsonString = JsonFormat.printer().print(messagesToEngine.getLast().value());
+        final var actualJson = jsonMapper.readTree(protoAsJsonString);
+
+
+        final var filePath = TO_ENGINE_FILE.formatted(filePrefix, fileSuffix);
+        final var expectedJson = readResourceAsJson(filePath);
+
+        assertThat(actualJson).isEqualTo(expectedJson);
     }
 
-    @Then("the WebSocket server establishes {int} connection(s) with client(s)")
-    public void checkClientAfterConnectionEstablished(final int count) {
-        assertThat(clientWsHandler.getState().afterConnectionEstablished())
-                .as("Expected a connection to be established")
-                .hasSize(count);
+    @When("the Engine sends a(n) {string} {string} message to the WebSocket server")
+    public void produceMessageToEngineOutboundTopic(
+            final String filePrefix,
+            final String fileSuffix
+    ) throws InvalidProtocolBufferException {
+        final var filePath = FROM_ENGINE_FILE.formatted(filePrefix, fileSuffix);
+        final var json = readResourceAsString(filePath);
+
+        final var engineMessageBuilder = EngineMessage.newBuilder();
+        JsonFormat
+                .parser()
+                .ignoringUnknownFields()
+                .merge(json, engineMessageBuilder);
+
+        final var engineMessage = engineMessageBuilder.build();
+
+        testKafkaProducer
+                .produce(engineMessage)
+                .exceptionally(ex -> {
+                    throw new RuntimeException(ex);
+                });
     }
 
-    @Then("the WebSocket server sends {int} request(s) to the Engine")
-    public void sendClientRequest(final int expectedCount) {
-        assertThat(messagesToEngineByProcess.getLast())
-                .as("Expected %d messages to be sent to the engine topic, but got %d",
-                        expectedCount,
-                        messagesToEngineByProcess.getLast().size())
-                .hasSize(expectedCount);
-    }
-
-    @Then("the WebSocket server request, started by client {string}, to the Engine, should be a(n) {string} request")
-    public void stepCheckClientRequestType(final String clientId, final String requestType) {
-        checkClientRequestType(clientId, requestType);
-    }
-
-    @Given("the client {string} sends a disconnection request to the WebSocket server")
-    public void sendWebSocketDisconnectionRequest(final String clientId) throws IOException {
-        loggedUsers.get(clientId).getSession().close();
-    }
-
-    @Then("the client {string} should disconnect from the WebSocket server")
-    public void checkClientAfterConnectionClosed(final String clientId) {
-        assertThat(getWebSocketSession(clientId, clientWsHandler.getState().afterConnectionClosed()))
-                .as("Expected a connection to be closed")
-                .isNotNull();
-    }
-
-    @Given("the following client JSON message:")
-    public void storeMessagesSentByClient(final String messageBody) {
-        messagesSentByClient.add(messageBody);
-    }
-
-    @And("the client {string} sends the message to the WebSocket server")
-    public void clientSendMessageToTheWebSocketServer(final String clientId) throws IOException {
-        loggedUsers
-                .get(clientId)
-                .getSession()
-                .sendMessage(new TextMessage(messagesSentByClient.getLast()));
-    }
-
-    @Given("the following Engine Protobuf message as JSON:")
-    public void storeMessageSentByEngine(final String messageBodyAsJson) {
-        messagesSentByEngine.add(messageBodyAsJson);
-    }
-
-    @When("the Engine sends the Protobuf message(s) to the WebSocket server")
-    public void theServerSendsTheProtobufMessageToTheClient() throws InvalidProtocolBufferException {
-        for (final String message : messagesSentByEngine) {
-            final var engineMessageBuilder = EngineMessage.newBuilder();
-
-            JsonFormat
-                    .parser()
-                    .ignoringUnknownFields()
-                    .merge(message, engineMessageBuilder);
-
-            final var engineMessage = engineMessageBuilder.build();
-
-            testKafkaProducer
-                    .produce(engineMessage)
-                    .exceptionally(ex -> {
-                        throw new RuntimeException(ex);
-                    });
-        }
-    }
-
-    @Then("the client {string} should receive {int} {string} message(s) from the Engine")
-    public void theClientShouldReceiveTheProtobufMessage(
-            final String clientId,
-            final int expectedCount,
-            final String messageType) {
-        final var messageCount = clientWsHandler
-                .getState()
-                .handleTextMessage()
-                .stream()
-                .filter(pair -> loggedUsers
-                        .get(clientId)
-                        .getSession()
-                        .equals(pair.getLeft()))
-                .map(Pair::getRight)
-                .filter(message -> message.contains(messageType))
-                .count();
-
-        assertThat(messageCount)
-                .as("Expected client %s to receive %d message(s) from the engine, but got %d",
-                        clientId,
-                        expectedCount,
-                        messageCount)
-                .isEqualTo(expectedCount);
-    }
-
-    @Then("after {long} {string}(s)")
-    public void waitFor(final long amount, final String timeUnit) {
-        final var validTimeUnit = upperCase(timeUnit).endsWith("S") ? upperCase(timeUnit) : upperCase(timeUnit) + "S";
-
-        try (final var executor = Executors.newSingleThreadScheduledExecutor()) {
-            executor.schedule(DoNothing::new, amount, TimeUnit.valueOf(validTimeUnit));
-        }
-    }
-
-    private void checkClientRequestType(final String clientId, final String requestType) {
-        final var clientRequest = messagesToEngineByProcess
-                .getLast()
-                .stream()
-                .filter(consumerRecord -> consumerRecord
-                        .value()
-                        .getClientId()
-                        .equals(loggedUsers.get(clientId).getUser()))
-                .findAny()
-                .orElseThrow(() -> new RuntimeException("No request found for client " + clientId))
-                .value();
-
-        assertThat(clientRequest.getDataCase().name().toLowerCase())
-                .as("Expected client %s request to be a %s request", clientId, requestType)
-                .isEqualTo(requestType.toLowerCase());
-    }
-
-    private <T> WebSocketSession getWebSocketSession(final String clientId, final CopyOnWriteArrayList<Pair<WebSocketSession, T>> sessions) {
-        return filterStreamByClientId(clientId, sessions.stream().map(Pair::getLeft));
-    }
-
-    private WebSocketSession filterStreamByClientId(final String clientId, final Stream<WebSocketSession> sessions) {
-        return sessions
-                .filter(loggedUsers.get(clientId).getSession()::equals)
-                .findAny()
-                .orElseThrow(() -> new RuntimeException("No session found for client " + clientId));
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    private static class LoggedUser {
-
-        private final String user;
-        private final String password;
-        private final String encodedCredentials;
+    @NoArgsConstructor
+    private static class ClientContext {
 
         @Setter
+        @Getter
         private WebSocketSession session;
 
-    }
-
-    private static class DoNothing implements Runnable {
-        @Override
-        public void run() {
-            // Do nothing
-        }
     }
 
 }

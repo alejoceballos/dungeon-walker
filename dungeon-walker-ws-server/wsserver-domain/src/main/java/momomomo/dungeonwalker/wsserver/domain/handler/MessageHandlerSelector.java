@@ -2,9 +2,9 @@ package momomomo.dungeonwalker.wsserver.domain.handler;
 
 import lombok.NonNull;
 
-public interface MessageHandlerSelector<M, S, R> {
+public interface MessageHandlerSelector<M, R> {
 
     @NonNull
-    MessageHandler<M, S, R> select(@NonNull M message);
+    MessageHandler<M, R> select(@NonNull M message);
 
 }

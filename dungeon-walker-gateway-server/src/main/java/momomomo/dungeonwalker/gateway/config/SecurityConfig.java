@@ -36,7 +36,7 @@ public class SecurityConfig {
         return exchange -> {
             final var request = exchange.getRequest();
 
-            return isWebSocketEndpoint(request) && hasAuthentication(request) ?
+            return isWebSocketEndpoint(request) /*&& hasAuthentication(request)*/ ?
                     Mono.empty() :
                     Mono.just(new BearerTokenAuthenticationToken(extractToken(request)));
         };

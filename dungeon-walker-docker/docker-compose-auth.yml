@@ -5,9 +5,11 @@ services:
   keycloak-auth-server:
     image: quay.io/keycloak/keycloak:26.6.1
     container_name: keycloak-auth-server
-    command: "start-dev"
+    command: ["start-dev", "--import-realm"]
     ports:
       - "8087:8080"
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
       KC_BOOTSTRAP_ADMIN_PASSWORD: "admin"
+    volumes:
+      - ./security/keycloak-realm-dungeon-walker-4-docker.json:/opt/keycloak/data/import/keycloak-realm-dungeon-walker.json

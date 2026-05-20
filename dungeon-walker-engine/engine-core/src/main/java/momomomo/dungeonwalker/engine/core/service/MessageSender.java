@@ -2,8 +2,8 @@ package momomomo.dungeonwalker.engine.core.service;
 
 import lombok.RequiredArgsConstructor;
 import momomomo.dungeonwalker.contract.engine.CoordinatesProto;
+import momomomo.dungeonwalker.contract.engine.DungeonStateProto.DungeonState;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
-import momomomo.dungeonwalker.contract.engine.WalkersPositionsProto.WalkersPositions;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.outbound.Sender;
 import org.springframework.stereotype.Service;
@@ -30,10 +30,10 @@ public class MessageSender {
                                 .build()));
 
         final var message = EngineMessage.newBuilder()
-                .setWalkerPositions(
-                        WalkersPositions
+                .setDungeonState(
+                        DungeonState
                                 .newBuilder()
-                                .putAllCoordinatesByWalkerId(protoWalkersPositions)
+                                .putAllCoordinates(protoWalkersPositions)
                                 .build())
                 .build();
 

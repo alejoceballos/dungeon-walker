@@ -2,13 +2,15 @@ syntax = "proto3";
 
 package contract.engine;
 
-import "engine/walkers_positions.proto";
+import "engine/dungeon_state.proto";
+import "engine/entered_dungeon.proto";
 
 option java_package = "momomomo.dungeonwalker.contract.engine";
 option java_outer_classname = "EngineMessageProto";
 
 message EngineMessage {
   oneof data {
-    WalkersPositions walkerPositions = 1;
+    DungeonState dungeon_state = 3;
+    EnteredDungeon entered_dungeon = 4;
   }
 }

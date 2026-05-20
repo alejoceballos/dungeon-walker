@@ -3,7 +3,7 @@ package momomomo.dungeonwalker.wsserver.transport.config;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.wsserver.transport.inbound.websocket.WsHandler;
+import momomomo.dungeonwalker.wsserver.transport.inbound.WsHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -28,7 +28,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .addHandler(
                         wsHandler,
                         webSocketProps.getEndpoint())
-                .addInterceptors(jwtInterceptor)
+//                .addInterceptors(jwtInterceptor)
                 .setAllowedOriginPatterns(
                         webSocketProps.getAllowedOriginPatterns());
     }

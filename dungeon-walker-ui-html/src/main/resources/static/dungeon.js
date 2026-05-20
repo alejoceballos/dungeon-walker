@@ -1,4 +1,4 @@
-const ws = new WebSocket("ws://user1:password1@localhost:8080/ws-endpoint");
+const ws = new WebSocket("ws://localhost:8085/ws-server/ws-endpoint");
 
 ws.onopen = () => {
     addMessage('🟢🔗 Connected!');

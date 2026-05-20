@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package contract.client;
 
-import "client/connection.proto";
+import "client/enter_dungeon.proto";
 import "client/movement.proto";
 import "client/leave_dungeon.proto";
 
@@ -12,7 +12,7 @@ option java_outer_classname = "ClientRequestProto";
 message ClientRequest {
   string client_id = 1;
   oneof data {
-    Connection connection = 2;
+    EnterDungeon enter_dungeon = 2;
     Movement movement = 3;
     LeaveDungeon leave_dungeon = 4;
   }
