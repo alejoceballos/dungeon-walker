@@ -1,6 +1,0 @@
-{
-  "type": "authenticate",
-  "data": {
-    "credentials": "{{ACCESS_TOKEN}}"
-  }
-}

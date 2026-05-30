@@ -39,7 +39,11 @@
 
         <jib.version>3.5.1</jib.version>
 
+        <cucumber.version>7.34.3</cucumber.version>
+        <protobuf-java-util.version>4.32.1</protobuf-java-util.version>
+
         <testcontainers.version>1.21.4</testcontainers.version>
+        <testcontainers-keycloak.version>4.2.1</testcontainers-keycloak.version>
     </properties>
 
     <modules>

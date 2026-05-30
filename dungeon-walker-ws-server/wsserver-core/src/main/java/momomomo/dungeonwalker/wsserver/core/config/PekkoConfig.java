@@ -5,13 +5,9 @@ import com.typesafe.config.ConfigFactory;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.wsserver.core.actor.TopicWrapper;
-import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.guardian.GuardianActor;
 import momomomo.dungeonwalker.wsserver.core.config.properties.pekko.PekkoProps;
-import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.ActorSystem;
-import org.apache.pekko.actor.typed.pubsub.Topic;
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,11 +20,7 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class PekkoConfig {
 
-    private static final String LABEL = "---> [PEKKO - Config]";
-
     private final PekkoProps pekko;
-
-    private final TopicWrapper topicWrapper = new TopicWrapper();
 
     @Bean
     public Config pekkoConfiguration() {
@@ -49,19 +41,13 @@ public class PekkoConfig {
     @Bean
     @DependsOn("pekkoConfiguration")
     public ActorSystem<Void> actorSystem(final Config pekkoConfiguration) {
-        return ActorSystem.create(GuardianActor.create(topicWrapper), "WsServerClusterSystem", pekkoConfiguration);
+        return ActorSystem.create(GuardianActor.create(), "WsServerClusterSystem", pekkoConfiguration);
     }
 
     @Bean
     @DependsOn("actorSystem")
     public ClusterSharding clusterSharding(@NonNull final ActorSystem<Void> actorSystem) {
         return ClusterSharding.get(actorSystem);
-    }
-
-    @Bean
-    @DependsOn("actorSystem")
-    public ActorRef<Topic.Command<ConnectionCommand>> connectionBroadcastTopic() {
-        return topicWrapper.getConnectionBroadcastTopic();
     }
 
 }

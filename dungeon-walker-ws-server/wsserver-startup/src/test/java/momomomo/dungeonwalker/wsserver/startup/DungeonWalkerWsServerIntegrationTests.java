@@ -80,8 +80,12 @@ public class DungeonWalkerWsServerIntegrationTests {
 
     @DynamicPropertySource
     static void registerResourceServerIssuerProperty(final DynamicPropertyRegistry registry) {
-        registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri", () -> keycloak.getAuthServerUrl() + "/realms/dungeon-walker-realm");
-        registry.add("spring.security.oauth2.resourceserver.jwt.jwk-set-uri", () -> keycloak.getAuthServerUrl() + "/realms/dungeon-walker-realm/protocol/openid-connect/certs");
+        registry.add(
+                "spring.security.oauth2.resourceserver.jwt.issuer-uri",
+                () -> keycloak.getAuthServerUrl() + "/realms/dungeon-walker-realm");
+        registry.add(
+                "spring.security.oauth2.resourceserver.jwt.jwk-set-uri",
+                () -> keycloak.getAuthServerUrl() + "/realms/dungeon-walker-realm/protocol/openid-connect/certs");
     }
 
     /**

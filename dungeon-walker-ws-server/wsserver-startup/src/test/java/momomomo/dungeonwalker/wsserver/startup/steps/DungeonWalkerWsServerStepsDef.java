@@ -43,10 +43,10 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
     private static final long WAIT_VALUE = 100;
     private static final TimeUnit WAIT_UNIT = MILLISECONDS;
 
-    private static final String TO_CLIENT_FILE = "data/outbound/client/%s.json";
-    private static final String TO_ENGINE_FILE = "data/outbound/engine/%s-%s.json";
-    private static final String FROM_CLIENT_FILE = "data/inbound/client/%s-%s.json";
-    private static final String FROM_ENGINE_FILE = "data/inbound/engine/%s-%s.json";
+    private static final String TO_CLIENT_FILE = "data/outbound/user/%s.json";
+    private static final String TO_ENGINE_FILE = "data/outbound/engine/%s.json";
+    private static final String FROM_CLIENT_FILE = "data/inbound/user/%s.json";
+    private static final String FROM_ENGINE_FILE = "data/inbound/engine/%s.json";
 
     @Autowired
     private KafkaConsumer<String, ClientRequest> testKafkaConsumer;
@@ -65,19 +65,19 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
         clientWsHandler.getState().clear();
     }
 
-    @Given("client {string} sends a connection request to the WebSocket server")
-    public void clientConnects(final String clientLabel) {
+    @Given("user {string} sends a connection request to the server")
+    public void clientConnects(final String userLabel) {
         wsClient
                 .execute(clientWsHandler, "ws://localhost:" + port + "/ws-endpoint")
                 .thenAccept(wsSession -> {
-                    clientsContext.put(clientLabel, new ClientContext());
-                    final var context = clientsContext.get(clientLabel);
+                    clientsContext.put(userLabel, new ClientContext());
+                    final var context = clientsContext.get(userLabel);
                     context.setSession(wsSession);
                 });
     }
 
-    @When("the WebSocket server establishes a connection with client {string}")
-    public void assertServerEstablishesConnection(final String clientLabel) {
+    @When("the server establishes a connection with user {string}")
+    public void assertServerEstablishesConnection(final String userLabel) {
         waitFor(WAIT_VALUE, WAIT_UNIT);
 
         final var wsClientSession = clientWsHandler
@@ -85,18 +85,15 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
                 .afterConnectionEstablished()
                 .stream()
                 .filter(wsSession -> {
-                    final var context = clientsContext.get(clientLabel);
+                    final var context = clientsContext.get(userLabel);
                     return context.getSession().equals(wsSession);
                 });
 
         assertThat(wsClientSession).hasSize(1);
     }
 
-    @Then("client {string} receives the following message(s) from the WebSocket server:")
-    public void clientReceiveMessage(
-            final String clientLabel,
-            final List<String> messageNames
-    ) throws JsonProcessingException {
+    @Then("user {string} receives the following message(s) from the server:")
+    public void clientReceiveMessage(final String userLabel, final List<String> messages) throws JsonProcessingException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
 
         final var receivedMessages = clientWsHandler
@@ -104,48 +101,46 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
                 .handleTextMessage()
                 .stream()
                 .filter(pair -> {
-                    final var session = clientsContext.get(clientLabel).getSession();
+                    final var session = clientsContext.get(userLabel).getSession();
                     return session.equals(pair.getLeft());
                 })
                 .map(Pair::getRight)
                 .toList();
 
-        for (var index = 0; index < messageNames.size(); index++) {
-            final var filePath = TO_CLIENT_FILE.formatted(messageNames.get(index).replace(" ", "-"));
+        for (var index = 0; index < messages.size(); index++) {
+            final var filePath = TO_CLIENT_FILE
+                    .formatted(messages.get(index))
+                    .replace(":", "")
+                    .replace(" ", "-");
             final var expectedJson = readResourceAsJson(filePath);
 
-            final var messageToCheckIndex = receivedMessages.size() - messageNames.size() + index;
+            final var messageToCheckIndex = receivedMessages.size() - messages.size() + index;
             final var actualJson = jsonMapper.readTree(receivedMessages.get(messageToCheckIndex));
 
             assertThat(actualJson).isEqualTo(expectedJson);
         }
     }
 
-    @And("client {string} sends a(n) {string} {string} message to the WebSocket server")
-    public void clientSendsMessage(
-            final String clientLabel,
-            final String filePrefix,
-            final String fileSuffix
-    ) throws IOException {
+    @And("user {string} sends a(n) {string} message to the server")
+    public void clientSendsMessage(final String userLabel, final String message) throws IOException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
 
-        final var filePath = FROM_CLIENT_FILE.formatted(filePrefix, fileSuffix);
+        final var filePath = FROM_CLIENT_FILE
+                .formatted(message)
+                .replace(":", "")
+                .replace(" ", "-");
         final var tokenResponse = requestToken();
         final var token = jsonMapper.readTree(tokenResponse).get("access_token").asText();
         final var json = readResourceAsString(filePath).replace("{{ACCESS_TOKEN}}", token);
 
         clientsContext
-                .get(clientLabel)
+                .get(userLabel)
                 .getSession()
                 .sendMessage(new TextMessage(json));
     }
 
-    @Then("the WebSocket server sends client {string}'s {string} {string} request to the Engine")
-    public void serverSendsMessage(
-            final String clientLabel,
-            final String filePrefix,
-            final String fileSuffix
-    ) throws InvalidProtocolBufferException, JsonProcessingException {
+    @Then("the server sends a {string} request to the engine")
+    public void serverSendsMessage(final String message) throws InvalidProtocolBufferException, JsonProcessingException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
 
         final List<ConsumerRecord<String, ClientRequest>> messagesToEngine = new ArrayList<>();
@@ -162,18 +157,21 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
         final var actualJson = jsonMapper.readTree(protoAsJsonString);
 
 
-        final var filePath = TO_ENGINE_FILE.formatted(filePrefix, fileSuffix);
+        final var filePath = TO_ENGINE_FILE
+                .formatted(message)
+                .replace(":", "")
+                .replace(" ", "-");
         final var expectedJson = readResourceAsJson(filePath);
 
         assertThat(actualJson).isEqualTo(expectedJson);
     }
 
-    @When("the Engine sends a(n) {string} {string} message to the WebSocket server")
-    public void produceMessageToEngineOutboundTopic(
-            final String filePrefix,
-            final String fileSuffix
-    ) throws InvalidProtocolBufferException {
-        final var filePath = FROM_ENGINE_FILE.formatted(filePrefix, fileSuffix);
+    @When("the engine sends a(n) {string} message to the server")
+    public void produceMessageToEngineOutboundTopic(final String message) throws InvalidProtocolBufferException {
+        final var filePath = FROM_ENGINE_FILE
+                .formatted(message)
+                .replace(":", "")
+                .replace(" ", "-");
         final var json = readResourceAsString(filePath);
 
         final var engineMessageBuilder = EngineMessage.newBuilder();

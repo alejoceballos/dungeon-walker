@@ -101,7 +101,7 @@
         <dependency>
             <groupId>com.github.dasniko</groupId>
             <artifactId>testcontainers-keycloak</artifactId>
-            <version>4.2.1</version>
+            <version>${testcontainers-keycloak.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -110,21 +110,21 @@
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
-            <version>7.34.3</version>
+            <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-spring</artifactId>
-            <version>7.34.3</version>
+            <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-junit-platform-engine</artifactId>
-            <version>7.34.3</version>
+            <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -139,7 +139,7 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java-util</artifactId>
-            <version>4.32.1</version>
+            <version>${protobuf-java-util.version}</version>
         </dependency>
 
     </dependencies>

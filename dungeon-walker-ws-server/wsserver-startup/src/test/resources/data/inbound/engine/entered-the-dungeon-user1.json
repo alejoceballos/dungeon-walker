@@ -1,10 +1,14 @@
 {
+  "target": "user1",
   "enteredDungeon": {
-    "clientId": "user1",
-    "coordinates": {
-      "user1": {
-        "x": 1,
-        "y": 1
+    "dungeonState": {
+      "height": 5,
+      "width": 5,
+      "coordinates": {
+        "user1": {
+          "x": 1,
+          "y": 1
+        }
       }
     }
   }

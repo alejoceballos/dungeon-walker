@@ -1,0 +1,6 @@
+{
+  "type": "authentication",
+  "data": {
+    "token": "{{ACCESS_TOKEN}}"
+  }
+}

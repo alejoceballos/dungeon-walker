@@ -5,15 +5,18 @@ package contract.client;
 import "client/enter_dungeon.proto";
 import "client/movement.proto";
 import "client/leave_dungeon.proto";
+import "client/client_heartbeat.proto";
 
 option java_package = "momomomo.dungeonwalker.contract.client";
 option java_outer_classname = "ClientRequestProto";
 
 message ClientRequest {
   string client_id = 1;
+
   oneof data {
     EnterDungeon enter_dungeon = 2;
     Movement movement = 3;
     LeaveDungeon leave_dungeon = 4;
+    ClientHeartbeat heartbeat = 5;
   }
 }

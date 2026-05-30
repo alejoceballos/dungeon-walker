@@ -1,16 +1,22 @@
 Feature: WS Server receives messages
 
-  Scenario: Client connects to server and send its credentials
-    Given client "A" sends a connection request to the WebSocket server
-    When the WebSocket server establishes a connection with client "A"
-    Then client "A" receives the following message from the WebSocket server:
-      | server message connected |
-    When client "A" sends an "authenticate" "user1" message to the WebSocket server
-    Then the WebSocket server sends client "A"'s "enter-dungeon" "user1" request to the Engine
-    And client "A" receives the following message from the WebSocket server:
-      | server message authenticated |
-    When the Engine sends an "entered-the-dungeon" "user1" message to the WebSocket server
-    Then client "A" receives the following message from the WebSocket server:
-      | dungeon state user1 |
-    When client "A" sends a "move-east" "user1" message to the WebSocket server
-    Then the WebSocket server sends client "A"'s "movement-east" "user1" request to the Engine
+  Scenario: User connects, authenticates and interact with the server
+    Given user "01" sends a connection request to the server
+    When the server establishes a connection with user "01"
+    Then user "01" receives the following message from the server:
+      | server message: connected |
+    When user "01" sends an "authentication: user1" message to the server
+    Then the server sends a "enter dungeon: user1" request to the engine
+    And user "01" receives the following message from the server:
+      | server message: entering dungeon |
+    When the engine sends an "entered the dungeon: user1" message to the server
+    Then user "01" receives the following message from the server:
+      | dungeon state: user1 |
+    When user "01" sends a "move east: user1" message to the server
+    Then the server sends a "move east: user1" request to the engine
+    Then user "01" sends a "heartbeat: user1" message to the server
+    Then the server sends a "heartbeat: user1" request to the engine
+    When the engine sends an "heartbeat: user1" message to the server
+    Then user "01" receives the following message from the server:
+      | heartbeat |
+

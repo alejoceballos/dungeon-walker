@@ -1,0 +1,17 @@
+package momomomo.dungeonwalker.wsserver.domain.outbound;
+
+import lombok.NonNull;
+import momomomo.dungeonwalker.wsserver.domain.data.user.output.Output;
+
+public interface UserConnection {
+
+    @NonNull
+    String getId();
+
+    boolean iConnected();
+
+    void disconnect();
+
+    void send(@NonNull Output message);
+
+}

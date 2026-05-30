@@ -6,11 +6,12 @@ import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import momomomo.dungeonwalker.wsserver.domain.inbound.ClientInbound;
-import momomomo.dungeonwalker.wsserver.domain.data.client.input.Input;
-import momomomo.dungeonwalker.wsserver.domain.data.client.output.ClientErrors;
-import momomomo.dungeonwalker.wsserver.domain.data.client.output.Output;
-import momomomo.dungeonwalker.wsserver.domain.data.client.output.ServerErrors;
+import momomomo.dungeonwalker.wsserver.domain.data.user.input.Input;
+import momomomo.dungeonwalker.wsserver.domain.data.user.output.ClientErrors;
+import momomomo.dungeonwalker.wsserver.domain.data.user.output.Output;
+import momomomo.dungeonwalker.wsserver.domain.data.user.output.ServerErrors;
+import momomomo.dungeonwalker.wsserver.domain.inbound.UserInbound;
+import momomomo.dungeonwalker.wsserver.domain.outbound.UserConnection;
 import momomomo.dungeonwalker.wsserver.transport.connection.WebSocketSessionAdapter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -28,7 +29,7 @@ public class WsHandler extends TextWebSocketHandler {
 
     private static final String LABEL = "---> [WS Server - Handler]";
 
-    private final ClientInbound clientInbound;
+    private final UserInbound userInbound;
     private final ObjectMapper jsonMapper;
 
     @PostConstruct
@@ -39,18 +40,13 @@ public class WsHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(@NonNull final WebSocketSession session) {
         log.info("{} Connection established with session \"{}\"", LABEL, session.getId());
-        clientInbound.establish(
-                WebSocketSessionAdapter
-                        .builder()
-                        .session(session)
-                        .jsonMapper(jsonMapper)
-                        .build());
+        userInbound.establish(createClientInbound(session));
     }
 
     @Override
     public void afterConnectionClosed(@NonNull final WebSocketSession session, @NonNull final CloseStatus status) {
         log.info("{} Connection closed for session \"{}\"", LABEL, session.getId());
-        clientInbound.close(session.getId());
+        userInbound.close(createClientInbound(session));
     }
 
     @Override
@@ -64,7 +60,7 @@ public class WsHandler extends TextWebSocketHandler {
 
         try {
             final var input = jsonMapper.readValue(payload, Input.class);
-            clientInbound.handleMessage(session.getId(), input);
+            userInbound.handle(createClientInbound(session), input);
 
         } catch (final JsonProcessingException e) {
             log.error("{} Error parsing message \"{}\"", LABEL, payload, e);
@@ -87,4 +83,7 @@ public class WsHandler extends TextWebSocketHandler {
         super.handleTransportError(session, exception);
     }
 
+    private UserConnection createClientInbound(@NonNull final WebSocketSession session) {
+        return new WebSocketSessionAdapter(session, jsonMapper);
+    }
 }

@@ -2,8 +2,8 @@ package momomomo.dungeonwalker.wsserver.domain.inbound;
 
 import lombok.NonNull;
 
-public interface EngineInbound<M, R> {
+public interface EngineInbound<M> {
 
-    R handleMessage(@NonNull M message);
+    void handleMessage(@NonNull M message);
 
 }

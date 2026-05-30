@@ -1,6 +1,0 @@
-{
-  "type": "server-message",
-  "data": {
-    "message": "Authentication successful. Entering the dungeon"
-  }
-}
