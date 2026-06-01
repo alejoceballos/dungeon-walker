@@ -1,28 +1,26 @@
 package momomomo.dungeonwalker.engine.core.actor.dungeon;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateReply;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequest;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.MoveWalker;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.PlaceWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
-import momomomo.dungeonwalker.engine.core.actor.walker.AutomatedWalkerActor;
-import momomomo.dungeonwalker.engine.core.actor.walker.UserWalkerActor;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.PlaceWalker;
+import momomomo.dungeonwalker.engine.core.actor.walker.WalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.Stop;
-import momomomo.dungeonwalker.engine.core.actor.walker.command.UpdateCoordinates;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
-import momomomo.dungeonwalker.engine.core.service.MessageSender;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.UpdateDungeonState;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.DungeonState;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.UninitializedDungeon;
-import momomomo.dungeonwalker.engine.domain.model.walker.WalkerType;
-import org.apache.commons.lang3.Strings;
+import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.Behavior;
 import org.apache.pekko.actor.typed.javadsl.ActorContext;
 import org.apache.pekko.actor.typed.javadsl.Behaviors;
+import org.apache.pekko.actor.typed.pubsub.Topic;
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
-import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey;
 import org.apache.pekko.persistence.typed.PersistenceId;
 import org.apache.pekko.persistence.typed.state.javadsl.CommandHandler;
@@ -40,39 +38,38 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
             EntityTypeKey.create(DungeonCommand.class, "dungeonRef-actor-type-key");
 
     private final ActorContext<DungeonCommand> context;
-    private final MessageSender sender;
-
-    private final ClusterSharding cluster;
+    private final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic;
 
     public DungeonActor(
             final ActorContext<DungeonCommand> context,
-            final MessageSender sender,
+            final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic,
             final PersistenceId persistenceId
     ) {
-        super(persistenceId);
         this.context = context;
-        this.sender = sender;
-        this.cluster = ClusterSharding.get(context.getSystem());
-        log.debug("{}[path: {}][State: null] constructor", LABEL, actorPath());
+        this.walkerBroadcastTopic = walkerBroadcastTopic;
+        super(persistenceId);
     }
 
     public static Behavior<DungeonCommand> create(
-            final MessageSender sender,
+            final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic,
             final PersistenceId persistenceId
     ) {
         log.debug("{}[persistenceId: {}] create", LABEL, persistenceId.toString());
-        return Behaviors.setup(context -> new DungeonActor(context, sender, persistenceId));
+        return Behaviors.setup(context -> new DungeonActor(
+                context,
+                walkerBroadcastTopic,
+                persistenceId));
     }
 
     @Override
     public DungeonState emptyState() {
-        log.debug("{}[path: {}][State: Uninitialized] empty value", LABEL, actorPath());
+        log.debug(logShortMessage("empty/asleep state"));
         return new UninitializedDungeon();
     }
 
     @Override
     public CommandHandler<DungeonCommand, DungeonState> commandHandler() {
-        log.debug("{}[path: {}][State: ?] command handler", LABEL, actorPath());
+        log.debug(logShortMessage("command handler"));
 
         final var builder = newCommandHandlerBuilder();
 
@@ -93,7 +90,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
             final DungeonState state,
             final DungeonStateRequest command
     ) {
-        log.debug("{}[path: {}][State: {}] on dungeon state request", LABEL, actorPath(), state(state));
+        log.debug(logFullMessage(state, "on dungeon state request from {}"), command.replyTo().path().name());
         return Effect()
                 .none()
                 .thenRun(_ -> command.replyTo().tell(new DungeonStateReply(state)));
@@ -103,10 +100,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
             final DungeonState state,
             final SetupDungeon command
     ) {
-        log.debug("{}[path: {}][State: {}] on setup dungeonRef", LABEL, actorPath(), state(state));
-
-        command.dungeon().print();
-
+        log.debug(logFullMessage(state, "on setup dungeon with {}"), command);
         return Effect().persist(InitializedDungeon.of(command.dungeon()));
     }
 
@@ -114,55 +108,65 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
             final DungeonState state,
             final PlaceWalker command
     ) {
-        log.debug("{}[path: {}][State: {}] on place walker", LABEL, actorPath(), state(state));
+        log.debug(logFullMessage(state, "on place walker with {}"), command);
 
-        final var coordinates = state.placeThing(
-                command.placingStrategy(),
-                command.walker());
+        state.placeThing(command.placingStrategy(), command.walker());
 
         return Effect()
                 .persist(state)
-                .thenRun(_ -> walkerEntityRef(command.walkerType(), command.walkerEntityId())
-                        .tell(new UpdateCoordinates(coordinates)));
+                .thenRun(persistedState -> tellAll(
+                        new UpdateDungeonState(
+                                persistedState.getWidth(),
+                                persistedState.getHeight(),
+                                persistedState.getWalkersPositions())));
     }
 
     private Effect<DungeonState> onMoveWalker(
             final DungeonState state,
             final MoveWalker command
     ) {
-        log.debug("{}[path: {}][State: {}] on move walker", LABEL, actorPath(), state(state));
+        log.debug(logFullMessage(state, "on move walker with {}"), command);
 
-        final var to = state.moveThing(
-                command.from(),
-                command.toPossibilities());
+        final var to = state.moveThing(command.from(), command.toPossibilities());
 
         return isNull(to) ?
                 Effect()
                         .none()
-                        .thenRun(_ ->
-                                walkerEntityRef(command.walkerType(), command.walkerEntityId())
-                                        .tell(new Stop())) :
+                        .thenRun(_ -> tellWalker(command.walkerEntityId(), new Stop())) :
                 Effect()
                         .persist(state)
-                        .thenRun(_ -> {
-                            walkerEntityRef(command.walkerType(), command.walkerEntityId()).tell(new UpdateCoordinates(to));
-                            sender.broadcast(state.getWalkersPositions());
-                        });
+                        .thenRun(persistedState -> tellAll(
+                                new UpdateDungeonState(
+                                        persistedState.getWidth(),
+                                        persistedState.getHeight(),
+                                        persistedState.getWalkersPositions())));
     }
 
-    private String actorPath() {
+    private String entityId() {
         return context.getSelf().path().name();
     }
 
-    private String state(final DungeonState state) {
-        return isNull(state) ? "null" : Strings.CS.removeEnd(state.getClass().getSimpleName(), "Dungeon");
+    private void tellWalker(final String entityId, final WalkerCommand command) {
+        ClusterSharding
+                .get(context.getSystem())
+                .entityRefFor(WalkerActor.ENTITY_TYPE_KEY, entityId)
+                .tell(command);
     }
 
-    private EntityRef<WalkerCommand> walkerEntityRef(final WalkerType walkerType, final String entityId) {
-        return switch (walkerType) {
-            case USER -> cluster.entityRefFor(UserWalkerActor.ENTITY_TYPE_KEY, entityId);
-            case AUTOMATED -> cluster.entityRefFor(AutomatedWalkerActor.ENTITY_TYPE_KEY, entityId);
-        };
+    private void tellAll(final WalkerCommand command) {
+        walkerBroadcastTopic.tell(Topic.publish(command));
+    }
+
+    private String stateName(@NonNull final DungeonState state) {
+        return state.getClass().getSimpleName();
+    }
+
+    private @NonNull String logShortMessage(final String message) {
+        return "%s[id: %s] %s".formatted(LABEL, context.getSelf().path().name(), message);
+    }
+
+    private @NonNull String logFullMessage(final DungeonState state, final String message) {
+        return "%s[id: %s][state: %S] %s".formatted(LABEL, entityId(), stateName(state), message);
     }
 
 }

@@ -131,7 +131,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         log.trace(logFullMessage("on Close Client Connection"));
 
         if (nonNull(clientId)) {
-            tellClientTo(new ConnectionCloseCommand("Connection closed by client"));
+            tellClient(new ConnectionCloseCommand("Connection closed by client"));
         }
 
         if (nonNull(userConnection) && userConnection.iConnected()) {
@@ -146,7 +146,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         log.trace(logFullMessage("on Authenticate Client"));
 
         if (nonNull(clientId)) {
-            tellClientTo(new ConnectionCloseCommand("Suspicious reauthentication attempt"));
+            tellClient(new ConnectionCloseCommand("Suspicious reauthentication attempt"));
 
             userConnection.send(Output.of(new ClientErrors(List.of("Already authenticated. Disconnecting"))));
             userConnection.disconnect();
@@ -164,7 +164,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
             return Behaviors.stopped();
         }
 
-        tellClientTo(new ConnectionAuthenticatedCommand(userConnection.getId()));
+        tellClient(new ConnectionAuthenticatedCommand(userConnection.getId()));
 
         return authenticated();
     }
@@ -184,7 +184,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     private Behavior<ConnectionCommand> onUserMove(final UserMoveCommand command) {
         log.trace(logFullMessage("on Move Client: {}"), command.direction());
 
-        tellClientTo(new MoveCommand(command.direction()));
+        tellClient(new MoveCommand(command.direction()));
 
         return Behaviors.same();
     }
@@ -192,7 +192,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     private Behavior<ConnectionCommand> onUserHeartbeat(final UserHeartbeatCommand command) {
         log.trace(logFullMessage("on Pass By Client Heartbeat"));
 
-        tellClientTo(new ConnectionHeartbeatCommand());
+        tellClient(new ConnectionHeartbeatCommand());
 
         return Behaviors.same();
     }
@@ -210,7 +210,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
         final var commandClass = command.getClass().getSimpleName();
 
-        tellClientTo(new ConnectionCloseCommand("Suspicious %s command attempt".formatted(commandClass)));
+        tellClient(new ConnectionCloseCommand("Suspicious %s command attempt".formatted(commandClass)));
 
         userConnection.send(Output.of(
                 new ClientErrors(
@@ -244,7 +244,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         return Behaviors.same();
     }
 
-    private void tellClientTo(final ClientCommand command) {
+    private void tellClient(final ClientCommand command) {
         if (nonNull(clientId)) {
             clusterSharding.entityRefFor(ClientActor.ENTITY_TYPE_KEY, clientId).tell(command);
 

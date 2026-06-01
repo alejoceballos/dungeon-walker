@@ -1,4 +1,4 @@
-Feature: WS Server receives messages
+Feature: WebSocket Server process flow
 
   Scenario: User connects, authenticates and interact with the server
     Given user "01" sends a connection request to the server

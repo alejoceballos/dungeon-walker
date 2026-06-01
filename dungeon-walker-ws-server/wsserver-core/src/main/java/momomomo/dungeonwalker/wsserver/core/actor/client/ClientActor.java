@@ -123,8 +123,8 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
                         .setClientId(actorId())
                         .setEnterDungeon(EnterDungeon.newBuilder().build())
                         .build())
-                .thenAccept(_ -> tellConnectionTo(new ClientMessageCommand("Entering the dungeon. Wait")))
-                .exceptionally(ex -> tellConnectionTo(new ClientErrorMessageCommand("Error entering the dungeon", ex)));
+                .thenAccept(_ -> tellConnection(new ClientMessageCommand("Entering the dungeon. Wait")))
+                .exceptionally(ex -> tellConnection(new ClientErrorMessageCommand("Error entering the dungeon", ex)));
 
         return connectionAuthenticated();
     }
@@ -132,7 +132,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     private Behavior<ClientCommand> onEnteredTheDungeon(final EnteredTheDungeonCommand command) {
         log.trace(logFullMessage("on entered the dungeon"));
 
-        tellConnectionTo(new ClientDungeonStateChangedCommand(command.dungeonState()));
+        tellConnection(new ClientDungeonStateChangedCommand(command.dungeonState()));
 
         return inPLay();
     }
@@ -158,7 +158,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     private Behavior<ClientCommand> onDungeonStateChanged(final DungeonStateChangedCommand command) {
         log.trace(logFullMessage("on handle dungeon state change"));
 
-        tellConnectionTo(new ClientDungeonStateChangedCommand(command.dungeonState()));
+        tellConnection(new ClientDungeonStateChangedCommand(command.dungeonState()));
 
         return Behaviors.same();
     }
@@ -177,8 +177,8 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
                                 .setDirection(Direction.valueOf(direction))
                                 .build())
                         .build())
-                .thenAccept(_ -> tellConnectionTo(new ClientMessageCommand("\"Move %s\" message sent. Wait".formatted(direction))))
-                .exceptionally(ex -> tellConnectionTo(new ClientErrorMessageCommand("Error sending \"move %s\" message".formatted(direction), ex)));
+                .thenAccept(_ -> tellConnection(new ClientMessageCommand("\"Move %s\" message sent. Wait".formatted(direction))))
+                .exceptionally(ex -> tellConnection(new ClientErrorMessageCommand("Error sending \"move %s\" message".formatted(direction), ex)));
 
         return Behaviors.same();
     }
@@ -204,12 +204,12 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     private Behavior<ClientCommand> onEngineHeartbeat(final EngineHeartbeatCommand command) {
         log.trace(logFullMessage("on handle heartbeat"));
 
-        tellConnectionTo(new ClientHeartbeatCommand());
+        tellConnection(new ClientHeartbeatCommand());
 
         return Behaviors.same();
     }
 
-    private Void tellConnectionTo(@NonNull final ConnectionCommand command) {
+    private Void tellConnection(@NonNull final ConnectionCommand command) {
         clusterSharding.entityRefFor(ConnectionActor.ENTITY_TYPE_KEY, connectionId).tell(command);
         return null;
     }

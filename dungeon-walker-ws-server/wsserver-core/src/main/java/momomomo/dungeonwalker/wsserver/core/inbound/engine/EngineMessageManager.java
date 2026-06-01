@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.wsserver.core.actor.ClusterShardingManager;
 import momomomo.dungeonwalker.wsserver.core.actor.client.command.ClientCommand;
-import momomomo.dungeonwalker.wsserver.core.inbound.engine.handler.EngineMessageMapperSelector;
+import momomomo.dungeonwalker.wsserver.core.inbound.engine.mapper.EngineMessageMapperSelector;
 import momomomo.dungeonwalker.wsserver.domain.inbound.EngineInbound;
 import org.springframework.stereotype.Component;
 

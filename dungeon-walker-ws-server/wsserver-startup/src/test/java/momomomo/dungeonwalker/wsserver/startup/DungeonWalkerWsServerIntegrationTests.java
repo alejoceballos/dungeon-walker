@@ -49,17 +49,17 @@ public class DungeonWalkerWsServerIntegrationTests {
     @LocalServerPort
     protected Integer port;
 
-    public static final KafkaContainer kafka =
+    public static final KafkaContainer KAFKA =
             new KafkaContainer(DockerImageName.parse("apache/kafka:4.1.1"))
                     .withExposedPorts(9092)
                     .withEnv("KAFKA_AUTO_CREATE_TOPICS_ENABLE", "false")
                     .withEnv("KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR", "1");
 
     static {
-        kafka.setPortBindings(List.of("9092:9092"));
-        kafka.start();
+        KAFKA.setPortBindings(List.of("9092:9092"));
+        KAFKA.start();
 
-        final var bootstrapServers = kafka.getBootstrapServers();
+        final var bootstrapServers = KAFKA.getBootstrapServers();
         System.setProperty("KAFKA_BOOTSTRAP_SERVERS", bootstrapServers);
 
         try {
@@ -70,22 +70,22 @@ public class DungeonWalkerWsServerIntegrationTests {
         }
     }
 
-    public static KeycloakContainer keycloak =
+    public static final KeycloakContainer KEYCLOACK =
             new KeycloakContainer("quay.io/keycloak/keycloak:26.6.1")
                     .withRealmImportFile("keycloak-realm-dungeon-walker.json");
 
     static {
-        keycloak.start();
+        KEYCLOACK.start();
     }
 
     @DynamicPropertySource
     static void registerResourceServerIssuerProperty(final DynamicPropertyRegistry registry) {
         registry.add(
                 "spring.security.oauth2.resourceserver.jwt.issuer-uri",
-                () -> keycloak.getAuthServerUrl() + "/realms/dungeon-walker-realm");
+                () -> KEYCLOACK.getAuthServerUrl() + "/realms/dungeon-walker-realm");
         registry.add(
                 "spring.security.oauth2.resourceserver.jwt.jwk-set-uri",
-                () -> keycloak.getAuthServerUrl() + "/realms/dungeon-walker-realm/protocol/openid-connect/certs");
+                () -> KEYCLOACK.getAuthServerUrl() + "/realms/dungeon-walker-realm/protocol/openid-connect/certs");
     }
 
     /**
@@ -124,7 +124,7 @@ public class DungeonWalkerWsServerIntegrationTests {
         final var requestEntity = new HttpEntity<>(requestBody, headers);
 
         final var response = restTemplate.exchange(
-                keycloak.getAuthServerUrl() + "/realms/dungeon-walker-realm/protocol/openid-connect/token",
+                KEYCLOACK.getAuthServerUrl() + "/realms/dungeon-walker-realm/protocol/openid-connect/token",
                 HttpMethod.POST,
                 requestEntity,
                 String.class);

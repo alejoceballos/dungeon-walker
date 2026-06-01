@@ -3,13 +3,11 @@ package momomomo.dungeonwalker.engine.transport.inbound.kafka;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
-import momomomo.dungeonwalker.engine.domain.handler.SelectableHandler;
+import momomomo.dungeonwalker.engine.domain.inbound.ClientInbound;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Slf4j
 @Component
@@ -18,7 +16,7 @@ public class KafkaConsumer {
 
     private static final String LABEL = "---> [CONSUMER - Kafka]";
 
-    private final List<SelectableHandler<ClientRequest>> handlers;
+    private final ClientInbound<ClientRequest> inbound;
 
     @KafkaListener(
             topics = "${kafka.topic.game-engine.inbound}",
@@ -31,21 +29,8 @@ public class KafkaConsumer {
     ) {
         log.info("{} Message received: \"{}\":\"{}\"", LABEL, consumerRecord.key(), consumerRecord.value());
 
-        handlers.stream()
-                .filter(handler -> handler.shouldHandle(consumerRecord.value()))
-                .findFirst()
-                .map(handler -> handler.handle(consumerRecord.value()))
-                .orElse(new NoHandlerResult(
-                        consumerRecord.value(),
-                        new IllegalArgumentException("No handler found for message")))
-                .onSuccess(proto -> {
-                    log.info("{} Message successful processed: \"{}\"/\"{}\"", LABEL, consumerRecord.key(), proto);
-                    ack.acknowledge();
-                })
-                .onFailure((proto, throwable) -> {
-                    log.error("{} Message processing failure: \"{}\"/\"{}\": {}", LABEL, consumerRecord.key(), proto, throwable.getMessage());
-                    ack.acknowledge();
-                });
+        inbound.handleMessage(consumerRecord.value());
+        ack.acknowledge();
     }
 
 }

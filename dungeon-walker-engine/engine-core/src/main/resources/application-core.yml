@@ -1,0 +1,5 @@
+dungeonwalker:
+  engine:
+    schedule:
+      display-dungeon-state:
+        enabled: ${DISPLAY_DUNGEON_STATE:false}

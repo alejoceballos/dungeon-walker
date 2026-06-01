@@ -1,0 +1,13 @@
+{
+  "target": "user1",
+  "dungeonState": {
+    "height": 18,
+    "width": 20,
+    "coordinates": {
+      "user1": {
+        "x": 11,
+        "y": 9
+      }
+    }
+  }
+}

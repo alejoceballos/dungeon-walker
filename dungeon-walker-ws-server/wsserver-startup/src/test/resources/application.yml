@@ -61,10 +61,6 @@ kafka:
 
 # - - CORE  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-heartbeat:
-  delay: 10
-  time-unit: SECONDS
-
 pekko:
   remote:
     artery:
@@ -74,3 +70,7 @@ pekko:
   cluster:
     seed-nodes:
       - "pekko://WsServerClusterSystem@${pekko.remote.artery.canonical.hostname}:${pekko.remote.artery.canonical.port}"
+
+heartbeat:
+  delay: 10
+  time-unit: SECONDS

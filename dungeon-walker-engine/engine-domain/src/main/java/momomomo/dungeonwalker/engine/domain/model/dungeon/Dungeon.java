@@ -11,8 +11,8 @@ import lombok.Setter;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.placing.DungeonPlacingStrategy;
 import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
-import momomomo.dungeonwalker.engine.domain.serializer.CoordinatesDeserializer;
-import momomomo.dungeonwalker.engine.domain.serializer.CoordinatesSerializer;
+import momomomo.dungeonwalker.engine.domain.model.coordinates.serializer.CoordinatesDeserializer;
+import momomomo.dungeonwalker.engine.domain.model.coordinates.serializer.CoordinatesSerializer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -91,22 +91,24 @@ public class Dungeon {
         return to;
     }
 
-    public void print() {
-        System.out.println();
+    public String print() {
+        final var builder = new StringBuilder();
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 final String cell = switch (at(Coordinates.of(x, y)).getOccupant()) {
                     case Wall _ -> "#";
-                    case Walker walker -> walker.getId().substring(0, 1);
+                    case final Walker walker -> walker.getId().substring(0, 1);
                     case null, default -> " ";
                 };
 
-                System.out.print(cell);
+                builder.append(cell);
             }
 
-            System.out.println();
+            builder.append("\n");
         }
+
+        return builder.toString();
     }
 
     private void updateWalkersPositions(@NonNull final Thing thing, @NonNull final Coordinates coordinates) {

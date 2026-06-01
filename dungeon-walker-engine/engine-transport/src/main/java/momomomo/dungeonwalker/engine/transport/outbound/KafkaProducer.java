@@ -3,7 +3,7 @@ package momomomo.dungeonwalker.engine.transport.outbound;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
-import momomomo.dungeonwalker.engine.domain.outbound.Sender;
+import momomomo.dungeonwalker.engine.domain.outbound.ClientOutbound;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
-public class KafkaProducer implements Sender<EngineMessage> {
+public class KafkaProducer implements ClientOutbound<EngineMessage> {
 
     private final KafkaTemplate<@NonNull String, @NonNull EngineMessage> kafkaTemplate;
     private final String topic;

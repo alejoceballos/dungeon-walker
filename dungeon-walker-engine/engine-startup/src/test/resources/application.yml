@@ -1,6 +1,12 @@
 logging:
   level:
     root: info
+    org:
+      apache:
+        kafka: warn
+      springframework:
+        kafka:
+          listener: warn
     momomomo:
       dungeonwalker:
         engine:
@@ -21,6 +27,8 @@ test:
 spring:
   cloud:
     config:
+      enabled: false
+    discovery:
       enabled: false
 
   # - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -63,3 +71,9 @@ pekko:
   cluster:
     seed-nodes:
       - "pekko://EngineClusterSystem@${pekko.remote.artery.canonical.hostname}:${pekko.remote.artery.canonical.port}"
+
+dungeonwalker:
+  engine:
+    schedule:
+      display-dungeon-state:
+        enabled: ${DISPLAY_DUNGEON_STATE:false}

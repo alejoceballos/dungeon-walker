@@ -5,9 +5,13 @@ import com.typesafe.config.ConfigFactory;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.engine.core.actor.TopicWrapper;
 import momomomo.dungeonwalker.engine.core.actor.guardian.GuardianActor;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.core.config.properties.pekko.PekkoProps;
+import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.ActorSystem;
+import org.apache.pekko.actor.typed.pubsub.Topic;
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,14 +24,11 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class PekkoConfig {
 
-    private static final String LABEL = "---> [PEKKO - Config]";
-
     private final PekkoProps pekko;
+    private final TopicWrapper topicWrapper = new TopicWrapper();
 
     @Bean
     public Config pekkoConfiguration() {
-        log.info("{} bean created", LABEL);
-
         final var properties = new Properties();
         properties.put("pekko.persistence.r2dbc.dialect", pekko.getPersistence().getR2dbc().getDialect());
         properties.put("pekko.persistence.r2dbc.connection-factory.driver", pekko.getPersistence().getR2dbc().getConnectionFactory().getDriver());
@@ -51,15 +52,22 @@ public class PekkoConfig {
     @Bean
     @DependsOn("pekkoConfiguration")
     public ActorSystem<Void> actorSystem(final Config pekkoConfiguration) {
-        log.info("{} 'actorSystem' bean created", LABEL);
-        return ActorSystem.create(GuardianActor.create(), "EngineClusterSystem", pekkoConfiguration);
+        return ActorSystem.create(
+                GuardianActor.create(topicWrapper),
+                "EngineClusterSystem",
+                pekkoConfiguration);
     }
 
     @Bean
     @DependsOn("actorSystem")
     public ClusterSharding clusterSharding(@NonNull final ActorSystem<Void> actorSystem) {
-        log.info("{} 'clusterSharding' bean created", LABEL);
         return ClusterSharding.get(actorSystem);
+    }
+
+    @Bean
+    @DependsOn("actorSystem")
+    public ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic() {
+        return topicWrapper.getWalkerBroadcastTopic();
     }
 
 }
