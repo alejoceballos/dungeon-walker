@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="02 - DungeonWalkerDiscoveryServer" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ENABLE_JMX_AUTH" value="true" />
+    <module name="dungeon-walker-discovery-server" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="momomomo.dungeonwalker.discovery.DungeonWalkerDiscoveryServer" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

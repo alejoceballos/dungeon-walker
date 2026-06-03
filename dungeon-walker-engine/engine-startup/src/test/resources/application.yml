@@ -76,4 +76,9 @@ dungeonwalker:
   engine:
     schedule:
       display-dungeon-state:
-        enabled: ${DISPLAY_DUNGEON_STATE:false}
+        enabled: false
+    heartbeat:
+      enabled: false
+      interval:
+        value: 10
+        unit: SECONDS

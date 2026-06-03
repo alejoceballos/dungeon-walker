@@ -28,7 +28,8 @@ public class JwtAuthorizer implements Authorizer {
     @Override
     public String authorize(@NonNull final String credentials) {
         try {
-            final var jwt = jwtDecoder.decode(extractToken(credentials));
+            final var token = extractToken(credentials);
+            final var jwt = jwtDecoder.decode(token);
 
             if (isNull(jwt.getExpiresAt())) {
                 throw new WsServerExpiredAuthorizationException("Cannot authorize tokens without expiration");

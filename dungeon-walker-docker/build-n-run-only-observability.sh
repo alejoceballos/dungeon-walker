@@ -32,4 +32,4 @@ docker volume rm $(docker volume ls -q)
 
 sudo rm -Rf ./observability/minio-data
 
-docker-compose -f docker-compose-grafana.yml up
+docker-compose -f docker-compose-observability.yml up -d

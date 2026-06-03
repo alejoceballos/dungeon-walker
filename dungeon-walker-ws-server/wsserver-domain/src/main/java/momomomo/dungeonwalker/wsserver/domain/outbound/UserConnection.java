@@ -8,7 +8,7 @@ public interface UserConnection {
     @NonNull
     String getId();
 
-    boolean iConnected();
+    boolean isConnected();
 
     void disconnect();
 

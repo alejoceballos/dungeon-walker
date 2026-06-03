@@ -26,14 +26,14 @@ public class WebSocketSessionAdapter implements UserConnection {
     }
 
     @Override
-    public boolean iConnected() {
+    public boolean isConnected() {
         return session.isOpen();
     }
 
     @Override
     public void disconnect() {
         Conditional
-                .on(this::iConnected)
+                .on(this::isConnected)
                 .thenExecute(() -> Exceptions
                         .wrap(WsServerTransportException::new)
                         .run(session::close))
@@ -43,7 +43,7 @@ public class WebSocketSessionAdapter implements UserConnection {
     @Override
     public void send(@NonNull final Output message) {
         Conditional
-                .on(this::iConnected)
+                .on(this::isConnected)
                 .thenExecute(() -> Exceptions
                         .wrap(WsServerTransportException::new)
                         .run(() -> session.sendMessage(new TextMessage(jsonMapper.writeValueAsString(message)))))

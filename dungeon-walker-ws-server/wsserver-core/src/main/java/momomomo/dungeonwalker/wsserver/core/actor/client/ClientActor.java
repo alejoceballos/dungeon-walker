@@ -1,7 +1,9 @@
 package momomomo.dungeonwalker.wsserver.core.actor.client;
 
 import jakarta.annotation.Nullable;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.commons.conditional.Conditional;
 import momomomo.dungeonwalker.contract.client.ClientHeartbeatProto;
@@ -26,6 +28,7 @@ import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.client
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.client.ClientMessageCommand;
 import momomomo.dungeonwalker.wsserver.domain.data.engine.output.EngineOutbound;
 import org.apache.pekko.actor.typed.Behavior;
+import org.apache.pekko.actor.typed.PostStop;
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior;
 import org.apache.pekko.actor.typed.javadsl.ActorContext;
 import org.apache.pekko.actor.typed.javadsl.Behaviors;
@@ -33,10 +36,25 @@ import org.apache.pekko.actor.typed.javadsl.Receive;
 import org.apache.pekko.cluster.sharding.typed.javadsl.ClusterSharding;
 import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey;
 
+import static momomomo.dungeonwalker.wsserver.core.actor.client.ClientActor.STATE.AUTHENTICATED;
+import static momomomo.dungeonwalker.wsserver.core.actor.client.ClientActor.STATE.INITIALIZED;
+import static momomomo.dungeonwalker.wsserver.core.actor.client.ClientActor.STATE.IN_PLAY;
+import static momomomo.dungeonwalker.wsserver.core.actor.client.ClientActor.STATE.UNINITIALIZED;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
 public class ClientActor extends AbstractBehavior<ClientCommand> {
+
+    @RequiredArgsConstructor
+    enum STATE {
+        UNINITIALIZED("Uninitialized"),
+        INITIALIZED("Initialized"),
+        AUTHENTICATED("Authenticated"),
+        IN_PLAY("In Play");
+
+        @Getter
+        private final String value;
+    }
 
     private static final String LABEL = "---> [ACTOR - Client]";
 
@@ -47,6 +65,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     private final EngineOutbound<ClientRequest> engineOutbound;
 
     private String connectionId;
+    private STATE state;
 
     private ClientActor(
             @NonNull final ActorContext<ClientCommand> context,
@@ -56,6 +75,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
         super(context);
         this.clusterSharding = clusterSharding;
         this.engineOutbound = engineOutbound;
+        this.state = UNINITIALIZED;
     }
 
     public static Behavior<ClientCommand> create(
@@ -74,17 +94,22 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     public Receive<ClientCommand> createReceive() {
         log.debug(logShortMessage("Initial (Create/Receive) state"));
 
+        state = INITIALIZED;
+
         return newReceiveBuilder()
                 .onMessage(ConnectionAuthenticatedCommand.class, this::onConnectionAuthenticated)
                 .onAnyMessage(command -> {
                     log.warn(logShortMessage("Received unexpected command while in initial state: {}"), command);
                     return Behaviors.same();
                 })
+                .onSignal(PostStop.class, this::onPostStop)
                 .build();
     }
 
     public Receive<ClientCommand> connectionAuthenticated() {
         log.debug(logShortMessage("Connection authenticated state"));
+
+        state = AUTHENTICATED;
 
         return newReceiveBuilder()
                 .onMessage(ConnectionCloseCommand.class, _ -> onConnectionClose())
@@ -93,11 +118,14 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
                     log.warn(logShortMessage("Received unexpected command while in awake state: {}"), command);
                     return Behaviors.same();
                 })
+                .onSignal(PostStop.class, this::onPostStop)
                 .build();
     }
 
     public Receive<ClientCommand> inPLay() {
         log.debug(logFullMessage("In-play state"));
+
+        state = IN_PLAY;
 
         return newReceiveBuilder()
                 .onMessage(ConnectionCloseCommand.class, _ -> onConnectionClose())
@@ -109,7 +137,13 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
                     log.warn(logShortMessage("Received unexpected command while in in-play state: {}"), command);
                     return Behaviors.same();
                 })
+                .onSignal(PostStop.class, this::onPostStop)
                 .build();
+    }
+
+    private Behavior<ClientCommand> onPostStop(final PostStop signal) {
+        log.debug(logFullMessage("on Post Stop: {}"), signal);
+        return null;
     }
 
     private Behavior<ClientCommand> onConnectionAuthenticated(final ConnectionAuthenticatedCommand command) {
@@ -228,11 +262,11 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     }
 
     private @NonNull String logShortMessage(final String message) {
-        return "%s[actor: %s]: %s".formatted(LABEL, actorId(), message);
+        return "%s[state: %s][actor: %s]: %s".formatted(LABEL, state.getValue(), actorId(), message);
     }
 
     private @NonNull String logFullMessage(final String message) {
-        return "%s[actor: %s][connection: %s]: %s".formatted(LABEL, actorId(), logConnectionId(), message);
+        return "%s[state: %s][actor: %s][connection: %s]: %s".formatted(LABEL, state.getValue(), actorId(), logConnectionId(), message);
     }
 
 }

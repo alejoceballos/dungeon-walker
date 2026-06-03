@@ -48,7 +48,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: "http://keycloak-auth-server:8080/realms/master/protocol/openid-connect/certs"
+          jwk-set-uri: "http://keycloak-auth-server:8080/realms/dungeon-walker-realm/protocol/openid-connect/certs"
+          issuer-uri: "http://keycloak-auth-server:8080/realms/dungeon-walker-realm"
 
 kafka:
   topic:

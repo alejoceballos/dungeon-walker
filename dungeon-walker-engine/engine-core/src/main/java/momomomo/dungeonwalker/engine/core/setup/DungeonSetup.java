@@ -1,5 +1,6 @@
 package momomomo.dungeonwalker.engine.core.setup;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.ClusterShardingManager;
@@ -9,7 +10,7 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
 import org.apache.pekko.actor.typed.ActorSystem;
 import org.jspecify.annotations.NonNull;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,7 +30,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.pekko.actor.typed.javadsl.AskPattern.ask;
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class DungeonSetup {
 
@@ -44,7 +45,13 @@ public class DungeonSetup {
     private final RawDungeonMapper mapper;
     private final ClusterShardingManager clusterManager;
 
-    public List<Integer> dungeonLevels() {
+    @PostConstruct
+    public void init() {
+        log.debug("{} Initializing dungeon", LABEL);
+        dungeonLevels().forEach(this::setupLevel);
+    }
+
+    private List<Integer> dungeonLevels() {
         final var resource = getClass().getClassLoader().getResource(DUNGEONS_FOLDER);
 
         if (isNull(resource)) {
@@ -71,7 +78,7 @@ public class DungeonSetup {
                 .toList();
     }
 
-    public void setupLevel(final int level) {
+    private void setupLevel(final int level) {
         log.debug("{} Setting up level \"{}\"", LABEL, level);
 
         final var dungeonId = dungeonIdentity.id(level);
@@ -105,5 +112,5 @@ public class DungeonSetup {
     private static @NonNull String dungeonFilePath(final String dungeonId) {
         return FILE_PATH_PATTERN.formatted(dungeonId);
     }
-    
+
 }

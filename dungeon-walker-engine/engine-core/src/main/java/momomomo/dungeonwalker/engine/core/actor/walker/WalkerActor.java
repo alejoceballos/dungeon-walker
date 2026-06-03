@@ -2,18 +2,19 @@ package momomomo.dungeonwalker.engine.core.actor.walker;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.contract.engine.EngineHeartbeatProto.EngineHeartbeat;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.contract.engine.EnteredDungeonProto.EnteredDungeon;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.DungeonActor;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.MoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.PlaceWalker;
-import momomomo.dungeonwalker.engine.core.actor.walker.command.Stop;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
-import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerStateReply;
-import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerStateRequest;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.from.client.Leave;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.client.Move;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.client.WakeUp;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.DungeonHeartbeat;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.Stop;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.UpdateDungeonState;
 import momomomo.dungeonwalker.engine.core.setup.DungeonIdentity;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.CoordinatesManager;
@@ -25,6 +26,7 @@ import momomomo.dungeonwalker.engine.domain.model.walker.state.WalkerState;
 import momomomo.dungeonwalker.engine.domain.outbound.ClientOutbound;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.Behavior;
+import org.apache.pekko.actor.typed.PostStop;
 import org.apache.pekko.actor.typed.javadsl.ActorContext;
 import org.apache.pekko.actor.typed.javadsl.Behaviors;
 import org.apache.pekko.actor.typed.pubsub.Topic;
@@ -34,6 +36,7 @@ import org.apache.pekko.persistence.typed.PersistenceId;
 import org.apache.pekko.persistence.typed.state.javadsl.CommandHandler;
 import org.apache.pekko.persistence.typed.state.javadsl.DurableStateBehavior;
 import org.apache.pekko.persistence.typed.state.javadsl.Effect;
+import org.apache.pekko.persistence.typed.state.javadsl.SignalHandler;
 
 import java.util.List;
 
@@ -95,9 +98,6 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
 
         final var builder = newCommandHandlerBuilder();
 
-        builder.forAnyState()
-                .onCommand(WalkerStateRequest.class, this::onWalkerStateRequest);
-
         builder.forStateType(Asleep.class)
                 .onCommand(WakeUp.class, this::onWakeUp);
 
@@ -113,20 +113,34 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
                 .onCommand(Move.class, this::onAlreadyMoving)
                 .onCommand(Stop.class, this::onStop);
 
+        builder.forAnyState()
+                .onCommand(Leave.class, this::onLeave)
+                .onCommand(DungeonHeartbeat.class, this::onDungeonHeartbeat);
+
         return builder.build();
     }
 
-    private Effect<WalkerState> onWalkerStateRequest(
-            final WalkerState state,
-            final WalkerStateRequest command
-    ) {
-        log.debug(logFullMessage(state, "[on walker state request]: {}"), command);
+    @Override
+    public SignalHandler<WalkerState> signalHandler() {
+        return newSignalHandlerBuilder()
+                .onSignal(PostStop.class, this::onPostStop)
+                .build();
+    }
 
-        return Effect()
-                .none()
-                .thenRun(_ -> command
-                        .replyTo()
-                        .tell(new WalkerStateReply(state.getClass())));
+    private void onPostStop(
+            final WalkerState state,
+            final PostStop signal) {
+        log.debug(logFullMessage(state, "[on post stop]"));
+        // TODO: Clean up
+    }
+
+    private Effect<WalkerState> onLeave(
+            @NonNull final WalkerState state,
+            @NonNull final Leave command
+    ) {
+        log.debug(logFullMessage(state, "[on enter dungeon]: {}"), command);
+        // TODO: WHo sent this?
+        return Effect().stop();
     }
 
     protected Effect<WalkerState> onWakeUp(
@@ -248,6 +262,19 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
                                 .newBuilder()
                                 .setTarget(persistedState.getId())
                                 .setMessage("Stopped")
+                                .build()));
+    }
+
+    private Effect<WalkerState> onDungeonHeartbeat() {
+        log.trace(logShortMessage("[on dungeon heartbeat]"));
+
+        return Effect()
+                .none()
+                .thenRun(persistedState -> clientOutbound.send(
+                        EngineMessage
+                                .newBuilder()
+                                .setTarget(persistedState.getId())
+                                .setHeartbeat(EngineHeartbeat.newBuilder().build())
                                 .build()));
     }
 

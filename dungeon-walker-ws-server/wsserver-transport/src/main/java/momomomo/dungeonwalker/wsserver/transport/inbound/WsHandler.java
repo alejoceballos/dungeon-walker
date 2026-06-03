@@ -64,7 +64,7 @@ public class WsHandler extends TextWebSocketHandler {
 
         } catch (final JsonProcessingException e) {
             log.error("{} Error parsing message \"{}\"", LABEL, payload, e);
-            final var output = Output.of(new ClientErrors(List.of("Invalid message format: %" + payload)));
+            final var output = Output.of(new ClientErrors(List.of("Invalid message: %" + payload)));
             session.sendMessage(new TextMessage(jsonMapper.writeValueAsString(output)));
 
         } catch (final Exception e) {

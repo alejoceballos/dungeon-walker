@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="DungeonWalkerEngine" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+  <configuration default="false" name="03 - DungeonWalkerEngine" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <module name="engine-startup" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="momomomo.dungeonwalker.engine.startup.DungeonWalkerEngine" />
     <option name="VM_PARAMETERS" value="--add-opens java.base/jdk.internal.misc=ALL-UNNAMED" />

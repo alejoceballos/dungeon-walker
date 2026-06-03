@@ -1,6 +1,8 @@
 package momomomo.dungeonwalker.wsserver.core.actor.connection;
 
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.commons.conditional.Conditional;
 import momomomo.dungeonwalker.wsserver.core.actor.client.ClientActor;
@@ -27,6 +29,7 @@ import momomomo.dungeonwalker.wsserver.domain.data.user.output.ServerHeartbeat;
 import momomomo.dungeonwalker.wsserver.domain.data.user.output.ServerMessage;
 import momomomo.dungeonwalker.wsserver.domain.outbound.UserConnection;
 import org.apache.pekko.actor.typed.Behavior;
+import org.apache.pekko.actor.typed.PostStop;
 import org.apache.pekko.actor.typed.javadsl.AbstractBehavior;
 import org.apache.pekko.actor.typed.javadsl.ActorContext;
 import org.apache.pekko.actor.typed.javadsl.Behaviors;
@@ -37,11 +40,26 @@ import org.apache.pekko.cluster.sharding.typed.javadsl.EntityTypeKey;
 import java.util.List;
 
 import static java.util.Objects.nonNull;
+import static momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor.STATE.AUTHENTICATED;
+import static momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor.STATE.CONNECTED;
+import static momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor.STATE.INITIALIZED;
+import static momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor.STATE.UNINITIALIZED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
 public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
+
+    @RequiredArgsConstructor
+    enum STATE {
+        UNINITIALIZED("Uninitialized"),
+        INITIALIZED("Initialized"),
+        CONNECTED("Connected"),
+        AUTHENTICATED("Authenticated");
+
+        @Getter
+        private final String value;
+    }
 
     private static final String LABEL = "---> [ACTOR - Connection]";
 
@@ -53,6 +71,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
     private UserConnection userConnection;
     private String clientId;
+    private STATE state;
 
     public ConnectionActor(
             final ActorContext<ConnectionCommand> context,
@@ -62,6 +81,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         super(context);
         this.authorizer = authorizer;
         this.clusterSharding = clusterSharding;
+        this.state = UNINITIALIZED;
     }
 
     public static Behavior<ConnectionCommand> create(
@@ -80,24 +100,32 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     public Receive<ConnectionCommand> createReceive() {
         log.debug(logShortMessage("Initial (Create/Receive) state"));
 
+        state = INITIALIZED;
+
         return newReceiveBuilder()
                 .onMessage(EstablishConnectionCommand.class, this::onEstablishConnection)
-                .onAnyMessage(this::onInvalidCommandWhenInitialized)
+                .onAnyMessage(this::onInvalidCommand)
+                .onSignal(PostStop.class, this::onPostStop)
                 .build();
     }
 
     private Receive<ConnectionCommand> connected() {
         log.debug(logShortMessage("Connected state"));
 
+        state = CONNECTED;
+
         return newReceiveBuilder()
                 .onMessage(UserAuthenticateCommand.class, this::onUserAuthenticate)
                 .onMessage(UserCloseCommand.class, this::onUserClose)
-                .onAnyMessage(this::onInvalidCommandWhenConnected)
+                .onAnyMessage(this::onInvalidCommand)
+                .onSignal(PostStop.class, this::onPostStop)
                 .build();
     }
 
     private Receive<ConnectionCommand> authenticated() {
         log.debug(logFullMessage("Authenticated state"));
+
+        state = AUTHENTICATED;
 
         return newReceiveBuilder()
                 .onMessage(UserCloseCommand.class, this::onUserClose)
@@ -107,12 +135,32 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
                 .onMessage(ClientMessageCommand.class, this::onClientMessage)
                 .onMessage(ClientErrorMessageCommand.class, this::onClientErrorMessage)
                 .onMessage(ClientHeartbeatCommand.class, this::onClientHeartbeat)
-                .onAnyMessage(this::onInvalidCommandWhenAuthenticated)
+                .onAnyMessage(this::onInvalidCommand)
+                .onSignal(PostStop.class, this::onPostStop)
                 .build();
     }
 
+    private Behavior<ConnectionCommand> onPostStop(final PostStop signal) {
+        log.debug(logFullMessage("on Post Stop: {}"), signal);
+
+        if (nonNull(clientId)) {
+            log.debug(logFullMessage("Telling the client to close the connection"));
+
+            tellClient(new ConnectionCloseCommand("Closing connection"));
+        }
+
+        if (nonNull(userConnection) && userConnection.isConnected()) {
+            log.debug(logFullMessage("Closing user connection: {}"), userConnection.getId());
+
+            userConnection.send(Output.of(new ServerMessage("Disconnecting")));
+            userConnection.disconnect();
+        }
+
+        return null;
+    }
+
     private Behavior<ConnectionCommand> onEstablishConnection(final EstablishConnectionCommand command) {
-        log.trace(logShortMessage("on Establish Client Connection: {}"), command.userConnection().getId());
+        log.trace(logShortMessage("on Establish Connection: {}"), command.userConnection().getId());
 
         userConnection = command.userConnection();
         userConnection.send(Output.of(new ServerMessage("Connected")));
@@ -120,36 +168,31 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         return connected();
     }
 
-    private Behavior<ConnectionCommand> onInvalidCommandWhenInitialized(final ConnectionCommand command) {
-        log.warn(logShortMessage("on Invalid Command When Initialized: {}"), command);
-        // No need to send anything to websocket client, since there is no outbound
-        // No need to send anything to client actor, since there is no client id
+    private Behavior<ConnectionCommand> onInvalidCommand(final ConnectionCommand command) {
+        log.warn(logShortMessage("on Invalid Command: {}"), command);
+
+        if (nonNull(userConnection) && userConnection.isConnected()) {
+            userConnection.send(Output.of(
+                    new ClientErrors(
+                            List.of("Invalid %s message".formatted(
+                                    command.getClass().getSimpleName())))));
+        }
+
         return Behaviors.stopped();
     }
 
     private Behavior<ConnectionCommand> onUserClose(final UserCloseCommand command) {
-        log.trace(logFullMessage("on Close Client Connection"));
-
-        if (nonNull(clientId)) {
-            tellClient(new ConnectionCloseCommand("Connection closed by client"));
-        }
-
-        if (nonNull(userConnection) && userConnection.iConnected()) {
-            userConnection.send(Output.of(new ServerMessage("Disconnecting")));
-            userConnection.disconnect();
-        }
-
+        log.trace(logFullMessage("on User Close"));
         return Behaviors.stopped();
     }
 
     private Behavior<ConnectionCommand> onUserAuthenticate(final UserAuthenticateCommand command) {
-        log.trace(logFullMessage("on Authenticate Client"));
+        log.trace(logFullMessage("on User Authenticate"));
 
         if (nonNull(clientId)) {
             tellClient(new ConnectionCloseCommand("Suspicious reauthentication attempt"));
 
-            userConnection.send(Output.of(new ClientErrors(List.of("Already authenticated. Disconnecting"))));
-            userConnection.disconnect();
+            userConnection.send(Output.of(new ClientErrors(List.of("Already authenticated"))));
 
             return Behaviors.stopped();
         }
@@ -158,9 +201,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
 
         if (isBlank(clientId)) {
             // No need to call the client actor, because without a client id there is no relation between inbound and client
-            userConnection.send(Output.of(new ClientErrors(List.of("Unauthorized. Disconnecting"))));
-            userConnection.disconnect();
-
+            userConnection.send(Output.of(new ClientErrors(List.of("Unauthorized"))));
             return Behaviors.stopped();
         }
 
@@ -169,20 +210,8 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         return authenticated();
     }
 
-    private Behavior<ConnectionCommand> onInvalidCommandWhenConnected(final ConnectionCommand command) {
-        log.trace(logFullMessage("on Invalid Command When Connected: {}"), command);
-
-        userConnection.send(Output.of(
-                new ClientErrors(
-                        List.of("Invalid %s message after connected. Disconnecting".formatted(
-                                command.getClass().getSimpleName())))));
-        userConnection.disconnect();
-
-        return Behaviors.stopped();
-    }
-
     private Behavior<ConnectionCommand> onUserMove(final UserMoveCommand command) {
-        log.trace(logFullMessage("on Move Client: {}"), command.direction());
+        log.trace(logFullMessage("on User Move: {}"), command.direction());
 
         tellClient(new MoveCommand(command.direction()));
 
@@ -190,7 +219,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onUserHeartbeat(final UserHeartbeatCommand command) {
-        log.trace(logFullMessage("on Pass By Client Heartbeat"));
+        log.trace(logFullMessage("on User Heartbeat"));
 
         tellClient(new ConnectionHeartbeatCommand());
 
@@ -198,26 +227,11 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onClientDungeonStateChanged(final ClientDungeonStateChangedCommand command) {
-        log.trace(logFullMessage("on Pass Dungeon State To User"));
+        log.trace(logFullMessage("on Client Dungeon State Changed"));
 
         userConnection.send(Output.of(command.toDomain()));
 
         return Behaviors.same();
-    }
-
-    private Behavior<ConnectionCommand> onInvalidCommandWhenAuthenticated(final ConnectionCommand command) {
-        log.trace(logShortMessage("on Invalid Command When Authenticated: {}"), command);
-
-        final var commandClass = command.getClass().getSimpleName();
-
-        tellClient(new ConnectionCloseCommand("Suspicious %s command attempt".formatted(commandClass)));
-
-        userConnection.send(Output.of(
-                new ClientErrors(
-                        List.of("Invalid %s message after authenticated. Disconnecting".formatted(commandClass)))));
-        userConnection.disconnect();
-
-        return Behaviors.stopped();
     }
 
     private Behavior<ConnectionCommand> onClientHeartbeat(final ClientHeartbeatCommand command) {
@@ -270,11 +284,11 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private @NonNull String logShortMessage(final String message) {
-        return "%s[actor: %s]: %s".formatted(LABEL, actorId(), message);
+        return "%s[state: %s][actor: %s]: %s".formatted(LABEL, state.getValue(), actorId(), message);
     }
 
     private @NonNull String logFullMessage(final String message) {
-        return "%s[actor: %s][client: %s]: %s".formatted(LABEL, actorId(), logClientId(), message);
+        return "%s[state: %s][actor: %s][client: %s]: %s".formatted(LABEL, state.getValue(), actorId(), logClientId(), message);
     }
 
 }

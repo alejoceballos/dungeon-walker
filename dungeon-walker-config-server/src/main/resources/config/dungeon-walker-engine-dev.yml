@@ -72,3 +72,11 @@ pekko:
   cluster:
     seed-nodes:
       - "pekko://EngineClusterSystem@127.0.0.1:2552"
+
+dungeonwalker:
+  engine:
+    heartbeat:
+      enabled: true
+      interval:
+        value: 10
+        unit: SECONDS

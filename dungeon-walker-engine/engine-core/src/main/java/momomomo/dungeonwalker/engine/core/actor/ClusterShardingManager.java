@@ -18,6 +18,8 @@ import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
 import org.apache.pekko.persistence.typed.PersistenceId;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -31,6 +33,8 @@ public class ClusterShardingManager {
     private final DungeonIdentity dungeonIdentity;
     private final ClientOutbound<EngineMessageProto.EngineMessage> clientOutbound;
 
+    private final Duration dungeonHeartbeatInterval;
+
     @PostConstruct
     public void init() {
         log.debug("{} Bean initializing", LABEL);
@@ -41,6 +45,7 @@ public class ClusterShardingManager {
                         DungeonActor.ENTITY_TYPE_KEY,
                         context -> DungeonActor.create(
                                 walkerBroadcastTopic,
+                                dungeonHeartbeatInterval,
                                 PersistenceId.of(
                                         context.getEntityTypeKey().name(),
                                         context.getEntityId()))));

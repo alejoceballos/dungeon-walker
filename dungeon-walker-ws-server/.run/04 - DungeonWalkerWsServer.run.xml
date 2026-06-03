@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="DungeonWalkerWsServer" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+  <configuration default="false" name="04 - DungeonWalkerWsServer" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <module name="wsserver-startup" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="momomomo.dungeonwalker.wsserver.startup.DungeonWalkerWsServer" />
     <option name="VM_PARAMETERS" value="--add-opens java.base/jdk.internal.misc=ALL-UNNAMED" />

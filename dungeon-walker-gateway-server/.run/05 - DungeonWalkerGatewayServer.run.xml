@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="05 - DungeonWalkerGatewayServer" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ENABLE_JMX_AUTH" value="true" />
+    <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+    <module name="dungeon-walker-gateway-server" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="momomomo.dungeonwalker.gateway.DungeonWalkerGatewayServer" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
