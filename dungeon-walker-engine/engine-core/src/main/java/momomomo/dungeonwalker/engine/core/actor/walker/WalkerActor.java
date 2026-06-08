@@ -7,7 +7,7 @@ import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
 import momomomo.dungeonwalker.contract.engine.EnteredDungeonProto.EnteredDungeon;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.DungeonActor;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.MoveWalker;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.MoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.PlaceWalker;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.client.Leave;
@@ -138,9 +138,11 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
             @NonNull final WalkerState state,
             @NonNull final Leave command
     ) {
-        log.debug(logFullMessage(state, "[on enter dungeon]: {}"), command);
-        // TODO: WHo sent this?
-        return Effect().stop();
+        log.debug(logFullMessage(state, "[on leave]: {}"), command);
+        // TODO: Who sent this?
+        return Effect()
+                .persist(Asleep.of(state))
+                .thenStop();
     }
 
     protected Effect<WalkerState> onWakeUp(
@@ -172,11 +174,10 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
         // If placed in the dungeon (meaning wasn't another walker placement being broadcasted)
         if (command.coordinates().containsKey(state.getId())) {
             return Effect()
-                    .persist(Stopped
-                            .of(state
-                                    .updateCoordinates(
-                                            command.coordinates().get(
-                                                    state.getId()))))
+                    .persist(Stopped.of(
+                            state.updateCoordinates(
+                                    command.coordinates().get(
+                                            state.getId()))))
                     .thenRun(persistedWalker -> clientOutbound.send(
                             EngineMessage
                                     .newBuilder()
@@ -193,7 +194,6 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
         }
     }
 
-
     private Effect<WalkerState> onUpdateDungeonState(
             @NonNull final WalkerState state,
             @NonNull final UpdateDungeonState command
@@ -201,10 +201,8 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
         log.debug(logFullMessage(state, "[on update coordinates]: {}"), command);
 
         return Effect()
-                .persist(Stopped.of(state
-                        .updateCoordinates(
-                                command.coordinates().get(
-                                        state.getId()))))
+                .persist(Stopped.of(state.updateCoordinates(
+                        command.coordinates().get(state.getId()))))
                 .thenRun(_ -> clientOutbound.send(
                         EngineMessage
                                 .newBuilder()
@@ -266,7 +264,7 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
     }
 
     private Effect<WalkerState> onDungeonHeartbeat() {
-        log.trace(logShortMessage("[on dungeon heartbeat]"));
+        log.debug(logShortMessage("[on dungeon heartbeat]"));
 
         return Effect()
                 .none()

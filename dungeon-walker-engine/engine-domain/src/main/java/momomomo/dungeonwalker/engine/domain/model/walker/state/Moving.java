@@ -16,8 +16,7 @@ public class Moving extends WalkerState {
                 source.getId(),
                 source.getDungeonId());
 
-        target.setPreviousCoordinates(source.getPreviousCoordinates());
-        target.setCurrentCoordinates(source.getCurrentCoordinates());
+        copyCoordinates(source, target);
 
         return target;
     }

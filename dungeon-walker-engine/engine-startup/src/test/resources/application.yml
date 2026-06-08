@@ -82,3 +82,8 @@ dungeonwalker:
       interval:
         value: 10
         unit: SECONDS
+    dungeon:
+      keep-alive:
+        enabled: false
+        value: 10
+        unit: SECONDS

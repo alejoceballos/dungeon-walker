@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
-import momomomo.dungeonwalker.engine.domain.model.dungeon.placing.DungeonPlacingStrategy;
-import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.serializer.CoordinatesDeserializer;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.serializer.CoordinatesSerializer;
+import momomomo.dungeonwalker.engine.domain.model.dungeon.placing.DungeonPlacingStrategy;
+import momomomo.dungeonwalker.engine.domain.model.walker.Walker;
 
 import java.util.HashMap;
 import java.util.List;
@@ -55,9 +55,11 @@ public class Dungeon {
         return coordinates.x() == 0 || coordinates.y() == 0 || coordinates.x() == width || coordinates.y() == height;
     }
 
-    public Coordinates placeThing(
-            @NonNull final DungeonPlacingStrategy placingStrategy,
-            @NonNull final Thing thing) {
+    public Coordinates placeThing(@NonNull final DungeonPlacingStrategy placingStrategy, @NonNull final Thing thing) {
+        if (thing instanceof final Walker walker && walkersPositions.containsKey(walker.getId())) {
+            return walkersPositions.get(walker.getId());
+        }
+
         final var coordinates = placingStrategy.placingCoordinates(this);
         at(coordinates).occupy(thing);
 
@@ -66,9 +68,7 @@ public class Dungeon {
         return coordinates;
     }
 
-    public Coordinates moveThing(
-            @NonNull final Coordinates from,
-            @NonNull final List<Coordinates> toPossibilities) {
+    public Coordinates moveThing(@NonNull final Coordinates from, @NonNull final List<Coordinates> toPossibilities) {
         final var to = toPossibilities
                 .stream()
                 .filter(coordinates -> at(coordinates).isFree())

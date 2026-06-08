@@ -22,6 +22,7 @@ import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.user.U
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.user.UserHeartbeatCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.user.UserMoveCommand;
 import momomomo.dungeonwalker.wsserver.domain.auth.Authorizer;
+import momomomo.dungeonwalker.wsserver.domain.auth.WsServerExpiredAuthorizationException;
 import momomomo.dungeonwalker.wsserver.domain.data.user.output.ClientErrors;
 import momomomo.dungeonwalker.wsserver.domain.data.user.output.Output;
 import momomomo.dungeonwalker.wsserver.domain.data.user.output.ServerErrors;
@@ -135,7 +136,6 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
                 .onMessage(ClientMessageCommand.class, this::onClientMessage)
                 .onMessage(ClientErrorMessageCommand.class, this::onClientErrorMessage)
                 .onMessage(ClientHeartbeatCommand.class, this::onClientHeartbeat)
-                .onAnyMessage(this::onInvalidCommand)
                 .onSignal(PostStop.class, this::onPostStop)
                 .build();
     }
@@ -156,11 +156,11 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
             userConnection.disconnect();
         }
 
-        return null;
+        return Behaviors.same();
     }
 
     private Behavior<ConnectionCommand> onEstablishConnection(final EstablishConnectionCommand command) {
-        log.trace(logShortMessage("on Establish Connection: {}"), command.userConnection().getId());
+        log.debug(logShortMessage("on Establish Connection: {}"), command.userConnection().getId());
 
         userConnection = command.userConnection();
         userConnection.send(Output.of(new ServerMessage("Connected")));
@@ -182,14 +182,16 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onUserClose(final UserCloseCommand command) {
-        log.trace(logFullMessage("on User Close"));
+        log.debug(logFullMessage("on User Close"));
         return Behaviors.stopped();
     }
 
     private Behavior<ConnectionCommand> onUserAuthenticate(final UserAuthenticateCommand command) {
-        log.trace(logFullMessage("on User Authenticate"));
+        log.debug(logFullMessage("on User Authenticate"));
 
         if (nonNull(clientId)) {
+            log.warn(logFullMessage("Suspicious reauthentication attempt. Client already set"));
+
             tellClient(new ConnectionCloseCommand("Suspicious reauthentication attempt"));
 
             userConnection.send(Output.of(new ClientErrors(List.of("Already authenticated"))));
@@ -197,9 +199,16 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
             return Behaviors.stopped();
         }
 
-        clientId = authorizer.authorize(command.credentials());
+        try {
+            clientId = authorizer.authorize(command.credentials());
+
+        } catch (final WsServerExpiredAuthorizationException ex) {
+            log.warn(logFullMessage("{}"), ex.getMessage());
+        }
 
         if (isBlank(clientId)) {
+            log.warn(logFullMessage("Unauthorized. Invalid token"));
+
             // No need to call the client actor, because without a client id there is no relation between inbound and client
             userConnection.send(Output.of(new ClientErrors(List.of("Unauthorized"))));
             return Behaviors.stopped();
@@ -211,7 +220,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onUserMove(final UserMoveCommand command) {
-        log.trace(logFullMessage("on User Move: {}"), command.direction());
+        log.debug(logFullMessage("on User Move: {}"), command.direction());
 
         tellClient(new MoveCommand(command.direction()));
 
@@ -219,7 +228,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onUserHeartbeat(final UserHeartbeatCommand command) {
-        log.trace(logFullMessage("on User Heartbeat"));
+        log.debug(logFullMessage("on User Heartbeat"));
 
         tellClient(new ConnectionHeartbeatCommand());
 
@@ -227,7 +236,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onClientDungeonStateChanged(final ClientDungeonStateChangedCommand command) {
-        log.trace(logFullMessage("on Client Dungeon State Changed"));
+        log.debug(logFullMessage("on Client Dungeon State Changed"));
 
         userConnection.send(Output.of(command.toDomain()));
 
@@ -235,7 +244,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onClientHeartbeat(final ClientHeartbeatCommand command) {
-        log.trace(logShortMessage("on client heartbeat: {}"), command);
+        log.debug(logShortMessage("on client heartbeat: {}"), command);
 
         userConnection.send(Output.of(new ServerHeartbeat()));
 
@@ -243,7 +252,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onClientMessage(final ClientMessageCommand command) {
-        log.trace(logShortMessage("on Pass Message To User: {}"), command);
+        log.debug(logShortMessage("on Pass Message To User: {}"), command);
 
         userConnection.send(Output.of(new ServerMessage(command.message())));
 
@@ -251,7 +260,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onClientErrorMessage(final ClientErrorMessageCommand command) {
-        log.trace(logShortMessage("on Pass Error To User: {}"), command);
+        log.debug(logShortMessage("on Pass Error To User: {}"), command);
 
         userConnection.send(Output.of(new ServerErrors(List.of(command.error()))));
 

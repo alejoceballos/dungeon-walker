@@ -6,4 +6,8 @@ public class NoDungeonFilesException extends RuntimeException {
         super(message);
     }
 
+    public NoDungeonFilesException(final Throwable cause) {
+        super(cause);
+    }
+
 }

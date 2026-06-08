@@ -45,7 +45,7 @@ public class WsHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(@NonNull final WebSocketSession session, @NonNull final CloseStatus status) {
-        log.info("{} Connection closed for session \"{}\"", LABEL, session.getId());
+        log.info("{} Connection closed for session \"{}\". Status: {}", LABEL, session.getId(), status);
         userInbound.close(createClientInbound(session));
     }
 
@@ -56,7 +56,7 @@ public class WsHandler extends TextWebSocketHandler {
     ) throws IOException {
         final var payload = message.getPayload();
 
-        log.info("{} Session \"{}\" received the message \"{}\"", LABEL, session.getId(), payload);
+        log.debug("{} Session \"{}\" received the message \"{}\"", LABEL, session.getId(), payload);
 
         try {
             final var input = jsonMapper.readValue(payload, Input.class);

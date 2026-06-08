@@ -19,4 +19,7 @@ Feature: WebSocket Server process flow
     When the engine sends an "heartbeat: user1" message to the server
     Then user "01" receives the following message from the server:
       | heartbeat |
+    When the engine sends a "dungeon-state: user1" message to the server
+    Then user "01" receives the following message from the server:
+      | dungeon state: user1 |
 

@@ -3,12 +3,14 @@ package momomomo.dungeonwalker.engine.core.actor.dungeon;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateReply;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequest;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.MoveWalker;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.SetupDungeon;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.self.DungeonHeartbeatTimeOut;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.self.DungeonHeartbeatTimeout;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.setup.KeepAliveHeartbeat;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.setup.SetupDungeon;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.MoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.PlaceWalker;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.to.DungeonStateReply;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.to.KeepAliveReply;
 import momomomo.dungeonwalker.engine.core.actor.walker.WalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.DungeonHeartbeat;
@@ -100,9 +102,10 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
         builder.forStateType(InitializedDungeon.class)
                 .onCommand(PlaceWalker.class, this::onPlaceWalker)
                 .onCommand(MoveWalker.class, this::onMoveWalker)
-                .onCommand(DungeonHeartbeatTimeOut.class, this::onDungeonHeartbeatTimeOut);
+                .onCommand(DungeonHeartbeatTimeout.class, this::onDungeonHeartbeatTimeout);
 
         builder.forAnyState()
+                .onCommand(KeepAliveHeartbeat.class, this::onKeepAliveHeartbeat)
                 .onCommand(DungeonStateRequest.class, this::onDungeonStateRequest);
 
         return builder.build();
@@ -122,14 +125,26 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
         // TODO: Clean up
     }
 
+    private Effect<DungeonState> onKeepAliveHeartbeat(
+            final DungeonState state,
+            final KeepAliveHeartbeat command
+    ) {
+        log.debug(logFullMessage(state, "[on keep alive heartbeat]: {}"), command);
+
+        return Effect()
+                .none()
+                .thenReply(command.replyTo(), _ -> new KeepAliveReply());
+    }
+
     private Effect<DungeonState> onDungeonStateRequest(
             final DungeonState state,
             final DungeonStateRequest command
     ) {
         log.debug(logFullMessage(state, "[on dungeon state request]: {}"), command.replyTo().path().name());
+
         return Effect()
                 .none()
-                .thenRun(_ -> command.replyTo().tell(new DungeonStateReply(state)));
+                .thenReply(command.replyTo(), DungeonStateReply::new);
     }
 
     private Effect<DungeonState> onSetupDungeon(
@@ -137,14 +152,9 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
             final SetupDungeon command
     ) {
         log.debug(logFullMessage(state, "[on setup dungeon]: {}"), command);
+
         return Effect()
-                .persist(InitializedDungeon.of(command.dungeon()))
-                .thenRun(_ -> timers
-                        .startTimerWithFixedDelay(
-                                TIMER_NAME.formatted(entityId()),
-                                new DungeonHeartbeatTimeOut(),
-                                heartbeatInterval,
-                                heartbeatInterval));
+                .persist(InitializedDungeon.of(command.dungeon()));
     }
 
     private Effect<DungeonState> onPlaceWalker(
@@ -161,7 +171,18 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
                         new UpdateDungeonState(
                                 persistedState.getWidth(),
                                 persistedState.getHeight(),
-                                persistedState.getWalkersPositions())));
+                                persistedState.getWalkersPositions())))
+                .thenRun(_ -> {
+                    final var timerKey = TIMER_NAME.formatted(entityId());
+
+                    if (!timers.isTimerActive(timerKey)) {
+                        timers.startTimerWithFixedDelay(
+                                TIMER_NAME.formatted(entityId()),
+                                new DungeonHeartbeatTimeout(),
+                                heartbeatInterval,
+                                heartbeatInterval);
+                    }
+                });
     }
 
     private Effect<DungeonState> onMoveWalker(
@@ -185,8 +206,8 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
                                         persistedState.getWalkersPositions())));
     }
 
-    private Effect<DungeonState> onDungeonHeartbeatTimeOut() {
-        log.trace(logShortMessage("[on dungeon heartbeat timeout]"));
+    private Effect<DungeonState> onDungeonHeartbeatTimeout() {
+        log.debug(logShortMessage("[on dungeon heartbeat timeout]"));
 
         return Effect()
                 .none()

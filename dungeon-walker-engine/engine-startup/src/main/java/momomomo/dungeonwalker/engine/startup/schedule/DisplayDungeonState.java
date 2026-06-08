@@ -5,23 +5,14 @@ import com.machinezoo.noexception.slf4j.ExceptionLogging;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.core.actor.ClusterShardingManager;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateReply;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequest;
 import momomomo.dungeonwalker.engine.core.setup.DungeonIdentity;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.UninitializedDungeon;
-import org.apache.pekko.actor.typed.ActorSystem;
-import org.apache.pekko.cluster.sharding.typed.javadsl.EntityRef;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-
-import static org.apache.pekko.actor.typed.javadsl.AskPattern.ask;
 
 @Slf4j
 @Component
@@ -31,7 +22,6 @@ public class DisplayDungeonState {
 
     private static final String LABEL = "---> [SCHEDULER - Display Dungeon State]";
 
-    private final ActorSystem<Void> actorSystem;
     private final DungeonIdentity dungeonIdentity;
     private final ClusterShardingManager clusterManager;
 
@@ -53,22 +43,11 @@ public class DisplayDungeonState {
     public Dungeon getDungeon(final int level) {
         return Exceptions
                 .wrap(GetDungeonException::new)
-                .get(() -> askForState(dungeonIdentity.id(level))
+                .get(() -> clusterManager
+                        .askForState(dungeonIdentity.id(level))
                         .toCompletableFuture()
                         .get()
                         .value());
-    }
-
-    private CompletionStage<DungeonStateReply> askForState(final String dungeonId) {
-        return ask(
-                dungeonRef(dungeonId),
-                DungeonStateRequest::new,
-                Duration.ofSeconds(1L),
-                actorSystem.scheduler());
-    }
-
-    private EntityRef<DungeonCommand> dungeonRef(final String dungeonId) {
-        return clusterManager.dungeonRef(dungeonId);
     }
 
 }

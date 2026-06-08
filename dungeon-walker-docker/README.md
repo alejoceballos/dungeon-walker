@@ -178,10 +178,12 @@ All files were adapted to the `dungeon-walker-docker` environment and naming con
 ### Application Authorization Flow
 
 Won't overcomplicate the whole setup. The file [keycloak-realm-dungeon-walker-4-docker.json](security/keycloak-realm-dungeon-walker-4-docker.json)
-will be loaded when the [keycloak-auth-server](build-n-run-only-auth.sh) docker container is started.. It contains 
+will be loaded when the [keycloak-auth-server](build-n-run-only-auth.sh) docker container is started. It contains 
 the realm, client and user configuration needed to test the authorization flow.
 
 #### Postman
+
+**1) Connect to the WebSocket Server:**
 
 To get a new authorization token, perform a POST request when [keycloak-auth-server](build-n-run-only-auth.sh) is up 
 and running:
@@ -195,9 +197,7 @@ and running:
     - username: user1
     - password: password1
 
-**WebSOcket:**
-
-After connecting, send this message:
+**2) Send an authentication message:**
 ```json
 {
   "type": "authentication",
@@ -206,7 +206,14 @@ After connecting, send this message:
   }
 }
 ```
+⚠️ Right after connecting, the only alloed message is the `authentication` one. Any other message will trigger a disconnection.
 
-
-
-
+**3) Send a movement message:**
+```json
+{
+    "type": "movement",
+    "data": {
+        "direction": "E"
+    }
+}
+```

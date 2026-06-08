@@ -14,6 +14,7 @@ logging:
     org:
       apache:
         kafka: warn
+        pekko: warn
     momomomo:
       dungeonwalker:
         wsserver:

@@ -9,12 +9,19 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.toMap;
 
-public record EnteredTheDungeonCommand(@NonNull Map<String, DungeonCoordinates> dungeonState) implements ClientCommand {
+public record EnteredTheDungeonCommand(
+        int height,
+        int width,
+        @NonNull Map<String, DungeonCoordinates> dungeonState
+) implements ClientCommand {
 
     public static EnteredTheDungeonCommand of(@NonNull final EngineMessage message) {
+        final var sourceDungeonState = message.getEnteredDungeon().getDungeonState();
+
         return new EnteredTheDungeonCommand(
-                message.getEnteredDungeon()
-                        .getDungeonState()
+                sourceDungeonState.getHeight(),
+                sourceDungeonState.getWidth(),
+                sourceDungeonState
                         .getCoordinatesMap()
                         .entrySet()
                         .stream()

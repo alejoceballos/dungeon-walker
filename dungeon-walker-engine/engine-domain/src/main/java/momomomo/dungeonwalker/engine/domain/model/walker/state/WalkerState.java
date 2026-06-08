@@ -12,4 +12,9 @@ public abstract class WalkerState extends Walker {
         super(id, dungeonId);
     }
 
+    protected static void copyCoordinates(@NonNull final Walker source, @NonNull final Walker target) {
+        target.setPreviousCoordinates(source.getPreviousCoordinates());
+        target.setCurrentCoordinates(source.getCurrentCoordinates());
+    }
+
 }

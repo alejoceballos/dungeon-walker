@@ -143,11 +143,11 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
 
     private Behavior<ClientCommand> onPostStop(final PostStop signal) {
         log.debug(logFullMessage("on Post Stop: {}"), signal);
-        return null;
+        return Behaviors.same();
     }
 
     private Behavior<ClientCommand> onConnectionAuthenticated(final ConnectionAuthenticatedCommand command) {
-        log.trace(logShortMessage("On wake up"));
+        log.debug(logShortMessage("On wake up"));
 
         connectionId = command.connectionId();
 
@@ -164,15 +164,15 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     }
 
     private Behavior<ClientCommand> onEnteredTheDungeon(final EnteredTheDungeonCommand command) {
-        log.trace(logFullMessage("on entered the dungeon"));
+        log.debug(logFullMessage("on entered the dungeon"));
 
-        tellConnection(new ClientDungeonStateChangedCommand(command.dungeonState()));
+        tellConnection(ClientDungeonStateChangedCommand.of(command));
 
         return inPLay();
     }
 
     private Behavior<ClientCommand> onConnectionClose() {
-        log.trace(logFullMessage("on get out"));
+        log.debug(logFullMessage("on get out"));
 
         engineOutbound
                 .send(ClientRequest
@@ -190,15 +190,15 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     }
 
     private Behavior<ClientCommand> onDungeonStateChanged(final DungeonStateChangedCommand command) {
-        log.trace(logFullMessage("on handle dungeon state change"));
+        log.debug(logFullMessage("on handle dungeon state change"));
 
-        tellConnection(new ClientDungeonStateChangedCommand(command.dungeonState()));
+        tellConnection(ClientDungeonStateChangedCommand.of(command));
 
         return Behaviors.same();
     }
 
     private Behavior<ClientCommand> onMove(final MoveCommand command) {
-        log.trace(logFullMessage("on move"));
+        log.debug(logFullMessage("on move"));
 
         final String direction = command.direction().name();
 
@@ -218,7 +218,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     }
 
     private Behavior<ClientCommand> onConnectionHeartbeat(final ConnectionHeartbeatCommand command) {
-        log.trace(logFullMessage("on process heartbeat"));
+        log.debug(logFullMessage("on process heartbeat"));
 
         engineOutbound
                 .send(ClientRequest
@@ -226,7 +226,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
                         .setClientId(actorId())
                         .setHeartbeat(ClientHeartbeatProto.ClientHeartbeat.newBuilder().build())
                         .build())
-                .thenAccept(_ -> log.trace(logFullMessage("Successfully sent heartbeat to engine")))
+                .thenAccept(_ -> log.debug(logFullMessage("Successfully sent heartbeat to engine")))
                 .exceptionally(ex -> {
                     log.error(logFullMessage("Error sending heartbeat to engine"), ex);
                     return null;
@@ -236,7 +236,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     }
 
     private Behavior<ClientCommand> onEngineHeartbeat(final EngineHeartbeatCommand command) {
-        log.trace(logFullMessage("on handle heartbeat"));
+        log.debug(logFullMessage("on handle heartbeat"));
 
         tellConnection(new ClientHeartbeatCommand());
 

@@ -62,7 +62,9 @@ public class DungeonWalkerEngineStepsDef extends DungeonWalkerEngineIntegrationT
     }
 
     @Then("the engine sends a(n) {string} message to the client")
-    public void engineSendsMessage(final String message) throws InvalidProtocolBufferException, JsonProcessingException {
+    public void engineSendsMessage(
+            final String message
+    ) throws InvalidProtocolBufferException, JsonProcessingException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
 
         final List<ConsumerRecord<String, EngineMessage>> messagesToClient = new ArrayList<>();
