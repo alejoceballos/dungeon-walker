@@ -23,6 +23,7 @@ import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.user.U
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.user.UserMoveCommand;
 import momomomo.dungeonwalker.wsserver.domain.auth.Authorizer;
 import momomomo.dungeonwalker.wsserver.domain.auth.WsServerExpiredAuthorizationException;
+import momomomo.dungeonwalker.wsserver.domain.data.user.output.AuthenticationResult;
 import momomomo.dungeonwalker.wsserver.domain.data.user.output.ClientErrors;
 import momomomo.dungeonwalker.wsserver.domain.data.user.output.Output;
 import momomomo.dungeonwalker.wsserver.domain.data.user.output.ServerErrors;
@@ -174,8 +175,9 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         if (nonNull(userConnection) && userConnection.isConnected()) {
             userConnection.send(Output.of(
                     new ClientErrors(
-                            List.of("Invalid %s message".formatted(
-                                    command.getClass().getSimpleName())))));
+                            List.of("Invalid \"%s\" message for state \"%s\"".formatted(
+                                    command.getClass().getSimpleName(),
+                                    state.getValue())))));
         }
 
         return Behaviors.stopped();
@@ -215,6 +217,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
         }
 
         tellClient(new ConnectionAuthenticatedCommand(userConnection.getId()));
+        userConnection.send(Output.of(new AuthenticationResult(true)));
 
         return authenticated();
     }

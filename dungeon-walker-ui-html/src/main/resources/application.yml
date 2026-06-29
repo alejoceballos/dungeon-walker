@@ -1,9 +1,22 @@
+# Startup
+
 spring:
   application:
     name: dungeon-walker-ui-html
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
 
 server:
   port: 8082
+
+logging:
+  level:
+    momomomo:
+      dungeonwalker:
+        ui:
+          html: DEBUG
 
 management:
   endpoints:
@@ -17,3 +30,24 @@ management:
       show-values: ALWAYS
     configprops:
       show-values: ALWAYS
+
+# Transport
+
+keycloak:
+  token:
+    client-id: "dungeon-walker-api"
+    protocol: "${AUTH_SERVER_PROTOCOL:http}"
+    host-port: "${AUTH_SERVER_HOST:localhost:8087}"
+    path: "realms/dungeon-walker-realm/protocol/openid-connect/token"
+
+view:
+  messages:
+    max-count: 30
+  security:
+    protocol: "http"
+    host: "localhost:${server.port}"
+    endpoint: "/token/credentials"
+  web-socket:
+    protocol: "ws"
+    host: "localhost:8085"
+    endpoint: "ws-server/ws-endpoint"

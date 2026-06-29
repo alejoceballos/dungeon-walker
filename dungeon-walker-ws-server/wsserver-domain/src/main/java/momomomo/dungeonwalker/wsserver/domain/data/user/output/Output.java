@@ -25,6 +25,9 @@ public record Output(
                         value = ServerMessage.class,
                         name = SERVER_MESSAGE),
                 @JsonSubTypes.Type(
+                        value = AuthenticationResult.class,
+                        name = AUTHENTICATION),
+                @JsonSubTypes.Type(
                         value = DungeonState.class,
                         name = DUNGEON_STATE)
         })
@@ -35,6 +38,7 @@ public record Output(
     public static final String SERVER_ERRORS = "server-errors";
     public static final String CLIENT_ERRORS = "client-errors";
     public static final String SERVER_MESSAGE = "server-message";
+    public static final String AUTHENTICATION = "authentication";
     public static final String DUNGEON_STATE = "dungeon-state";
 
     public static Output of(final ServerHeartbeat heartbeat) {
@@ -51,6 +55,10 @@ public record Output(
 
     public static Output of(final ServerMessage message) {
         return new Output(SERVER_MESSAGE, message);
+    }
+
+    public static Output of(final AuthenticationResult message) {
+        return new Output(AUTHENTICATION, message);
     }
 
     public static Output of(final DungeonState dungeonState) {

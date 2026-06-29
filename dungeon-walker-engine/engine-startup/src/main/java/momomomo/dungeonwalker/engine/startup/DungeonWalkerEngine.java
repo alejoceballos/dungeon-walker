@@ -8,7 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan(basePackages = "momomomo.dungeonwalker.engine")
 public class DungeonWalkerEngine {
 
-    static void main(String[] args) {
+    static void main(final String... args) {
         SpringApplication.run(DungeonWalkerEngine.class, args);
     }
 

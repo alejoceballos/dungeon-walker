@@ -1,0 +1,130 @@
+body {
+    height: 100%;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------- */
+
+#title-pane {
+    display: flex;
+    justify-content: center; /* Horizontally centers the items */
+    align-items: center;     /* Vertically centers the items */
+    gap: 20px;               /* Space between the two images */
+    border: 1px solid #ccc;  /* Optional: for visibility */
+}
+
+#title-pane img {
+    max-width: 45%;          /* Prevents images from overflowing */
+    height: auto;            /* Maintains aspect ratio */
+}
+
+
+/* --------------------------------------------------------------------------- */
+
+#main-pane-table {
+    width: 100vw;              /* 100vw forces it to the viewport width. Use 100% to fill a parent div instead. */
+    table-layout: fixed;       /* CRITICAL: Forces the browser to strictly obey your width declarations */
+    border-collapse: collapse; /* Merges double borders into a single clean line */
+}
+
+/* Define the specific column widths */
+#main-pane-table .col-main {
+    width: 67%;
+}
+
+#main-pane-table .col-secondary {
+    /* The remaining space is mathematically 33%, but explicitly stating it is good practice */
+    width: 33%;
+}
+
+/* Clean, modern styling for cells */
+#main-pane-table th {
+    text-align: center;
+}
+
+#main-pane-table #messages-pane td {
+    text-align: left;
+}
+
+#main-pane-table th,
+#main-pane-table td {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0; /* Subtle horizontal dividers */
+    word-wrap: break-word;            /* Prevents long URLs or strings from breaking the fixed layout */
+}
+
+#main-pane-table th {
+    background-color: #f8f9fa;        /* Light gray background for the header */
+    font-weight: 600;
+}
+
+#main-pane-table #messages-pane {
+    vertical-align: top; /* Keeps content at the top of the cell */
+    position: relative; /* CRITICAL: This anchors the inner div */
+    padding: 0;
+}
+
+#main-pane-table #messages-pane #scrollable-pane {
+    position: absolute; /* CRITICAL: Takes the div out of the height calculation */
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 8px; /* Move your padding here */
+    box-sizing: border-box; /* Ensures padding doesn't add to the height */
+}
+
+/* --------------------------------------------------------------------------- */
+
+#dungeon-pane {
+    width: 100%;
+}
+
+#dungeon-pane table {
+    margin: 0 auto;            /* CRITICAL: Centers the table horizontally */
+    border-collapse: collapse; /* Standard professional table reset */
+    min-width: 50%;            /* Ensure it doesn't shrink too much if data is sparse */
+}
+
+#dungeon-pane tr td {
+    border: black 1px solid;
+}
+
+/* --------------------------------------------------------------------------- */
+
+#dungeon-table {
+    border-collapse: collapse;
+    table-layout: fixed; /* CRITICAL: Forces the table to obey your exact width rules */
+}
+
+#dungeon-table th,
+#dungeon-table td {
+    width: 64px;               /* Exact width */
+    height: 64px;              /* Exact height */
+    box-sizing: border-box;    /* Ensures padding and borders are included in the 64px, not added to it */
+    padding: 0;                /* Remove default padding to maximize usable space, or set to a small value */
+    border: 1px solid #ccc;
+
+    /* Alignment (Optional but recommended for a grid) */
+    text-align: center;
+    vertical-align: middle;
+
+    /* Overflow handling: What happens if content is bigger than 64x64? */
+    overflow: hidden;          /* Hides anything that spills out */
+    word-wrap: break-word;     /* Breaks long words */
+}
+
+/* --------------------------------------------------------------------------- */
+
+#command-pane #command-input {
+    width: 90%;
+    border: none;
+}
+
+.show-border {
+    border: black 1px solid;
+}
