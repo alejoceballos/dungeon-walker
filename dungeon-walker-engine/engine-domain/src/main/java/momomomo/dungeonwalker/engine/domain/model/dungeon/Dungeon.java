@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.serializer.CoordinatesDeserializer;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.serializer.CoordinatesSerializer;
@@ -19,11 +20,15 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.isNull;
+import static java.util.stream.Collectors.toMap;
 
+@Slf4j
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Dungeon {
+
+    private static final String LABEL = "---> [DUNGEON]";
 
     @Getter
     protected int width;
@@ -43,8 +48,25 @@ public class Dungeon {
     @Getter
     protected final Map<String, Coordinates> walkersPositions = new HashMap<>();
 
+    public Map<String, Coordinates> getDungeonState() {
+        return cells
+                .entrySet()
+                .stream()
+                .filter(entry -> !entry.getValue().isFree())
+                .collect(toMap(
+                        entry -> entry.getValue().getOccupant().getId(),
+                        Map.Entry::getKey));
+    }
+
     public void add(@NonNull final Cell cell) {
+        log.debug("{}[Add cell] {}", LABEL, logCell(cell));
         cells.put(cell.getCoordinates(), cell);
+
+        if (cell.isFree()) {
+            return;
+        }
+
+        updatePositions(cell.getOccupant(), cell.getCoordinates());
     }
 
     public Cell at(@NonNull final Coordinates coordinates) {
@@ -52,18 +74,39 @@ public class Dungeon {
     }
 
     public boolean isEdge(@NonNull final Coordinates coordinates) {
-        return coordinates.x() == 0 || coordinates.y() == 0 || coordinates.x() == width || coordinates.y() == height;
+        return coordinates.x() == -1 || coordinates.y() == -1 || coordinates.x() == width || coordinates.y() == height;
     }
 
-    public Coordinates placeThing(@NonNull final DungeonPlacingStrategy placingStrategy, @NonNull final Thing thing) {
-        if (thing instanceof final Walker walker && walkersPositions.containsKey(walker.getId())) {
+    public Coordinates placeWalker(@NonNull final DungeonPlacingStrategy placingStrategy, @NonNull final Walker walker) {
+        log.debug("{}[Place walker] {}", LABEL, walker.getId());
+
+        if (walkersPositions.containsKey(walker.getId())) {
+            log.debug("{}[Walker already placed] {}", LABEL, logKeyValue(walker, walkersPositions.get(walker.getId())));
             return walkersPositions.get(walker.getId());
         }
 
         final var coordinates = placingStrategy.placingCoordinates(this);
-        at(coordinates).occupy(thing);
+        at(coordinates).occupy(walker);
 
-        updateWalkersPositions(thing, coordinates);
+        log.debug("{}[Walker placed] {}", LABEL, logKeyValue(walker, coordinates));
+
+        updatePositions(walker, coordinates);
+
+        return coordinates;
+    }
+
+    public Coordinates removeWalker(@NonNull final String walkerId) {
+        log.debug("{}[Remove walker] {}", LABEL, walkerId);
+
+        if (!walkersPositions.containsKey(walkerId)) {
+            log.debug("{}[Walker not found] {}", LABEL, walkerId);
+            return null;
+        }
+
+        final var coordinates = walkersPositions.remove(walkerId);
+        final var formerOccupant = at(coordinates).vacate();
+
+        log.debug("{}[Walker removed] {}", LABEL, logKeyValue(formerOccupant, coordinates));
 
         return coordinates;
     }
@@ -86,7 +129,7 @@ public class Dungeon {
         // Remove it from the old position
         at(from).vacate();
 
-        updateWalkersPositions(thing, to);
+        updatePositions(thing, to);
 
         return to;
     }
@@ -111,10 +154,20 @@ public class Dungeon {
         return builder.toString();
     }
 
-    private void updateWalkersPositions(@NonNull final Thing thing, @NonNull final Coordinates coordinates) {
+    private void updatePositions(@NonNull final Thing thing, @NonNull final Coordinates coordinates) {
         if (thing instanceof final Walker walker) {
+            log.debug("{}[Update Positions] Put into \"walkersPositions\" map. {}", LABEL, logKeyValue(walker, coordinates));
             walkersPositions.put(walker.getId(), coordinates);
         }
+    }
+
+    private static String logCell(final Cell cell) {
+        final var id = cell.getOccupant() == null ? "<empty>" : cell.getOccupant().getId();
+        return "[%s: (%d, %d)]".formatted(id, cell.getCoordinates().x(), cell.getCoordinates().y());
+    }
+
+    private static String logKeyValue(final Thing thing, final Coordinates coordinates) {
+        return "Key: %s. Value: %s".formatted(thing.getId(), coordinates);
     }
 
 }

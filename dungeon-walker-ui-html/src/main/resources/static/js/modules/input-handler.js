@@ -10,7 +10,8 @@ const init = (
     authContext,
     messageContext,
     webSocketContext,
-    heartbeatContext
+    heartbeatContext,
+    dungeonDisplayContext
 ) => {
     const onConnect = token => {
         messageContext.connectionState(true);
@@ -75,8 +76,21 @@ const init = (
                 break;
 
             case "dungeon-state":
-                // updateDungeon(...)
-                messageContext.inbound(JSON.stringify(message));
+                if (!dungeonDisplayContext.isDungeonCreated()) {
+                    dungeonDisplayContext.create(data);
+                }
+
+                dungeonDisplayContext.update(data);
+
+                break;
+
+            case "cell-state":
+                if (!dungeonDisplayContext.isDungeonCreated()) {
+                    messageContext.warning(`Cannot update cell state. Dungeon is not created`);
+                    break;
+                }
+
+                dungeonDisplayContext.update(data);
                 break;
 
             default:
@@ -124,7 +138,7 @@ const init = (
 
         messageContext.outbound(`👋 Leaving the game`);
         clearInput();
-        return () => webSocketContext.sendAbandon();
+        return () => webSocketContext.disconnect();
     }
 
     const moveCommand = direction => {

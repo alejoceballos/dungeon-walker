@@ -1,8 +1,30 @@
 package momomomo.dungeonwalker.engine.domain.model.coordinates;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
-public record Coordinates(int x, int y) {
+@EqualsAndHashCode
+@AllArgsConstructor
+public class Coordinates {
+
+    @Getter
+    @Setter
+    private int x;
+
+    @Getter
+    @Setter
+    private int y;
+
+    public int x() {
+        return x;
+    }
+    
+    public int y() {
+        return y;
+    }
 
     public enum Axis {
         X, Y
@@ -12,22 +34,23 @@ public record Coordinates(int x, int y) {
         return new Coordinates(x, y);
     }
 
-    public Coordinates adjust(int amount, @NonNull final Axis... axes) {
-        var x = this.x;
-        var y = this.y;
+    public Coordinates adjust(final int amount, @NonNull final Axis... axes) {
+        var newX = this.x;
+        var newY = this.y;
 
         for (final var axis : axes) {
             switch (axis) {
-                case X -> x += amount;
-                case Y -> y += amount;
+                case X -> newX += amount;
+                case Y -> newY += amount;
             }
         }
 
-        return of(x, y);
+        return of(newX, newY);
     }
 
     @Override
     public @NonNull String toString() {
         return "(%d,%d)".formatted(x, y);
     }
+
 }

@@ -35,6 +35,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.apache.commons.lang3.StringUtils.upperCase;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
@@ -43,10 +45,10 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
     private static final long WAIT_VALUE = 100;
     private static final TimeUnit WAIT_UNIT = MILLISECONDS;
 
-    private static final String TO_CLIENT_FILE = "data/outbound/user/%s.json";
-    private static final String TO_ENGINE_FILE = "data/outbound/engine/%s.json";
-    private static final String FROM_CLIENT_FILE = "data/inbound/user/%s.json";
-    private static final String FROM_ENGINE_FILE = "data/inbound/engine/%s.json";
+    private static final String TO_USER_PATH = "data/outbound/user/%s.json";
+    private static final String TO_ENGINE_PATH = "data/outbound/engine/%s.json";
+    private static final String FROM_USER_PATH = "data/inbound/user/%s.json";
+    private static final String FROM_ENGINE_PATH = "data/inbound/engine/%s.json";
 
     @Autowired
     private KafkaConsumer<String, ClientRequest> testKafkaConsumer;
@@ -65,7 +67,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
         clientWsHandler.getState().clear();
     }
 
-    @Given("user {string} sends a connection request to the server")
+    @Given("the server receives a connection request from user {string}")
     public void clientConnects(final String userLabel) {
         wsClient
                 .execute(clientWsHandler, "ws://localhost:" + port + "/ws-endpoint")
@@ -76,7 +78,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
                 });
     }
 
-    @When("the server establishes a connection with user {string}")
+    @And("the server establishes this connection with user {string}")
     public void assertServerEstablishesConnection(final String userLabel) {
         waitFor(WAIT_VALUE, WAIT_UNIT);
 
@@ -92,7 +94,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
         assertThat(wsClientSession).hasSize(1);
     }
 
-    @Then("user {string} receives the following message(s) from the server:")
+    @Then("the server sends the following message(s) to user {string}:")
     public void clientReceiveMessage(final String userLabel, final List<String> messages) throws JsonProcessingException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
 
@@ -108,7 +110,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
                 .toList();
 
         for (var index = 0; index < messages.size(); index++) {
-            final var filePath = TO_CLIENT_FILE
+            final var filePath = TO_USER_PATH
                     .formatted(messages.get(index))
                     .replace(":", "")
                     .replace(" ", "-");
@@ -121,11 +123,11 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
         }
     }
 
-    @And("user {string} sends a(n) {string} message to the server")
-    public void clientSendsMessage(final String userLabel, final String message) throws IOException {
+    @And("the server receives a(n) {string} message from user {string}")
+    public void clientSendsMessage(final String message, final String userLabel) throws IOException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
 
-        final var filePath = FROM_CLIENT_FILE
+        final var filePath = FROM_USER_PATH
                 .formatted(message)
                 .replace(":", "")
                 .replace(" ", "-");
@@ -139,7 +141,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
                 .sendMessage(new TextMessage(json));
     }
 
-    @Then("the server sends a {string} request to the engine")
+    @Then("the server sends a(n) {string} request to the engine")
     public void serverSendsMessage(final String message) throws InvalidProtocolBufferException, JsonProcessingException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
 
@@ -157,7 +159,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
         final var actualJson = jsonMapper.readTree(protoAsJsonString);
 
 
-        final var filePath = TO_ENGINE_FILE
+        final var filePath = TO_ENGINE_PATH
                 .formatted(message)
                 .replace(":", "")
                 .replace(" ", "-");
@@ -166,9 +168,16 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
         assertThat(actualJson).isEqualTo(expectedJson);
     }
 
+    @Then("the server receives the following message(s) from the engine:")
+    public void produceMessagesToEngineOutboundTopic(final List<String> messages) throws InvalidProtocolBufferException {
+        for (final var message : messages) {
+            produceMessageToEngineOutboundTopic(message);
+        }
+    }
+
     @When("the engine sends a(n) {string} message to the server")
     public void produceMessageToEngineOutboundTopic(final String message) throws InvalidProtocolBufferException {
-        final var filePath = FROM_ENGINE_FILE
+        final var filePath = FROM_ENGINE_PATH
                 .formatted(message)
                 .replace(":", "")
                 .replace(" ", "-");
@@ -187,6 +196,12 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
                 .exceptionally(ex -> {
                     throw new RuntimeException(ex);
                 });
+    }
+
+    @And("after {long} {string}")
+    public void afterSomeTime(final long value, final String unit) {
+        final var timeUnit = CS.endsWith(upperCase(unit), "S") ? upperCase(unit) : upperCase(unit) + "S";
+        waitFor(value, TimeUnit.valueOf(timeUnit));
     }
 
     @NoArgsConstructor

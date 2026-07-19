@@ -3,7 +3,7 @@ syntax = "proto3";
 package contract.engine;
 
 import "engine/engine_heartbeat.proto";
-import "engine/entered_dungeon.proto";
+import "engine/dungeon_cell_state.proto";
 import "engine/dungeon_state.proto";
 
 option java_package = "momomomo.dungeonwalker.contract.engine";
@@ -14,7 +14,7 @@ message EngineMessage {
 
   oneof data {
     EngineHeartbeat heartbeat = 2;
-    EnteredDungeon entered_dungeon = 3;
+    DungeonCellState dungeon_cell_state = 3;
     DungeonState dungeon_state = 4;
     string message = 5;
     string error = 6;

@@ -50,12 +50,15 @@ public class Cell {
         this.occupant = occupant;
     }
 
-    public void vacate() {
+    public Thing vacate() {
         if (this.occupant == null) {
             throw new CellException("Cell at %s has no occupant".formatted(coordinates));
         }
 
+        final var formerOccupant = this.occupant;
         this.occupant = null;
+
+        return formerOccupant;
     }
 
 }

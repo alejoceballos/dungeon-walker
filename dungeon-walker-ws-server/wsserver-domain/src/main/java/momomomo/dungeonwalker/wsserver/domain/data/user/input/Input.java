@@ -20,10 +20,7 @@ public record Input(
                         name = HEARTBEAT),
                 @JsonSubTypes.Type(
                         value = UserMovement.class,
-                        name = MOVEMENT),
-                @JsonSubTypes.Type(
-                        value = UserAbandon.class,
-                        name = ABANDON)
+                        name = MOVEMENT)
         })
         @NonNull InputData data
 ) {
@@ -31,7 +28,6 @@ public record Input(
     public static final String AUTHENTICATION = "authentication";
     public static final String HEARTBEAT = "heartbeat";
     public static final String MOVEMENT = "movement";
-    public static final String ABANDON = "abandon";
 
     public static Input of(final UserAuthentication inputData) {
         return new Input(AUTHENTICATION, inputData);
@@ -43,10 +39,6 @@ public record Input(
 
     public static Input of(final UserMovement inputData) {
         return new Input(MOVEMENT, inputData);
-    }
-
-    public static Input of(final UserAbandon inputData) {
-        return new Input(ABANDON, inputData);
     }
 
 }

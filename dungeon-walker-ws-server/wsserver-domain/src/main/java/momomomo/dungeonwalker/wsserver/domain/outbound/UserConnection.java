@@ -14,4 +14,6 @@ public interface UserConnection {
 
     void send(@NonNull Output message);
 
+    void sendAsync(@NonNull Output message);
+
 }

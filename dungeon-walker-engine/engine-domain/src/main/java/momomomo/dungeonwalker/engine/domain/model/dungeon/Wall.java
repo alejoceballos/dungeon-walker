@@ -2,7 +2,12 @@ package momomomo.dungeonwalker.engine.domain.model.dungeon;
 
 import lombok.NonNull;
 
-public record Wall(@NonNull String dungeonId) implements Thing {
+public record Wall(@NonNull String id, @NonNull String dungeonId) implements Thing {
+
+    @Override
+    public @NonNull String getId() {
+        return id;
+    }
 
     @Override
     public @NonNull String getDungeonId() {

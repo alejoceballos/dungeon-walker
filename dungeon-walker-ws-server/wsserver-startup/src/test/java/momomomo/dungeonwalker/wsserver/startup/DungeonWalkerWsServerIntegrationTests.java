@@ -9,6 +9,7 @@ import momomomo.dungeonwalker.wsserver.startup.steps.DungeonWalkerWsServerStepsD
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.junit.jupiter.api.AfterAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -76,6 +77,15 @@ public class DungeonWalkerWsServerIntegrationTests {
 
     static {
         KEYCLOACK.start();
+    }
+
+    @AfterAll
+    static void stopContainers() {
+        KAFKA.stop();
+        KAFKA.close();
+
+        KEYCLOACK.stop();
+        KEYCLOACK.close();
     }
 
     @DynamicPropertySource

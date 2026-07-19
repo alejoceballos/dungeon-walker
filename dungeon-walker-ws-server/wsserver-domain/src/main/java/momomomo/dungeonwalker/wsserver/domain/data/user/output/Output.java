@@ -29,7 +29,10 @@ public record Output(
                         name = AUTHENTICATION),
                 @JsonSubTypes.Type(
                         value = DungeonState.class,
-                        name = DUNGEON_STATE)
+                        name = DUNGEON_STATE),
+                @JsonSubTypes.Type(
+                        value = CellState.class,
+                        name = CELL_STATE)
         })
         @NonNull OutputData data
 ) {
@@ -40,6 +43,7 @@ public record Output(
     public static final String SERVER_MESSAGE = "server-message";
     public static final String AUTHENTICATION = "authentication";
     public static final String DUNGEON_STATE = "dungeon-state";
+    public static final String CELL_STATE = "cell-state";
 
     public static Output of(final ServerHeartbeat heartbeat) {
         return new Output(HEARTBEAT, heartbeat);
@@ -63,6 +67,10 @@ public record Output(
 
     public static Output of(final DungeonState dungeonState) {
         return new Output(DUNGEON_STATE, dungeonState);
+    }
+
+    public static Output of(final CellState cellState) {
+        return new Output(CELL_STATE, cellState);
     }
 
 }

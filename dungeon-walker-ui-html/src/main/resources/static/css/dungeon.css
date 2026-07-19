@@ -1,6 +1,11 @@
-body {
+html, body {
     height: 100%;
     margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
 }
 
 /* --------------------------------------------------------------------------- */
@@ -8,22 +13,28 @@ body {
 #title-pane {
     display: flex;
     justify-content: center; /* Horizontally centers the items */
-    align-items: center;     /* Vertically centers the items */
-    gap: 20px;               /* Space between the two images */
-    border: 1px solid #ccc;  /* Optional: for visibility */
+    align-items: center; /* Vertically centers the items */
+    gap: 20px; /* Space between the two images */
+    border: 1px solid #ccc; /* Optional: for visibility */
 }
 
 #title-pane img {
-    max-width: 45%;          /* Prevents images from overflowing */
-    height: auto;            /* Maintains aspect ratio */
+    max-width: 45%; /* Prevents images from overflowing */
+    height: auto; /* Maintains aspect ratio */
 }
 
+/* --------------------------------------------------------------------------- */
+
+#main-pane {
+    flex: 1; /* This makes it fill the remaining space */
+    overflow: auto; /* Optional: scroll if content is too large */
+}
 
 /* --------------------------------------------------------------------------- */
 
 #main-pane-table {
-    width: 100vw;              /* 100vw forces it to the viewport width. Use 100% to fill a parent div instead. */
-    table-layout: fixed;       /* CRITICAL: Forces the browser to strictly obey your width declarations */
+    width: 100vw; /* 100vw forces it to the viewport width. Use 100% to fill a parent div instead. */
+    table-layout: fixed; /* CRITICAL: Forces the browser to strictly obey your width declarations */
     border-collapse: collapse; /* Merges double borders into a single clean line */
 }
 
@@ -42,9 +53,9 @@ body {
     text-align: center;
 }
 
-#main-pane-table #messages-pane td {
-    text-align: left;
-}
+/*#main-pane-table #messages-pane td {*/
+/*    text-align: left;*/
+/*}*/
 
 #main-pane-table th,
 #main-pane-table td {
@@ -54,7 +65,7 @@ body {
 }
 
 #main-pane-table th {
-    background-color: #f8f9fa;        /* Light gray background for the header */
+    background-color: #f8f9fa; /* Light gray background for the header */
     font-weight: 600;
 }
 
@@ -64,19 +75,16 @@ body {
     padding: 0;
 }
 
-#main-pane-table #messages-pane #scrollable-pane {
-    position: absolute; /* CRITICAL: Takes the div out of the height calculation */
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    padding: 8px; /* Move your padding here */
-    box-sizing: border-box; /* Ensures padding doesn't add to the height */
-}
+/*#main-pane-table #messages-pane #scrollable-pane {*/
+/*    position: absolute; !* CRITICAL: Takes the div out of the height calculation *!*/
+/*    top: 0;*/
+/*    bottom: 0;*/
+/*    left: 0;*/
+/*    right: 0;*/
+/*    overflow-y: auto;*/
+/*    overflow-x: hidden;*/
+/*    box-sizing: border-box; !* Ensures padding doesn't add to the height *!*/
+/*}*/
 
 /* --------------------------------------------------------------------------- */
 
@@ -85,9 +93,9 @@ body {
 }
 
 #dungeon-pane table {
-    margin: 0 auto;            /* CRITICAL: Centers the table horizontally */
+    margin: 0 auto; /* CRITICAL: Centers the table horizontally */
     border-collapse: collapse; /* Standard professional table reset */
-    min-width: 50%;            /* Ensure it doesn't shrink too much if data is sparse */
+    min-width: 50%; /* Ensure it doesn't shrink too much if data is sparse */
 }
 
 #dungeon-pane tr td {
@@ -103,10 +111,10 @@ body {
 
 #dungeon-table th,
 #dungeon-table td {
-    width: 64px;               /* Exact width */
-    height: 64px;              /* Exact height */
-    box-sizing: border-box;    /* Ensures padding and borders are included in the 64px, not added to it */
-    padding: 0;                /* Remove default padding to maximize usable space, or set to a small value */
+    width: 64px; /* Exact width */
+    height: 64px; /* Exact height */
+    box-sizing: border-box; /* Ensures padding and borders are included in the 64px, not added to it */
+    padding: 0; /* Remove default padding to maximize usable space, or set to a small value */
     border: 1px solid #ccc;
 
     /* Alignment (Optional but recommended for a grid) */
@@ -114,14 +122,15 @@ body {
     vertical-align: middle;
 
     /* Overflow handling: What happens if content is bigger than 64x64? */
-    overflow: hidden;          /* Hides anything that spills out */
-    word-wrap: break-word;     /* Breaks long words */
+    overflow: hidden; /* Hides anything that spills out */
+    word-wrap: break-word; /* Breaks long words */
 }
 
 /* --------------------------------------------------------------------------- */
 
 #command-pane #command-input {
     width: 90%;
+    min-height: 5vh;
     border: none;
 }
 

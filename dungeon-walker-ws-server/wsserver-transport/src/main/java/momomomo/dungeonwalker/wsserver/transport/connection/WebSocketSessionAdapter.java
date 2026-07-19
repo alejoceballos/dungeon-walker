@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.machinezoo.noexception.Exceptions;
 import jakarta.annotation.PreDestroy;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.commons.conditional.Conditional;
 import momomomo.dungeonwalker.wsserver.domain.data.user.output.Output;
 import momomomo.dungeonwalker.wsserver.domain.outbound.UserConnection;
@@ -15,7 +16,10 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Slf4j
 public class WebSocketSessionAdapter implements UserConnection {
+
+    private static final String LABEL = "---> [WebSocket - Session Adapter]";
 
     private final WebSocketSession session;
     private final ObjectMapper jsonMapper;
@@ -59,9 +63,21 @@ public class WebSocketSessionAdapter implements UserConnection {
 
     @Override
     public void send(@NonNull final Output message) {
+        log.debug("{} sending message {} with data {}", LABEL, message.type(), message.data());
+
         Conditional
                 .on(this::isConnected)
-                .thenExecute(() -> sendAsync(message))
+                .thenExecute(() -> sendMessage(message))
+                .evaluate();
+    }
+
+    @Override
+    public void sendAsync(@NonNull final Output message) {
+        log.debug("{} sending asynchronous message {} with data {}", LABEL, message.type(), message.data());
+
+        Conditional
+                .on(this::isConnected)
+                .thenExecute(() -> sendAsyncMessage(message))
                 .evaluate();
     }
 
@@ -76,14 +92,18 @@ public class WebSocketSessionAdapter implements UserConnection {
         return session.hashCode();
     }
 
-    private void sendAsync(final Output message) {
+    private void sendMessage(final Output message) {
+        Exceptions
+                .wrap(WsServerTransportException::new)
+                .run(() -> session.sendMessage(new TextMessage(jsonMapper.writeValueAsString(message))));
+    }
+
+    private void sendAsyncMessage(final Output message) {
         if (asyncExecutor.isShutdown()) {
             return;
         }
 
-        asyncExecutor.submit(() -> Exceptions
-                .wrap(WsServerTransportException::new)
-                .run(() -> session.sendMessage(new TextMessage(jsonMapper.writeValueAsString(message)))));
+        asyncExecutor.submit(() -> sendMessage(message));
     }
 
 }

@@ -1,25 +1,24 @@
 Feature: WebSocket Server process flow
 
-  Scenario: User connects, authenticates and interact with the server
-    Given user "01" sends a connection request to the server
-    When the server establishes a connection with user "01"
-    Then user "01" receives the following message from the server:
+  Scenario: WebSocket Server interacts with the user and the engine server
+    Given the server receives a connection request from user "01"
+    And the server establishes this connection with user "01"
+    Then the server sends the following message to user "01":
       | server message: connected |
-    When user "01" sends an "authentication: user1" message to the server
-    Then the server sends a "enter dungeon: user1" request to the engine
-    And user "01" receives the following message from the server:
+    When the server receives an "authentication: user1" message from user "01"
+    Then the server sends an "enter dungeon: user1" request to the engine
+    And the server sends the following message to user "01":
       | server message: entering dungeon |
-    When the engine sends an "entered the dungeon: user1" message to the server
-    Then user "01" receives the following message from the server:
+    When the server receives the following messages from the engine:
+      | dungeon state: placed user1      |
+      | dungeon cell state: placed user1 |
+    Then the server sends the following messages to user "01":
       | dungeon state: user1 |
-    When user "01" sends a "move east: user1" message to the server
+      | cell state: user1    |
+    When the server receives a "move east: user1" message from user "01"
     Then the server sends a "move east: user1" request to the engine
-    Then user "01" sends a "heartbeat: user1" message to the server
+    Then the server receives a "heartbeat: user1" message from user "01"
     Then the server sends a "heartbeat: user1" request to the engine
     When the engine sends an "heartbeat: user1" message to the server
-    Then user "01" receives the following message from the server:
+    Then the server sends the following message to user "01":
       | heartbeat |
-    When the engine sends a "dungeon-state: user1" message to the server
-    Then user "01" receives the following message from the server:
-      | dungeon state: user1 |
-

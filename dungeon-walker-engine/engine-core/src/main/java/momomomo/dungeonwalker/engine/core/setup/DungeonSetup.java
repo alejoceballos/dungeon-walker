@@ -145,6 +145,7 @@ public class DungeonSetup {
         return FILE_PATH_PATTERN.formatted(dungeonId);
     }
 
+    @SuppressWarnings("rawtypes")
     private ScheduledFuture startKeepAliveTimer(final String dungeonId) {
         log.debug("{} Initializing \"keep alive\" timer for dungeon \"{}\"", LABEL, dungeonId);
 
@@ -152,10 +153,10 @@ public class DungeonSetup {
 
         return keepAliveExecutor.scheduleAtFixedRate(
                 () -> {
-                    log.debug("{} ping to \"{}\"", LABEL, dungeonId);
+                    log.trace("{} ping to \"{}\"", LABEL, dungeonId);
                     clusterManager
                             .askForKeepALive(dungeonId)
-                            .thenAccept(_ -> log.debug("{} pong from \"{}\"", LABEL, dungeonId));
+                            .thenAccept(_ -> log.trace("{} pong from \"{}\"", LABEL, dungeonId));
                 },
                 dungeonKeepAliveInterval.getSeconds(),
                 dungeonKeepAliveInterval.getSeconds(),

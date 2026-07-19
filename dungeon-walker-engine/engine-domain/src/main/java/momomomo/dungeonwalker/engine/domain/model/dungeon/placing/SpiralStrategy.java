@@ -1,5 +1,6 @@
 package momomomo.dungeonwalker.engine.domain.model.dungeon.placing;
 
+import lombok.NoArgsConstructor;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.Coordinates;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 
@@ -14,10 +15,8 @@ import static java.util.Objects.nonNull;
  * Checks for available empty spots in the map in a spiral search strategy, circling around the center and expanding
  * until it finds it.
  */
+@NoArgsConstructor
 public class SpiralStrategy implements DungeonPlacingStrategy {
-
-    public SpiralStrategy() {
-    }
 
     @Override
     public Coordinates placingCoordinates(final Dungeon dungeon) {

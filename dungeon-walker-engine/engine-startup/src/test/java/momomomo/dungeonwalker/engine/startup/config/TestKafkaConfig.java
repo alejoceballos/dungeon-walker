@@ -4,6 +4,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.client.ClientRequestProto.ClientRequest;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import org.springframework.kafka.core.ProducerFactory;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 
@@ -59,13 +61,14 @@ public class TestKafkaConfig {
     ) {
         final var props = new Properties();
 
-        props.put("bootstrap.servers", bootstrapServers);
-        props.put("group.id", groupId);
-        props.put("enable.auto.commit", enableAutoCommit);
-        props.put("auto.commit.interval.ms", "1000");
-        props.put("session.timeout.ms", "30000");
-        props.put("key.deserializer", keyDeserializer);
-        props.put("value.deserializer", valueDeserializer);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId + UUID.randomUUID());
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, enableAutoCommit);
+        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
+        props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializer);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         final var consumer = new KafkaConsumer<String, EngineMessage>(props);
         consumer.subscribe(singletonList(topic));

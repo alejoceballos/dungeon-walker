@@ -17,11 +17,12 @@ import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.connection
 import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.connection.ConnectionCloseCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.connection.ConnectionHeartbeatCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.connection.MoveCommand;
+import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.engine.DungeonCellStateChangedCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.engine.DungeonStateChangedCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.engine.EngineHeartbeatCommand;
-import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.engine.EnteredTheDungeonCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.ConnectionActor;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
+import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.client.ClientDungeonCellStateChangedCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.client.ClientDungeonStateChangedCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.client.ClientErrorMessageCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.client.ClientHeartbeatCommand;
@@ -113,7 +114,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
 
         return newReceiveBuilder()
                 .onMessage(ConnectionCloseCommand.class, _ -> onConnectionClose())
-                .onMessage(EnteredTheDungeonCommand.class, this::onEnteredTheDungeon)
+                .onMessage(DungeonStateChangedCommand.class, this::onDungeonStateFirstChanged)
                 .onAnyMessage(command -> {
                     log.warn(logShortMessage("Received unexpected command while in awake state: {}"), command);
                     return Behaviors.same();
@@ -129,9 +130,10 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
 
         return newReceiveBuilder()
                 .onMessage(ConnectionCloseCommand.class, _ -> onConnectionClose())
+                .onMessage(DungeonCellStateChangedCommand.class, this::onDungeonCellStateChanged)
+                .onMessage(DungeonStateChangedCommand.class, this::onDungeonStateChanged)
                 .onMessage(MoveCommand.class, this::onMove)
                 .onMessage(ConnectionHeartbeatCommand.class, this::onConnectionHeartbeat)
-                .onMessage(DungeonStateChangedCommand.class, this::onDungeonStateChanged)
                 .onMessage(EngineHeartbeatCommand.class, this::onEngineHeartbeat)
                 .onAnyMessage(command -> {
                     log.warn(logShortMessage("Received unexpected command while in in-play state: {}"), command);
@@ -141,13 +143,10 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
                 .build();
     }
 
-    private Behavior<ClientCommand> onPostStop(final PostStop signal) {
-        log.debug(logFullMessage("on Post Stop: {}"), signal);
-        return Behaviors.same();
-    }
-
-    private Behavior<ClientCommand> onConnectionAuthenticated(final ConnectionAuthenticatedCommand command) {
-        log.debug(logShortMessage("On wake up"));
+    private Behavior<ClientCommand> onConnectionAuthenticated(
+            @NonNull final ConnectionAuthenticatedCommand command
+    ) {
+        log.debug(logShortMessage("on connection authenticated"));
 
         connectionId = command.connectionId();
 
@@ -163,16 +162,13 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
         return connectionAuthenticated();
     }
 
-    private Behavior<ClientCommand> onEnteredTheDungeon(final EnteredTheDungeonCommand command) {
-        log.debug(logFullMessage("on entered the dungeon"));
-
-        tellConnection(ClientDungeonStateChangedCommand.of(command));
-
-        return inPLay();
+    private Behavior<ClientCommand> onPostStop(@NonNull final PostStop signal) {
+        log.debug(logFullMessage("on post stop: {}"), signal);
+        return Behaviors.same();
     }
 
     private Behavior<ClientCommand> onConnectionClose() {
-        log.debug(logFullMessage("on get out"));
+        log.debug(logFullMessage("on connection close"));
 
         engineOutbound
                 .send(ClientRequest
@@ -189,15 +185,35 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
         return Behaviors.stopped();
     }
 
-    private Behavior<ClientCommand> onDungeonStateChanged(final DungeonStateChangedCommand command) {
-        log.debug(logFullMessage("on handle dungeon state change"));
+    private Behavior<ClientCommand> onDungeonStateFirstChanged(@NonNull final DungeonStateChangedCommand command) {
+        log.debug(logFullMessage("on dungeon state first changed"));
+
+        if (!command.dungeonState().containsKey(actorId())) {
+            return Behaviors.same();
+        }
+
+        tellConnection(ClientDungeonStateChangedCommand.of(command));
+
+        return inPLay();
+    }
+
+    private Behavior<ClientCommand> onDungeonCellStateChanged(@NonNull final DungeonCellStateChangedCommand command) {
+        log.debug(logFullMessage("on dungeon cell state changed"));
+
+        tellConnection(ClientDungeonCellStateChangedCommand.of(command));
+
+        return Behaviors.same();
+    }
+
+    private Behavior<ClientCommand> onDungeonStateChanged(@NonNull final DungeonStateChangedCommand command) {
+        log.debug(logFullMessage("on dungeon state changed"));
 
         tellConnection(ClientDungeonStateChangedCommand.of(command));
 
         return Behaviors.same();
     }
 
-    private Behavior<ClientCommand> onMove(final MoveCommand command) {
+    private Behavior<ClientCommand> onMove(@NonNull final MoveCommand command) {
         log.debug(logFullMessage("on move"));
 
         final String direction = command.direction().name();
@@ -217,8 +233,8 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
         return Behaviors.same();
     }
 
-    private Behavior<ClientCommand> onConnectionHeartbeat(final ConnectionHeartbeatCommand command) {
-        log.debug(logFullMessage("on process heartbeat"));
+    private Behavior<ClientCommand> onConnectionHeartbeat(@NonNull final ConnectionHeartbeatCommand command) {
+        log.trace(logFullMessage("on connection heartbeat"));
 
         engineOutbound
                 .send(ClientRequest
@@ -226,7 +242,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
                         .setClientId(actorId())
                         .setHeartbeat(ClientHeartbeatProto.ClientHeartbeat.newBuilder().build())
                         .build())
-                .thenAccept(_ -> log.debug(logFullMessage("Successfully sent heartbeat to engine")))
+                .thenAccept(_ -> log.trace(logFullMessage("Successfully sent heartbeat to engine")))
                 .exceptionally(ex -> {
                     log.error(logFullMessage("Error sending heartbeat to engine"), ex);
                     return null;
@@ -235,8 +251,8 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
         return Behaviors.same();
     }
 
-    private Behavior<ClientCommand> onEngineHeartbeat(final EngineHeartbeatCommand command) {
-        log.debug(logFullMessage("on handle heartbeat"));
+    private Behavior<ClientCommand> onEngineHeartbeat(@NonNull final EngineHeartbeatCommand command) {
+        log.trace(logFullMessage("on engine heartbeat"));
 
         tellConnection(new ClientHeartbeatCommand());
 
@@ -261,12 +277,13 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
                 .evaluate();
     }
 
-    private @NonNull String logShortMessage(final String message) {
+    private @NonNull String logShortMessage(@NonNull final String message) {
         return "%s[state: %s][actor: %s]: %s".formatted(LABEL, state.getValue(), actorId(), message);
     }
 
-    private @NonNull String logFullMessage(final String message) {
-        return "%s[state: %s][actor: %s][connection: %s]: %s".formatted(LABEL, state.getValue(), actorId(), logConnectionId(), message);
+    private @NonNull String logFullMessage(@NonNull final String message) {
+        return "%s[state: %s][actor: %s][connection: %s]: %s"
+                .formatted(LABEL, state.getValue(), actorId(), logConnectionId(), message);
     }
 
 }

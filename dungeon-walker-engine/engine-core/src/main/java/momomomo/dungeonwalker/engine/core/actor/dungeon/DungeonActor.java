@@ -9,12 +9,14 @@ import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.setup.KeepA
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.setup.SetupDungeon;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.MoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.PlaceWalker;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.RemoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.to.DungeonStateReply;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.to.KeepAliveReply;
 import momomomo.dungeonwalker.engine.core.actor.walker.WalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.DungeonHeartbeat;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.Stop;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.UpdateCellState;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.UpdateDungeonState;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.DungeonState;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
@@ -37,6 +39,8 @@ import org.apache.pekko.persistence.typed.state.javadsl.SignalHandler;
 import java.time.Duration;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Slf4j
 public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonState> {
@@ -44,7 +48,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     private static final String LABEL = "---> [ACTOR - Dungeon]";
 
     public static final EntityTypeKey<DungeonCommand> ENTITY_TYPE_KEY =
-            EntityTypeKey.create(DungeonCommand.class, "dungeonRef-actor-type-key");
+            EntityTypeKey.create(DungeonCommand.class, DungeonActor.class.getSimpleName() + "-type-key");
 
     public static final String TIMER_NAME = "%s-periodic-timer";
 
@@ -54,11 +58,11 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     private final Duration heartbeatInterval;
 
     public DungeonActor(
-            final ActorContext<DungeonCommand> context,
-            final TimerScheduler<DungeonCommand> timers,
-            final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic,
-            final Duration heartbeatInterval,
-            final PersistenceId persistenceId
+            @NonNull final ActorContext<DungeonCommand> context,
+            @NonNull final TimerScheduler<DungeonCommand> timers,
+            @NonNull final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic,
+            @NonNull final Duration heartbeatInterval,
+            @NonNull final PersistenceId persistenceId
     ) {
         this.context = context;
         this.timers = timers;
@@ -69,11 +73,11 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     }
 
     public static Behavior<DungeonCommand> create(
-            final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic,
-            final Duration heartbeatInterval,
-            final PersistenceId persistenceId
+            @NonNull final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic,
+            @NonNull final Duration heartbeatInterval,
+            @NonNull final PersistenceId persistenceId
     ) {
-        log.debug("{}[persistenceId: {}] create", LABEL, persistenceId.toString());
+        log.debug("{}[persistenceId: {}] create", LABEL, persistenceId);
         return Behaviors.setup(context ->
                 Behaviors.withTimers(timers ->
                         new DungeonActor(
@@ -92,7 +96,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
 
     @Override
     public CommandHandler<DungeonCommand, DungeonState> commandHandler() {
-        log.debug(logShortMessage("command handler"));
+        log.trace(logShortMessage("command handler"));
 
         final var builder = newCommandHandlerBuilder();
 
@@ -101,6 +105,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
 
         builder.forStateType(InitializedDungeon.class)
                 .onCommand(PlaceWalker.class, this::onPlaceWalker)
+                .onCommand(RemoveWalker.class, this::onRemoveWalker)
                 .onCommand(MoveWalker.class, this::onMoveWalker)
                 .onCommand(DungeonHeartbeatTimeout.class, this::onDungeonHeartbeatTimeout);
 
@@ -119,17 +124,17 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     }
 
     private void onPostStop(
-            final DungeonState state,
-            final PostStop postStop) {
+            @NonNull final DungeonState state,
+            @NonNull final PostStop postStop) {
         log.debug(logFullMessage(state, "[on post stop]"));
         // TODO: Clean up
     }
 
     private Effect<DungeonState> onKeepAliveHeartbeat(
-            final DungeonState state,
-            final KeepAliveHeartbeat command
+            @NonNull final DungeonState state,
+            @NonNull final KeepAliveHeartbeat command
     ) {
-        log.debug(logFullMessage(state, "[on keep alive heartbeat]: {}"), command);
+        log.trace(logFullMessage(state, "[on keep alive heartbeat]: {}"), command);
 
         return Effect()
                 .none()
@@ -137,8 +142,8 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     }
 
     private Effect<DungeonState> onDungeonStateRequest(
-            final DungeonState state,
-            final DungeonStateRequest command
+            @NonNull final DungeonState state,
+            @NonNull final DungeonStateRequest command
     ) {
         log.debug(logFullMessage(state, "[on dungeon state request]: {}"), command.replyTo().path().name());
 
@@ -148,8 +153,8 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     }
 
     private Effect<DungeonState> onSetupDungeon(
-            final DungeonState state,
-            final SetupDungeon command
+            @NonNull final DungeonState state,
+            @NonNull final SetupDungeon command
     ) {
         log.debug(logFullMessage(state, "[on setup dungeon]: {}"), command);
 
@@ -158,20 +163,25 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     }
 
     private Effect<DungeonState> onPlaceWalker(
-            final DungeonState state,
-            final PlaceWalker command
+            @NonNull final DungeonState state,
+            @NonNull final PlaceWalker command
     ) {
         log.debug(logFullMessage(state, "[on place walker]: {}"), command);
 
-        state.placeThing(command.placingStrategy(), command.walker());
+        final var coordinates = state.placeWalker(command.placingStrategy(), command.walker());
 
         return Effect()
                 .persist(state)
-                .thenRun(persistedState -> tellAll(
+                .thenRun(persistedState -> tellWalker(
+                        command.walkerEntityId(),
                         new UpdateDungeonState(
                                 persistedState.getWidth(),
                                 persistedState.getHeight(),
-                                persistedState.getWalkersPositions())))
+                                persistedState.getDungeonState())))
+                .thenRun(_ -> tellAll(
+                        new UpdateCellState(
+                                command.walker().getId(),
+                                coordinates)))
                 .thenRun(_ -> {
                     final var timerKey = TIMER_NAME.formatted(entityId());
 
@@ -185,9 +195,29 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
                 });
     }
 
+    private Effect<DungeonState> onRemoveWalker(
+            @NonNull final DungeonState state,
+            @NonNull final RemoveWalker command
+    ) {
+        log.debug(logFullMessage(state, "[on remove walker]: {}"), command);
+
+        final var coordinates = state.removeWalker(command.walkerEntityId());
+
+        return Effect()
+                .persist(state)
+                .thenRun(_ -> {
+                    if (nonNull(coordinates)) {
+                        tellAll(new UpdateCellState(
+                                EMPTY,
+                                coordinates));
+                    }
+                });
+    }
+
+
     private Effect<DungeonState> onMoveWalker(
-            final DungeonState state,
-            final MoveWalker command
+            @NonNull final DungeonState state,
+            @NonNull final MoveWalker command
     ) {
         log.debug(logFullMessage(state, "[on move walker]: {}"), command);
 
@@ -200,14 +230,13 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
                 Effect()
                         .persist(state)
                         .thenRun(persistedState -> tellAll(
-                                new UpdateDungeonState(
-                                        persistedState.getWidth(),
-                                        persistedState.getHeight(),
-                                        persistedState.getWalkersPositions())));
+                                new UpdateCellState(
+                                        persistedState.at(to).getOccupant().getId(),
+                                        to)));
     }
 
     private Effect<DungeonState> onDungeonHeartbeatTimeout() {
-        log.debug(logShortMessage("[on dungeon heartbeat timeout]"));
+        log.trace(logShortMessage("[on dungeon heartbeat timeout]"));
 
         return Effect()
                 .none()
@@ -218,14 +247,17 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
         return context.getSelf().path().name();
     }
 
-    private void tellWalker(final String entityId, final WalkerCommand command) {
+    private void tellWalker(
+            @NonNull final String entityId,
+            @NonNull final WalkerCommand command
+    ) {
         ClusterSharding
                 .get(context.getSystem())
                 .entityRefFor(WalkerActor.ENTITY_TYPE_KEY, entityId)
                 .tell(command);
     }
 
-    private void tellAll(final WalkerCommand command) {
+    private void tellAll(@NonNull final WalkerCommand command) {
         walkerBroadcastTopic.tell(Topic.publish(command));
     }
 
@@ -233,11 +265,14 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
         return state.getClass().getSimpleName();
     }
 
-    private @NonNull String logShortMessage(final String message) {
+    private @NonNull String logShortMessage(@NonNull final String message) {
         return "%s[id: %s] %s".formatted(LABEL, context.getSelf().path().name(), message);
     }
 
-    private @NonNull String logFullMessage(final DungeonState state, final String message) {
+    private @NonNull String logFullMessage(
+            @NonNull final DungeonState state,
+            @NonNull final String message
+    ) {
         return "%s[id: %s][state: %S] %s".formatted(LABEL, entityId(), stateName(state), message);
     }
 

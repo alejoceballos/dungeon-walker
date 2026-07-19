@@ -8,6 +8,9 @@ import momomomo.dungeonwalker.engine.domain.model.dungeon.Dungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.Wall;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static java.util.Objects.isNull;
 
 @Component
@@ -18,6 +21,9 @@ public class RawDungeonMapper {
     private static final String WALL = "W";
 
     private final DungeonIdentity dungeonIdentity;
+    private final WallIdentity wallIdentity;
+
+    private final Map<Integer, Integer> wallCountPerLevel = new HashMap<>();
 
     public @NonNull Dungeon map(
             final int dungeonLevel,
@@ -55,7 +61,7 @@ public class RawDungeonMapper {
                 }
 
                 final var thing = WALL.equals(line[x]) ?
-                        new Wall(dungeonIdentity.id(dungeonLevel)) :
+                        new Wall(newWallId(dungeonLevel), dungeonIdentity.id(dungeonLevel)) :
                         null;
 
                 dungeon.add(new Cell(Coordinates.of(x, y), thing));
@@ -67,6 +73,13 @@ public class RawDungeonMapper {
         }
 
         return dungeon;
+    }
+
+    private String newWallId(final int dungeonLevel) {
+        final var currentCount = wallCountPerLevel.getOrDefault(dungeonLevel, 1);
+        wallCountPerLevel.put(dungeonLevel, currentCount + 1);
+
+        return wallIdentity.id(currentCount);
     }
 
 }

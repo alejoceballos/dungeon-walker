@@ -63,20 +63,12 @@ const init = (protocol, host, endpoint) => {
         }));
     }
 
-    const sendAbandon = () => {
-        ws.send(JSON.stringify({
-            type: "abandon",
-            data: {}
-        }));
-    }
-
     return {
         connect,
         disconnect,
         sendAuthentication,
         sendHeartbeat,
         sendMovement,
-        sendAbandon
     }
 
 }

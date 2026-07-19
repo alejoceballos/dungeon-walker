@@ -12,6 +12,9 @@ mvn clean -U
 cd ../dungeon-walker-ui-html || exit
 mvn clean -U
 
+cd ../dungeon-walker-gateway-server || exit
+mvn clean -U
+
 cd ../dungeon-walker-engine || exit
 mvn clean -U
 

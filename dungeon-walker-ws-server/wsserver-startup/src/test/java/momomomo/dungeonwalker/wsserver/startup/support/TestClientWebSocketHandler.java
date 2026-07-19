@@ -19,6 +19,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @RequiredArgsConstructor
 public class TestClientWebSocketHandler extends TextWebSocketHandler {
 
+    private static final String LABEL = "---> [TEST - Client WebSocket Handler]";
+
     @Getter
     private final State state = new State(
             new CopyOnWriteArrayList<>(),
@@ -62,6 +64,7 @@ public class TestClientWebSocketHandler extends TextWebSocketHandler {
             @NonNull final WebSocketSession session,
             @NonNull final TextMessage message) throws Exception {
         super.handleTextMessage(session, message);
+        log.debug("{} Handle Text Message: {}", LABEL, message.getPayload());
         state.handleTextMessage().add(Pair.of(session, message.getPayload()));
     }
 

@@ -1,0 +1,10 @@
+{
+  "target": "user1",
+  "dungeonCellState": {
+    "id": "user1",
+    "coordinates": {
+      "x": 3,
+      "y": 3
+    }
+  }
+}

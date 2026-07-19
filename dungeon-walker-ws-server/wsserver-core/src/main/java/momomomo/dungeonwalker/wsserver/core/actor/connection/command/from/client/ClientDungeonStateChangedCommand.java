@@ -2,7 +2,6 @@ package momomomo.dungeonwalker.wsserver.core.actor.connection.command.from.clien
 
 import lombok.NonNull;
 import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.engine.DungeonStateChangedCommand;
-import momomomo.dungeonwalker.wsserver.core.actor.client.command.from.engine.EnteredTheDungeonCommand;
 import momomomo.dungeonwalker.wsserver.core.actor.connection.command.ConnectionCommand;
 import momomomo.dungeonwalker.wsserver.domain.data.common.DungeonCoordinates;
 import momomomo.dungeonwalker.wsserver.domain.data.user.output.DungeonState;
@@ -16,13 +15,6 @@ public record ClientDungeonStateChangedCommand(
 ) implements ConnectionCommand {
 
     public static ClientDungeonStateChangedCommand of(@NonNull final DungeonStateChangedCommand command) {
-        return new ClientDungeonStateChangedCommand(
-                command.height(),
-                command.width(),
-                Map.copyOf(command.dungeonState()));
-    }
-
-    public static ClientDungeonStateChangedCommand of(@NonNull final EnteredTheDungeonCommand command) {
         return new ClientDungeonStateChangedCommand(
                 command.height(),
                 command.width(),

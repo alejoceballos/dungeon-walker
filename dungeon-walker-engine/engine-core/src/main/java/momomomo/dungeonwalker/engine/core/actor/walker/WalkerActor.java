@@ -4,17 +4,19 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.engine.EngineHeartbeatProto.EngineHeartbeat;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto.EngineMessage;
-import momomomo.dungeonwalker.contract.engine.EnteredDungeonProto.EnteredDungeon;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.DungeonActor;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.MoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.PlaceWalker;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.walker.RemoveWalker;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.client.Leave;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.client.Move;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.from.client.UserHeartbeat;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.client.WakeUp;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.DungeonHeartbeat;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.Stop;
+import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.UpdateCellState;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.UpdateDungeonState;
 import momomomo.dungeonwalker.engine.core.setup.DungeonIdentity;
 import momomomo.dungeonwalker.engine.domain.model.coordinates.CoordinatesManager;
@@ -51,7 +53,7 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
             EntityTypeKey.create(WalkerCommand.class, WalkerActor.class.getSimpleName() + "-type-key");
 
     private final ActorContext<WalkerCommand> context;
-
+    private final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic;
     private final DungeonIdentity dungeonIdentity;
     private final ClientOutbound<EngineMessage> clientOutbound;
 
@@ -63,12 +65,13 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
             @NonNull final ClientOutbound<EngineMessage> clientOutbound
     ) {
         this.context = context;
+        this.walkerBroadcastTopic = walkerBroadcastTopic;
         this.dungeonIdentity = dungeonIdentity;
         this.clientOutbound = clientOutbound;
 
         super(persistenceId);
 
-        walkerBroadcastTopic.tell(Topic.subscribe(context.getSelf()));
+        this.walkerBroadcastTopic.tell(Topic.subscribe(context.getSelf()));
     }
 
     public static Behavior<WalkerCommand> create(
@@ -99,22 +102,45 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
         final var builder = newCommandHandlerBuilder();
 
         builder.forStateType(Asleep.class)
-                .onCommand(WakeUp.class, this::onWakeUp);
+                .onCommand(WakeUp.class, this::onWakeUp)
+                .onAnyCommand((walkerState, command) -> {
+                    log.warn(logFullMessage(walkerState, "[{} not allowed while asleep]"), command.getClass().getSimpleName());
+                    return Effect().none();
+                });
 
         builder.forStateType(Awake.class)
-                .onCommand(UpdateDungeonState.class, this::onFirstUpdateDungeonState);
+                .onCommand(Leave.class, this::onLeave)
+                .onCommand(UpdateDungeonState.class, this::onFirstUpdateDungeonState)
+                .onCommand(UserHeartbeat.class, this::onUserHeartbeat)
+                .onAnyCommand((walkerState, command) -> {
+                    log.warn(logFullMessage(walkerState, "[{} not allowed while awake]"), command.getClass().getSimpleName());
+                    return Effect().none();
+                });
 
         builder.forStateType(Stopped.class)
+                .onCommand(Leave.class, this::onLeave)
                 .onCommand(UpdateDungeonState.class, this::onUpdateDungeonState)
-                .onCommand(Move.class, this::onMove);
+                .onCommand(UpdateCellState.class, this::onUpdateCellState)
+                .onCommand(Move.class, this::onMove)
+                .onCommand(UserHeartbeat.class, this::onUserHeartbeat)
+                .onAnyCommand((walkerState, command) -> {
+                    log.warn(logFullMessage(walkerState, "[{} not allowed while stopped]"), command.getClass().getSimpleName());
+                    return Effect().none();
+                });
 
         builder.forStateType(Moving.class)
+                .onCommand(Leave.class, this::onLeave)
                 .onCommand(UpdateDungeonState.class, this::onUpdateDungeonState)
+                .onCommand(UpdateCellState.class, this::onUpdateCellState)
                 .onCommand(Move.class, this::onAlreadyMoving)
-                .onCommand(Stop.class, this::onStop);
+                .onCommand(Stop.class, this::onStop)
+                .onCommand(UserHeartbeat.class, this::onUserHeartbeat)
+                .onAnyCommand((walkerState, command) -> {
+                    log.warn(logFullMessage(walkerState, "[{} not allowed while moving]"), command.getClass().getSimpleName());
+                    return Effect().none();
+                });
 
         builder.forAnyState()
-                .onCommand(Leave.class, this::onLeave)
                 .onCommand(DungeonHeartbeat.class, this::onDungeonHeartbeat);
 
         return builder.build();
@@ -128,20 +154,25 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
     }
 
     private void onPostStop(
-            final WalkerState state,
-            final PostStop signal) {
+            @NonNull final WalkerState state,
+            @NonNull final PostStop signal) {
         log.debug(logFullMessage(state, "[on post stop]"));
-        // TODO: Clean up
+
+        this.walkerBroadcastTopic.tell(Topic.unsubscribe(context.getSelf()));
     }
 
+    @SuppressWarnings("java:S1172")
     private Effect<WalkerState> onLeave(
             @NonNull final WalkerState state,
-            @NonNull final Leave command
+            @NonNull final Leave unused
     ) {
-        log.debug(logFullMessage(state, "[on leave]: {}"), command);
-        // TODO: Who sent this?
+        log.debug(logFullMessage(state, "[on leave]"));
+
         return Effect()
                 .persist(Asleep.of(state))
+                .thenRun(persistedWalker -> tellDungeon(
+                        persistedWalker.getDungeonId(),
+                        new RemoveWalker(persistedWalker.getId())))
                 .thenStop();
     }
 
@@ -149,7 +180,7 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
             @NonNull final WalkerState state,
             @NonNull final WakeUp command
     ) {
-        log.debug(logFullMessage(state, "[on enter dungeon]: {}"), command);
+        log.debug(logFullMessage(state, "[on wake up (enter dungeon)]: {}"), command);
 
         // Go to STASIS value
         return Effect()
@@ -169,45 +200,57 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
             @NonNull final WalkerState state,
             @NonNull final UpdateDungeonState command
     ) {
-        log.debug(logFullMessage(state, "[on first update coordinates]: {}"), command);
+        log.debug(logFullMessage(state, "[on first update dungeon state]: {}"), command);
 
         // If placed in the dungeon (meaning wasn't another walker placement being broadcasted)
-        if (command.coordinates().containsKey(state.getId())) {
-            return Effect()
-                    .persist(Stopped.of(
-                            state.updateCoordinates(
-                                    command.coordinates().get(
-                                            state.getId()))))
-                    .thenRun(persistedWalker -> clientOutbound.send(
-                            EngineMessage
-                                    .newBuilder()
-                                    .setTarget(persistedWalker.getId())
-                                    .setEnteredDungeon(
-                                            EnteredDungeon
-                                                    .newBuilder()
-                                                    .setDungeonState(command.toProtoDungeonState())
-                                                    .build())
-                                    .build()));
-
-        } else {
+        if (!command.coordinates().containsKey(state.getId())) {
             return Effect().none();
         }
+
+        final var coordinates = command.coordinates().get(state.getId());
+
+        return Effect()
+                .persist(Stopped.of(state.updateCoordinates(coordinates)))
+                .thenRun(persistedWalker -> clientOutbound.send(
+                        EngineMessage
+                                .newBuilder()
+                                .setTarget(persistedWalker.getId())
+                                .setDungeonState(command.toProtoDungeonState())
+                                .build()));
     }
 
     private Effect<WalkerState> onUpdateDungeonState(
             @NonNull final WalkerState state,
             @NonNull final UpdateDungeonState command
     ) {
-        log.debug(logFullMessage(state, "[on update coordinates]: {}"), command);
+        log.debug(logFullMessage(state, "[on update dungeon state]: {}"), command);
 
         return Effect()
-                .persist(Stopped.of(state.updateCoordinates(
-                        command.coordinates().get(state.getId()))))
-                .thenRun(_ -> clientOutbound.send(
+                .none()
+                .thenRun(persistedWalker -> clientOutbound.send(
                         EngineMessage
                                 .newBuilder()
-                                .setTarget(state.getId())
+                                .setTarget(persistedWalker.getId())
                                 .setDungeonState(command.toProtoDungeonState())
+                                .build()));
+    }
+
+    private Effect<WalkerState> onUpdateCellState(
+            @NonNull final WalkerState state,
+            @NonNull final UpdateCellState command
+    ) {
+        log.debug(logFullMessage(state, "[on update cell state]: {}"), command);
+
+        final var effectBuilder = state.getId().equals(command.id()) && !command.coordinates().equals(state.getCurrentCoordinates())
+                ? Effect().persist(Stopped.of(state.updateCoordinates(command.coordinates())))
+                : Effect().none();
+
+        return effectBuilder
+                .thenRun(persistedWalker -> clientOutbound.send(
+                        EngineMessage
+                                .newBuilder()
+                                .setTarget(persistedWalker.getId())
+                                .setDungeonCellState(command.toProtoDungeonCellState())
                                 .build()));
     }
 
@@ -263,8 +306,8 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
                                 .build()));
     }
 
-    private Effect<WalkerState> onDungeonHeartbeat() {
-        log.debug(logShortMessage("[on dungeon heartbeat]"));
+    protected Effect<WalkerState> onDungeonHeartbeat() {
+        log.trace(logShortMessage("[on dungeon heartbeat]"));
 
         return Effect()
                 .none()
@@ -276,7 +319,20 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
                                 .build()));
     }
 
-    private void tellDungeon(@NonNull final String entityId, final DungeonCommand command) {
+    @SuppressWarnings("java:S1172")
+    protected Effect<WalkerState> onUserHeartbeat(
+            @NonNull final WalkerState state,
+            @NonNull final UserHeartbeat unused
+    ) {
+        log.trace(logFullMessage(state, "[on user heartbeat]"));
+
+        return Effect().none();
+    }
+
+    private void tellDungeon(
+            @NonNull final String entityId,
+            @NonNull final DungeonCommand command
+    ) {
         ClusterSharding
                 .get(context.getSystem())
                 .entityRefFor(DungeonActor.ENTITY_TYPE_KEY, entityId)
@@ -291,11 +347,14 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
         return state.getClass().getSimpleName();
     }
 
-    private @NonNull String logShortMessage(final String message) {
+    private @NonNull String logShortMessage(@NonNull final String message) {
         return "%s[id: %s] %s".formatted(LABEL, context.getSelf().path().name(), message);
     }
 
-    private @NonNull String logFullMessage(final WalkerState state, final String message) {
+    private @NonNull String logFullMessage(
+            @NonNull final WalkerState state,
+            @NonNull final String message
+    ) {
         return "%s[id: %s][state: %S] %s".formatted(LABEL, state.getId(), stateName(state), message);
     }
 

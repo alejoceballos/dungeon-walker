@@ -12,23 +12,21 @@
     <img src="/img/DW-LOGO.png" alt="Dungeon Walker Logo" width="10%" height="10%">
     <img src="/img/DW-Bricked-Title.png" alt="Dungeon Walker Title" width="20%" height="20%">
 </div>
-<div>
+<div id="main-pane">
     <table id="main-pane-table" class="show-border">
-        <tr>
+        <tr id="main-pane-table-header">
             <th class="col-main show-border">Dungeon</th>
             <th class="col-secondary show-border">Messages</th>
         </tr>
-        <tr>
+        <tr id="main-pane-table-content">
             <td id="dungeon-pane" class="show-border">
                 <table id="dungeon-table">
                     <tr>
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
+                    </tr>
+                    <tr>
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
@@ -37,10 +35,8 @@
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
+                    </tr>
+                    <tr>
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
@@ -49,10 +45,8 @@
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
+                    </tr>
+                    <tr>
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
@@ -61,10 +55,8 @@
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
+                    </tr>
+                    <tr>
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
@@ -73,70 +65,8 @@
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
                     </tr>
                     <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
                         <td>X</td>
                         <td>X</td>
                         <td>X</td>
@@ -146,41 +76,6 @@
             <td id="messages-pane" class="show-border">
                 <div id="scrollable-pane">
                     <ol id="messageList">
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
-                        <li>Message</li>
                         <li>Message</li>
                         <li>Message</li>
                         <li>Message</li>
