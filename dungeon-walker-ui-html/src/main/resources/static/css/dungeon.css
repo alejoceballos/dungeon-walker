@@ -90,6 +90,7 @@ body {
 
 #dungeon-pane {
     width: 100%;
+    vertical-align: top;
 }
 
 #dungeon-pane table {
@@ -116,6 +117,8 @@ body {
     box-sizing: border-box; /* Ensures padding and borders are included in the 64px, not added to it */
     padding: 0; /* Remove default padding to maximize usable space, or set to a small value */
     border: 1px solid #ccc;
+    border-spacing: 0; /* Ensures no extra space between cells */
+    font-size: 46px;
 
     /* Alignment (Optional but recommended for a grid) */
     text-align: center;
@@ -123,7 +126,7 @@ body {
 
     /* Overflow handling: What happens if content is bigger than 64x64? */
     overflow: hidden; /* Hides anything that spills out */
-    word-wrap: break-word; /* Breaks long words */
+    white-space: nowrap; /* prevents wrapping */
 }
 
 /* --------------------------------------------------------------------------- */
@@ -132,6 +135,7 @@ body {
     width: 90%;
     min-height: 5vh;
     border: none;
+    font-size: 25px;
 }
 
 .show-border {

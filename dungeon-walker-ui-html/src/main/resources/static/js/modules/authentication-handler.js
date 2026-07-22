@@ -1,8 +1,13 @@
 const init = (protocol, host, endpoint) => {
+    const url = protocol + "://" + host + endpoint;
+
+    let loggedUser;
+
+    const getUsername = () => loggedUser;
+
+    const clearUsername = () => loggedUser = undefined;
 
     const requestToken = async (username, password) => {
-        const url = protocol + "://" + host + endpoint;
-
         const credentials = {
             username: username,
             password: password
@@ -27,6 +32,8 @@ const init = (protocol, host, endpoint) => {
                 };
             }
 
+            loggedUser = credentials.username;
+
             return {
                 status: "SUCCESS",
                 token: message.token
@@ -41,7 +48,9 @@ const init = (protocol, host, endpoint) => {
     }
 
     return {
-        requestToken
+        requestToken,
+        getUsername,
+        clearUsername
     }
 
 }

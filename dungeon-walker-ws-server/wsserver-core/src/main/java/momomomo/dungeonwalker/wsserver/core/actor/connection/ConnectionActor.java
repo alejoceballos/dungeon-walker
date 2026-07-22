@@ -264,7 +264,7 @@ public class ConnectionActor extends AbstractBehavior<ConnectionCommand> {
     }
 
     private Behavior<ConnectionCommand> onClientHeartbeat(@NonNull final ClientHeartbeatCommand command) {
-        log.trace(logShortMessage("on client heartbeat: {}"), command);
+        log.debug(logShortMessage("on client heartbeat: {}"), command);
 
         userConnection.send(Output.of(new ServerHeartbeat()));
 

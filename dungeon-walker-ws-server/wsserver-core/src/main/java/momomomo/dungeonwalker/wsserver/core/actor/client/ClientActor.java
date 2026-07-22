@@ -234,7 +234,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     }
 
     private Behavior<ClientCommand> onConnectionHeartbeat(@NonNull final ConnectionHeartbeatCommand command) {
-        log.trace(logFullMessage("on connection heartbeat"));
+        log.debug(logFullMessage("on connection heartbeat"));
 
         engineOutbound
                 .send(ClientRequest
@@ -242,7 +242,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
                         .setClientId(actorId())
                         .setHeartbeat(ClientHeartbeatProto.ClientHeartbeat.newBuilder().build())
                         .build())
-                .thenAccept(_ -> log.trace(logFullMessage("Successfully sent heartbeat to engine")))
+                .thenAccept(_ -> log.debug(logFullMessage("Successfully sent heartbeat to engine")))
                 .exceptionally(ex -> {
                     log.error(logFullMessage("Error sending heartbeat to engine"), ex);
                     return null;
@@ -252,7 +252,7 @@ public class ClientActor extends AbstractBehavior<ClientCommand> {
     }
 
     private Behavior<ClientCommand> onEngineHeartbeat(@NonNull final EngineHeartbeatCommand command) {
-        log.trace(logFullMessage("on engine heartbeat"));
+        log.debug(logFullMessage("on engine heartbeat"));
 
         tellConnection(new ClientHeartbeatCommand());
 

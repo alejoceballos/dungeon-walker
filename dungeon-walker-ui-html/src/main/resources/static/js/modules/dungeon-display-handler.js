@@ -52,15 +52,47 @@ const init = dungeonHandler => {
             DIRECTION.SOUTH_WEST];
 
         if (toCoords.x > fromCoords.x) {
-            removeFromArray(directions, [DIRECTION.NORTH_WEST, DIRECTION.WEST, DIRECTION.SOUTH_WEST]);
+            removeFromArray(directions, [
+                DIRECTION.NORTH_WEST,
+                DIRECTION.SOUTH_WEST,
+                DIRECTION.WEST,
+                DIRECTION.NORTH,
+                DIRECTION.SOUTH]);
         } else if (toCoords.x < fromCoords.x) {
-            removeFromArray(directions, [DIRECTION.NORTH_EAST, DIRECTION.EAST, DIRECTION.SOUTH_EAST]);
+            removeFromArray(directions, [
+                DIRECTION.NORTH_EAST,
+                DIRECTION.SOUTH_EAST,
+                DIRECTION.EAST,
+                DIRECTION.NORTH,
+                DIRECTION.SOUTH]);
+        } else {
+            removeFromArray(directions, [
+                DIRECTION.NORTH_EAST,
+                DIRECTION.SOUTH_EAST,
+                DIRECTION.NORTH_WEST,
+                DIRECTION.SOUTH_WEST,
+                DIRECTION.WEST,
+                DIRECTION.EAST]);
         }
 
         if (toCoords.y > fromCoords.y) {
-            removeFromArray(directions, [DIRECTION.NORTH_WEST, DIRECTION.NORTH, DIRECTION.NORTH_EAST]);
+            removeFromArray(directions, [
+                DIRECTION.NORTH_WEST,
+                DIRECTION.NORTH,
+                DIRECTION.NORTH_EAST]);
         } else if (toCoords.y < fromCoords.y) {
-            removeFromArray(directions, [DIRECTION.SOUTH_WEST, DIRECTION.SOUTH, DIRECTION.SOUTH_EAST]);
+            removeFromArray(directions, [
+                DIRECTION.SOUTH_WEST,
+                DIRECTION.SOUTH,
+                DIRECTION.SOUTH_EAST]);
+        } else {
+            removeFromArray(directions, [
+                DIRECTION.NORTH_EAST,
+                DIRECTION.SOUTH_EAST,
+                DIRECTION.NORTH_WEST,
+                DIRECTION.SOUTH_WEST,
+                DIRECTION.NORTH,
+                DIRECTION.SOUTH]);
         }
 
         return directions[0];
@@ -138,25 +170,44 @@ const init = dungeonHandler => {
     };
 
     const updateCellState = data => {
-        if (data.id) {
-            const currentCoords = getCoordinates(data.id);
+        if (!data.id) {
+            return removeFromDungeonByCoordinates(data.coordinates.x, data.coordinates.y);
+        }
 
-            if (currentCoords) {
-                dungeonHandler.removeThing(currentCoords.x, currentCoords.y);
+        const currentCoords = getCoordinates(data.id);
+
+        if (currentCoords) {
+            dungeonHandler.removeThing(currentCoords.x, currentCoords.y);
+        }
+
+        const direction = walkerDirection(currentCoords, data.coordinates);
+
+        dungeonHandler.addThing(
+            icon(data.id, direction),
+            data.coordinates.x,
+            data.coordinates.y);
+
+        updateCoordinates(data.id, data.coordinates);
+    }
+
+    const removeFromDungeonById = key => {
+        const coords = getCoordinates(key);
+        dungeonData.coordinates[key] = undefined;
+        dungeonHandler.removeThing(coords.x, coords.y);
+    }
+
+    const removeFromDungeonByCoordinates = (x, y) => {
+        for (const [key, coords] of Object.entries(dungeonData.coordinates)) {
+            if (coords.x === x && coords.y === y) {
+                dungeonData.coordinates[key] = undefined;
+                dungeonHandler.removeThing(coords.x, coords.y);
+                return;
             }
-
-            const direction = walkerDirection(currentCoords, data.coordinates);
-
-            dungeonHandler.addThing(
-                icon(data.id, direction),
-                data.coordinates.x,
-                data.coordinates.y);
-
-            updateCoordinates(data.id, data.coordinates);
         }
     }
 
     const updateCoordinates = (thingId, coordinates) => dungeonData.coordinates[thingId] = coordinates;
+
     const getCoordinates = thingId => dungeonData.coordinates[thingId];
 
     const isCreated = () => !!dungeonData;
@@ -164,7 +215,8 @@ const init = dungeonHandler => {
     return {
         create,
         update,
-        isDungeonCreated: isCreated
+        isDungeonCreated: isCreated,
+        removeFromDungeon: removeFromDungeonById
     }
 
 };

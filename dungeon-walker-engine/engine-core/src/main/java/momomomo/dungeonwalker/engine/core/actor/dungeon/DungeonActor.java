@@ -134,7 +134,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
             @NonNull final DungeonState state,
             @NonNull final KeepAliveHeartbeat command
     ) {
-        log.trace(logFullMessage(state, "[on keep alive heartbeat]: {}"), command);
+        log.debug(logFullMessage(state, "[on keep alive heartbeat]: {}"), command);
 
         return Effect()
                 .none()
@@ -236,7 +236,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     }
 
     private Effect<DungeonState> onDungeonHeartbeatTimeout() {
-        log.trace(logShortMessage("[on dungeon heartbeat timeout]"));
+        log.debug(logShortMessage("[on dungeon heartbeat timeout]"));
 
         return Effect()
                 .none()

@@ -32,6 +32,8 @@ const init = (
         messageContext.info(`Connection ${cleanly} closed ${withReason} code ${code}`);
 
         heartbeatContext.stopTimer();
+        dungeonDisplayContext.removeFromDungeon(authContext.getUsername());
+        authContext.clearUsername();
     }
 
     const onError = () => {
@@ -76,6 +78,8 @@ const init = (
                 break;
 
             case "dungeon-state":
+                messageContext.inbound(`Dungeon state: ${JSON.stringify(data)}`);
+
                 if (!dungeonDisplayContext.isDungeonCreated()) {
                     dungeonDisplayContext.create(data);
                 }
@@ -85,6 +89,8 @@ const init = (
                 break;
 
             case "cell-state":
+                messageContext.inbound(`Cell state: ${JSON.stringify(data)}`);
+
                 if (!dungeonDisplayContext.isDungeonCreated()) {
                     messageContext.warning(`Cannot update cell state. Dungeon is not created`);
                     break;
@@ -197,6 +203,9 @@ const init = (
         if (["n", "s", "e", "w", "ne", "nw", "se", "sw"].includes(operation)) {
             return moveCommand(operation.toUpperCase());
         }
+
+        clearInput();
+        messageContext.warning(`Invalid command: "${input}"`);
 
         return ignoreCommand();
     }

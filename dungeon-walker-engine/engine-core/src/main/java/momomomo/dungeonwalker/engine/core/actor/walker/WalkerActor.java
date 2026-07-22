@@ -307,7 +307,7 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
     }
 
     protected Effect<WalkerState> onDungeonHeartbeat() {
-        log.trace(logShortMessage("[on dungeon heartbeat]"));
+        log.debug(logShortMessage("[on dungeon heartbeat]"));
 
         return Effect()
                 .none()
@@ -324,7 +324,7 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
             @NonNull final WalkerState state,
             @NonNull final UserHeartbeat unused
     ) {
-        log.trace(logFullMessage(state, "[on user heartbeat]"));
+        log.debug(logFullMessage(state, "[on user heartbeat]"));
 
         return Effect().none();
     }

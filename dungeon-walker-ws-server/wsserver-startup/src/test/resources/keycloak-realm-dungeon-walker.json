@@ -2239,7 +2239,7 @@
     {
       "username": "user1",
       "email": "user1@momomomo.com",
-      "firstName": "User",
+      "firstName": "Useruno",
       "lastName": "One",
       "enabled": true,
       "credentials": [
@@ -2247,13 +2247,20 @@
           "type": "password",
           "value": "password1"
         }
-      ],
-      "clientRoles": {
-        "account": [
-          "view-profile",
-          "manage-account"
-        ]
-      }
+      ]
+    },
+    {
+      "username": "user2",
+      "email": "user2@momomomo.com",
+      "firstName": "Userdos",
+      "lastName": "Two",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password2"
+        }
+      ]
     }
   ]
 }

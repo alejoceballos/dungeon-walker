@@ -36,48 +36,11 @@
                         <td>X</td>
                         <td>X</td>
                     </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
-                    <tr>
-                        <td>X</td>
-                        <td>X</td>
-                        <td>X</td>
-                    </tr>
                 </table>
             </td>
             <td id="messages-pane" class="show-border">
                 <div id="scrollable-pane">
                     <ol id="messageList">
-                        <li>Message</li>
-                        <li>Message</li>
                         <li>Message</li>
                         <li>Message</li>
                         <li>Message</li>

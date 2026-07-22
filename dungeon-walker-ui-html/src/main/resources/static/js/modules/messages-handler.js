@@ -12,8 +12,9 @@ const init = (handler, maxMessages) => {
 
         const connected = CONTEXT.connected ? "🔗" : "⛓️‍💥";
         const authorized = CONTEXT.authorized ? "🔓" : "🔒";
+        const timestamp = `[${new Date().toISOString().replace('T', ' ').substring(0, 19)}]`;
 
-        handler.addMessage(`${connected}${authorized} ${message}`);
+        handler.addMessage(`${connected}${authorized} ${timestamp} ${message}`);
     };
 
     const error = message => {
