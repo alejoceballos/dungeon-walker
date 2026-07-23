@@ -101,6 +101,9 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
 
         final var builder = newCommandHandlerBuilder();
 
+        builder.forAnyState()
+                .onCommand(DungeonHeartbeat.class, this::onDungeonHeartbeat);
+
         builder.forStateType(Asleep.class)
                 .onCommand(WakeUp.class, this::onWakeUp)
                 .onAnyCommand((walkerState, command) -> {
@@ -139,9 +142,6 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
                     log.warn(logFullMessage(walkerState, "[{} not allowed while moving]"), command.getClass().getSimpleName());
                     return Effect().none();
                 });
-
-        builder.forAnyState()
-                .onCommand(DungeonHeartbeat.class, this::onDungeonHeartbeat);
 
         return builder.build();
     }
@@ -306,8 +306,11 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
                                 .build()));
     }
 
-    protected Effect<WalkerState> onDungeonHeartbeat() {
-        log.debug(logShortMessage("[on dungeon heartbeat]"));
+    protected Effect<WalkerState> onDungeonHeartbeat(
+            @NonNull final WalkerState state,
+            @NonNull final DungeonHeartbeat unused
+    ) {
+        log.debug(logFullMessage(state, "[on dungeon heartbeat]"));
 
         return Effect()
                 .none()
