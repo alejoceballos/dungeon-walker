@@ -1,258 +1,117 @@
 # ARCHITECTURE — dungeon-walker-ws-server
 
-This document explains the architecture of the "dungeon-walker-ws-server" module so it can be reproduced, audited, and regenerated (partially or fully) using AI-driven workflows in the future. It describes the module responsibilities, component interactions, technologies, SOLID application, design patterns, testing, deployment, and guidelines for using AI to recreate or evolve the module.
-
-## Overview
-
-The dungeon-walker-ws-server is the WebSocket-facing gateway for the Dungeon Walker engine. Its responsibilities:
-
-- Accept and manage WebSocket connections from players and admin UIs.
-- Translate socket messages into domain commands/events and validate them.
-- Route commands/events to the internal processing pipeline (actor system + Kafka). 
-- Subscribe to domain events and push relevant updates to connected clients.
-- Maintain ephemeral session state and session lifecycle (connect/disconnect, heartbeats).
-
-The module is implemented in Java using an asynchronous, actor-based concurrency model (Pekko), integrates with Kafka for durable event distribution, and exposes a high-throughput WebSocket API (Pekko HTTP / Pekko Streams or equivalent).
-
-## High-level architecture
-
-Components:
-
-- WebSocket Layer
-  - Accepts socket connections via Pekko HTTP.
-  - Upgrades HTTP requests to WebSocket and maps each connection to a Session actor.
-  - Handles authentication (JWT/session token) and basic rate-limiting.
-
-- Session Actors (Pekko)
-  - One actor per active WebSocket session.
-  - Manages connection lifecycle, message buffering, outbound backpressure.
-  - Maps incoming socket messages to domain Commands and forwards them to the Command Router.
-
-- Command Router / Gateway
-  - Validates and enriches commands, applies policies (authorization, rate limits), and publishes commands to Kafka or forwards them directly to local processing actors.
-  - Produces structured events/commands to Kafka topics for the main engine (e.g., commands.topic, presence.topic).
-
-- Event Consumer / Subscription Manager
-  - Subscribes to Kafka topics for domain events produced by game engine workers and NPC processors.
-  - Matches events to sessions/players and forwards events to the appropriate Session Actor for delivery to the client.
-
-- Serialization & Schema
-  - Prefer Protobuf (or Avro) schemas for Kafka messages for backward compatibility and clear contracts.
-  - WebSocket payloads use a compact JSON envelope for ease of debugging and to support browsers; convert to/from Protobuf internally.
-
-- Persistence
-  - Minimal durable session metadata (e.g., last-seen, reconnect tokens) stored in a fast store (Redis or PostgreSQL), but main authoritative state is event-driven in the engine services.
-
-- Observability
-  - Structured logs (SLF4J + Logback), metrics (Prometheus + Micrometer), and distributed traces (OpenTelemetry).
-
-- Configuration
-  - Externalized via typesafe config (HOCON) or environment variables. Sensitive values read from a secrets store at runtime.
-
-## Technologies and rationale
-
-- Java (primary language)
-  - Strong ecosystem, stable tooling, and good interop with Pekko.
-
-- Pekko (actor model)
-  - Used for lightweight, non-blocking concurrent Session actors and internal routing.
-  - Pekko Streams for backpressure-aware message flow between the WebSocket surface and internal processing.
-
-- Kafka
-  - Durable, horizontally scalable event bus to decouple WebSocket gateway from game processing workers.
-  - Use topics with consumer groups (e.g., per region or feature) to scale consumers.
-
-- Serialization
-  - Protobuf or Avro for Kafka messages (schema registry recommended).
-  - WebSocket messages encoded as compact JSON envelopes to keep browser clients simple.
-
-- Persistence
-  - Redis for ephemeral session tokens and presence; Postgres for long-lived metadata and migrations (Flyway).
-
-- Build & tooling
-  - Gradle (or Maven) for builds. JUnit + Mockito for tests. Testcontainers for integration tests with Kafka and Redis.
-
-- Observability
-  - Micrometer -> Prometheus, OpenTelemetry for traces.
-
-- CI/CD
-  - GitHub Actions pipeline builds, runs tests, and performs static analysis. Containerize the module (Docker) and publish images to a registry.
-
-## Package / Module structure (recommended)
-
-- src/main/java/
-  - com.dungeonwalker.ws
-    - api
-      - websocket: HTTP/WebSocket endpoints, upgrade logic
-      - dto: JSON envelope DTOs
-    - session
-      - SessionActor.java
-      - SessionManager.java
-      - SessionRepository.java (interface)
-    - routing
-      - CommandRouter.java
-      - EventDispatcher.java
-    - kafka
-      - KafkaProducerService.java
-      - KafkaConsumerWorker.java
-      - serializers (Protobuf converters)
-    - domain
-      - commands
-      - events
-      - models
-    - persistence
-      - RedisSessionStore.java
-      - PostgresMetadataStore.java
-    - di
-      - Module.java (wiring for DI framework)
-    - util
-      - BackpressureUtils.java
-      - SerializationUtils.java
-
-This layout maps responsibilities to packages and keeps a clear boundary between I/O (api), concurrency (session), integration (kafka), and domain logic.
-
-## SOLID principles applied
-
-- Single Responsibility Principle (SRP)
-  - Each class focuses on a single concern: SessionActor handles the socket session lifecycle; CommandRouter handles routing and enrichment; KafkaProducerService only deals with producing to Kafka.
-
-- Open/Closed Principle (OCP)
-  - Define handler interfaces (e.g., CommandHandler, EventHandler) and register implementations for new behaviors (new command types) without changing the router internals.
-
-- Liskov Substitution Principle (LSP)
-  - Favor small interfaces with consistent contracts; implementations of CommandHandler must honor the pre- and post-conditions (e.g., validation results, exceptions) so substitutability is safe.
-
-- Interface Segregation Principle (ISP)
-  - Provide focused interfaces: PresenceStore vs. SessionStore rather than a monolithic Store interface. WebSocket serializer/codec interfaces separate transport concerns from domain serialization.
-
-- Dependency Inversion Principle (DIP)
-  - High-level modules (e.g., CommandRouter) depend on abstractions (CommandProducer) rather than concrete KafkaProducerService. Use constructor injection for easier testing and AI-driven generation of mocks.
-
-## Design patterns used
-
-- Actor Model (Pekko)
-  - Primary concurrency pattern: one actor per session; supervisors manage actor lifecycle and failure recovery.
-
-- Publish/Subscribe
-  - WebSocket gateway publishes commands to Kafka; processing services publish events that the gateway subscribes to.
-
-- Strategy
-  - Command validation/ratelimiting/authorization are pluggable strategies.
-
-- Command pattern
-  - Map client actions to Command objects that can be validated, logged, serialized, and replayed.
-
-- Factory / Abstract Factory
-  - For creating typed Command and Event instances from raw DTOs.
-
-- Adapter
-  - Wrap external systems (Kafka, Redis) behind small adapter interfaces to decouple them from internal logic.
-
-- Repository
-  - Abstract persistence concerns for session metadata, enabling test doubles and future storage changes.
-
-- Decorator / Middleware
-  - Message pipelines (validation -> enrichment -> authorization -> production) implemented as chainable decorators or middleware steps.
-
-## Concurrency, backpressure and flow control
-
-- Use Pekko Streams to connect WebSocket source/sink to Session actors to enforce backpressure.
-- SessionActor buffers outbound messages with a bounded mailbox and applies drop/slow-client policies.
-- When producing to Kafka, use async produces with callback handling and appropriate retries and circuit-breaker policies to avoid blocking actors.
-
-## Security considerations
-
-- Authenticate on WebSocket upgrade (JWT or session token). Reject unauthorized upgrades.
-- Authorize each command according to player permissions.
-- Use TLS for WebSocket (wss://) in production.
-- Sanitize and validate inputs; apply size limits to messages; throttle abusive clients.
-
-## Testing strategy
-
-- Unit tests for CommandRouter, serialization, and business rules.
-- Actor unit tests using Pekko TestKit / Pekko typed testkit.
-- Integration tests with Testcontainers: stand up Kafka, Redis, Postgres.
-- End-to-end tests (optional): run the ws-server against a local engine worker in CI for smoke tests.
-
-## Deployment and scaling
-
-- Containerize the module and deploy behind a load balancer. For sticky WebSocket sessions, use a session-affinity (or use a shared session store and route any instance) or a stateless token that allows reconnects.
-- Horizontally scale by running multiple instances; Kafka decouples producers/consumers so scaling is straightforward.
-- Use autoscaling based on metrics: connection count, throughput, consumer lag.
-
-## Observability and debugging
-
-- Emit structured events for key lifecycle events: connect, disconnect, command received, command published, event delivered.
-- Correlate traces across the gateway and worker services using a shared trace id in message envelopes.
-- Expose health and readiness endpoints for orchestrators.
-
-## Reproducibility using AI models
-
-The goal is to be able to replicate (generate) this module using AI-assisted coding. Below is a recommended workflow and constraints to make that repeatable and auditable.
-
-1. Source artifacts and constraints
-   - Provide Protobuf/Avro schemas for command & event contracts.
-   - Provide a HOCON configuration schema (example file).
-   - Provide a minimal interface catalog (core Java interfaces with Javadoc) for DI and adapters.
-   - Provide tests that clearly assert behavior (unit + integration). These tests serve as the specification for AI-generated code (test-driven generation).
-
-2. Prompt engineering guidance
-   - Use small, focused prompts: "Generate SessionActor.java that maintains a bounded buffer and sends JSON envelopes to a WebSocket sink using Pekko Streams. Follow this interface: ...".
-   - Provide schema files and package structure in the prompt or as accompanying files.
-   - Use multi-step generation: generate interfaces and tests first, then implementations.
-
-3. Iterative verification
-   - Validate generated code against unit tests locally (CI runs). Failing tests narrow the next generation iteration.
-   - Use semantic search to find existing similar patterns in the repo and reuse those patterns.
-
-4. Safety and determinism
-   - Pin versions of dependencies in the build file to ensure deterministic builds.
-   - Use linters and static analyzers in CI to enforce consistent style and to catch risky constructs.
-
-5. Human-in-the-loop review
-   - Always open a PR for generated changes with human reviewers and automated checks before merging.
-
-## Example guidelines for AI-generated class skeletons
-
-- Always prefer explicit interfaces with small, well-documented method contracts.
-- Keep side-effects isolated behind adapter interfaces.
-- Provide comprehensive unit tests that exercise both success and failure cases.
-
-Example minimal interface (for AI to implement):
-
-interface CommandProducer {
-  CompletionStage<RecordMetadata> produce(CommandEnvelope command);
-}
-
-interface SessionStore {
-  CompletionStage<Void> persist(SessionMetadata s);
-  CompletionStage<Optional<SessionMetadata>> load(String sessionId);
-}
-
-These simple interfaces give AI a bounded surface to implement and test.
-
-## Operational checklist
-
-- Ensure Kafka topic schemas and retention settings are defined and versioned.
-- Ensure schema registry is available for Protobuf/Avro schemas.
-- Ensure secrets and TLS certs are provisioned for production.
-- Monitor consumer lag and set alerts for high-latency event delivery.
-
-## Migration and extensibility
-
-- When adding new command types, add a new Protobuf message and handler implementation; keep old fields optional to preserve backwards compatibility.
-- Avoid changing existing topic semantics; create new topics or versions if necessary.
-
-## Appendix: Quick-start to spin up locally (developer workflow)
-
-1. Start Kafka, Redis, Postgres locally (Testcontainers or docker-compose).
-2. Configure env variables (KAFKA_BOOTSTRAP, REDIS_URL, DATABASE_URL).
-3. Run ./gradlew :dungeon-walker-ws-server:run
-4. Connect a WebSocket client to ws://localhost:8080/ws and exchange JSON envelopes.
-
----
-
-If you want, I can also:
-- add example Protobuf schemas and minimal Java interfaces to the module,
-- add a sample SessionActor skeleton implementation and unit tests so AI can use concrete examples,
-- or open a PR with these changes applied.
+This document strictly describes the architecture that can be observed in the repository code for the dungeon-walker-ws-server Java module. It contains only facts that appear in the codebase (class names, configuration, modules and technologies referenced). It is intended as an executable specification that future AI agents can use to reproduce the module structure and wiring.
+
+Summary
+- Languages & build: Java (pom.xml modules), Maven build (pom files), Docker image build via Jib (jib-maven-plugin) and repository scripts.
+- Frameworks and libraries referenced in code: Spring Boot, Spring WebSocket, Spring Kafka, Spring Cloud (config, Eureka client), Apache Pekko (actor typed, cluster sharding), Micrometer, OpenTelemetry (agent dependency), Testcontainers (test scope), Protobuf-generated types referenced from contract packages.
+- Integration points visible in code: WebSocket transport (Spring WebSocket), Kafka producers/consumers (Spring Kafka), Pekko actor system / cluster sharding (Pekko Config + GuardianActor + Entity actors), JSON mapping (Jackson ObjectMapper bean), JWT-based handshake/authorization (NimbusJwtDecoder usage).
+
+Project module boundaries
+The parent ws-server pom declares four modules that form the boundary of this project:
+
+- wsserver-domain
+- wsserver-core
+- wsserver-transport
+- wsserver-startup
+
+These modules are present in the parent pom and are implemented in their respective directories.
+
+Clean-architecture mapping (from code)
+From the repository code the modules map to a layered, clean-architecture style separation:
+
+- wsserver-domain — Domain layer (enterprise/business rules)
+  - Contains domain-level interfaces, data objects and handler selectors that do not depend on transport or framework classes.
+  - Evidence in code:
+    - Interfaces: momomomo.dungeonwalker.wsserver.domain.inbound.UserInbound, EngineInbound
+    - Handler selector interface: momomomo.dungeonwalker.wsserver.domain.handler.MessageHandlerSelector
+    - Domain data: momomomo.dungeonwalker.wsserver.domain.data.* (example: Direction enum)
+  - Role: define contracts used by core/transport; no framework wiring in domain sources.
+
+- wsserver-core — Application / use-case layer (Pekko actor orchestration and message managers)
+  - Contains Pekko actor configuration and actors that implement application behaviour and routing.
+  - Evidence in code:
+    - Pekko configuration: momomomo.dungeonwalker.wsserver.core.config.PekkoConfig (creates ActorSystem and ClusterSharding)
+    - Guardian actor: momomomo.dungeonwalker.wsserver.core.actor.guardian.GuardianActor
+    - Cluster sharding manager and actor wiring: momomomo.dungeonwalker.wsserver.core.actor.ClusterShardingManager
+    - Inbound managers (map transport messages into actor commands): EngineMessageManager and UserMessageManager under wsserver-core.inbound.*
+    - Actor command records and command types in wsserver-core.actor.* packages (e.g., ConnectionCloseCommand, UserHeartbeatCommand)
+  - Role: implement use-cases and map domain-level contracts to actor messages and cluster-sharding entities.
+
+- wsserver-transport — Interface adapters layer (WebSocket + Kafka integration and serialization)
+  - Implements the external-facing transport details and adapters that convert transport messages into domain inputs and vice-versa.
+  - Evidence in code:
+    - WebSocket handler and transport config: momomomo.dungeonwalker.wsserver.transport.inbound.WsHandler and WebSocketConfig
+    - WebSocket session adapter: momomomo.dungeonwalker.wsserver.transport.connection.WebSocketSessionAdapter (implements domain outbound UserConnection)
+    - JWT handshake/authorization: JwtHandshakeInterceptor and JwtAuthorizer (authorization implementation) using NimbusJwtDecoder
+    - Kafka integration and configuration: momomomo.dungeonwalker.wsserver.transport.config.KafkaConfig and KafkaConsumer class under transport.inbound
+    - Application transport properties: wsserver-transport/src/main/resources/application-transport.yml (defines websocket.endpoint, Kafka serializer/deserializer classes)
+    - JSON mapper bean: WsTransportConfig defines ObjectMapper bean
+    - Transport uses contract proto types in Kafka consumers/producers (contract.client.ClientRequestProto and contract.engine.EngineMessageProto referenced)
+  - Role: adapt WebSocket messages to domain Input objects, produce/consume Kafka messages and call domain inbound interfaces (UserInbound, EngineInbound).
+
+- wsserver-startup — Framework/bootstrap layer (Spring Boot wiring and runtime dependencies)
+  - Contains dependencies and configuration for runtime concerns, monitoring and service discovery.
+  - Evidence in code and pom:
+    - pom declares dependencies: spring-boot-starter-actuator, spring-cloud-starter-config, spring-cloud-starter-netflix-eureka-client, micrometer-registry-prometheus, opentelemetry-javaagent (runtime scope)
+    - wsserver-startup module depends on wsserver-domain, wsserver-core and wsserver-transport in its pom, indicating it composes the other modules into a runnable application.
+  - Role: provide Spring Boot application bootstrap, actuator/monitoring and cloud config/discovery wiring.
+
+Inter-module relations (how modules interact in code)
+- Transport -> Domain
+  - WsHandler uses UserInbound (domain interface) to establish/close/handle user messages. (WsHandler.createClientInbound returns WebSocketSessionAdapter which implements domain.outbound.UserConnection.)
+  - KafkaConsumer in transport delegates consumed EngineMessage proto instances to a domain EngineInbound bean.
+
+- Core -> Domain
+  - Core implements EngineInbound and UserInbound (EngineMessageManager and UserMessageManager are annotated @Component and implement domain inbound interfaces) and translate messages into Pekko actor commands via ClusterShardingManager.
+  - ClusterShardingManager in core initializes Pekko entities (ConnectionActor, ClientActor) and exposes methods to obtain EntityRef and tell/ask actors.
+
+- Core <-> Transport (indirect coupling via domain interfaces)
+  - Transport calls domain interfaces (UserInbound, EngineInbound) — the implementations are provided by wsserver-core components.
+  - Transport provides adapters (WebSocketSessionAdapter implements UserConnection) that are consumed by core inbound managers.
+
+- Startup -> {domain, core, transport}
+  - The startup module depends on the other modules and provides the Spring Boot application/bootstrap context that brings transport beans, core beans and domain contracts together at runtime.
+
+Transport boundaries and technologies (explicit in code)
+- WebSocket boundary (HTTP -> WebSocket): implemented with Spring WebSocket
+  - Class: momomomo.dungeonwalker.wsserver.transport.config.WebSocketConfig registers the WsHandler under the configured endpoint.
+  - Handler: momomomo.dungeonwalker.wsserver.transport.inbound.WsHandler extends TextWebSocketHandler and converts TextMessage payloads to domain Input via Jackson ObjectMapper.
+  - Session adapter: WebSocketSessionAdapter adapts Spring WebSocketSession to the domain.outbound.UserConnection interface used by core.
+  - JWT handshake: JwtHandshakeInterceptor inspects Authorization header during handshake; JwtAuthorizer decodes and validates tokens.
+
+- Kafka boundary (service-to-service event bus): implemented with Spring Kafka
+  - Transport Kafka configuration: momomomo.dungeonwalker.wsserver.transport.config.KafkaConfig creates ConsumerFactory, ProducerFactory and KafkaTemplate beans using properties from application-transport.yml.
+  - Kafka consumer: KafkaConsumer (transport.inbound) listens to a configured topic and delegates EngineMessage proto instances to the domain EngineInbound handler.
+  - Code references to contract proto classes show that message contracts use Protobuf-generated types (contract.client.ClientRequestProto.ClientRequest, contract.engine.EngineMessageProto.EngineMessage).
+  - application-transport.yml references custom serializer/deserializer classes for Kafka values (package names present in config file), showing explicit serializer wiring in code configuration.
+
+Actor system and concurrency
+- Pekko actor system is configured and created in wsserver-core via PekkoConfig (uses Typesafe Config / HOCON — ConfigFactory.load("application.conf")).
+- ClusterSharding is created and used to initialize ConnectionActor and ClientActor entity types (ClusterShardingManager.init calls clusterSharding.init with Entities for ConnectionActor and ClientActor).
+- GuardianActor is present in wsserver-core and used as the Pekko root behavior when creating the ActorSystem.
+
+Patterns and object-oriented principles visible in code
+- Actor model (Pekko) — core actors (GuardianActor, ConnectionActor, ClientActor) implement application concurrency and entity lifecycle.
+- Adapter pattern — WebSocketSessionAdapter adapts framework WebSocketSession to the domain UserConnection interface.
+- Dependency Injection / Inversion of Control — Spring @Component, @Configuration and constructor injection are used across transport and core (beans injected via constructors and @RequiredArgsConstructor).
+- Separation of concerns / layered design — domain defines interfaces and types; transport implements framework adapters; core implements application behaviour and actor orchestration.
+- Selector/Strategy style — *Selector classes exist to choose handlers/mappers at runtime (examples: UserInputMapperSelector, EngineMessageMapperSelector, MessageHandlerSelector interface) indicating pluggable mapping strategies.
+- Explicit typed message contracts — code references Protobuf-generated classes from the contracts module (client and engine proto types), showing a declared contract layer.
+
+Concrete class examples (points of reference)
+- WebSocket transport and JSON mapping: wsserver-transport/src/main/java/.../WsHandler.java, WebSocketSessionAdapter.java, WsTransportConfig.java, WebSocketConfig.java
+- Kafka transport: wsserver-transport/src/main/java/.../config/KafkaConfig.java and wsserver-transport/src/main/java/.../inbound/KafkaConsumer.java
+- Pekko core and actors: wsserver-core/src/main/java/.../config/PekkoConfig.java, wsserver-core/src/main/java/.../actor/guardian/GuardianActor.java, wsserver-core/src/main/java/.../actor/ClusterShardingManager.java
+- Core inbound managers: wsserver-core/src/main/java/.../inbound/engine/EngineMessageManager.java, wsserver-core/src/main/java/.../inbound/user/UserMessageManager.java
+- Domain interfaces and data: wsserver-domain/src/main/java/.../domain/inbound/UserInbound.java, EngineInbound.java, domain.handler.MessageHandlerSelector.java, domain.data.*
+- Startup / runtime wiring: wsserver-startup/pom.xml (declares Spring Boot actuator, Spring Cloud dependencies and module dependencies)
+
+What this file intentionally does NOT contain
+- Any recommendations, guidelines or technologies that are not present in repository code.
+- Implementation details not observable in the code (no hypothetical persistence stores, no speculative CI setup beyond what appears in pom and scripts).
+
+Notes about sources and completeness
+- All statements in this file are derived from files present in the repository (pom.xml files, Java sources, YAML resources and shell scripts). Code search used to assemble these facts returned a subset of repository files; results may be incomplete. For the full set of files referenced here see the project in the repository UI: https://github.com/alejoceballos/dungeon-walker/tree/main/dungeon-walker-ws-server
+
+End of file.
