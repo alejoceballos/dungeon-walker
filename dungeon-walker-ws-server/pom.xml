@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.6</version>
+        <version>4.1.0</version>
     </parent>
 
     <groupId>momomomo.dungeonwalker</groupId>
@@ -34,7 +34,7 @@
         <noexception.version>1.9.1</noexception.version>
         <noexception-slf4j.version>1.0.2</noexception-slf4j.version>
 
-        <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <spring-cloud.version>2025.1.2</spring-cloud.version>
         <otel.version>2.26.1</otel.version>
 
         <jib.version>3.5.1</jib.version>

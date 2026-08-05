@@ -17,8 +17,8 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <spring-grpc.version>1.0.0-RC1</spring-grpc.version>
-        <spring-boot.version>4.0.0</spring-boot.version>
+        <spring-grpc.version>1.0.3</spring-grpc.version>
+        <spring-boot.version>4.1.0</spring-boot.version>
         <grpc.version>1.77.0</grpc.version>
         <protobuf-java.version>4.32.1</protobuf-java.version>
         <lombok.version>1.18.42</lombok.version>

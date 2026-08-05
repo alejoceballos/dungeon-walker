@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>momomomo.dungeonwalker</groupId>
+        <artifactId>dungeon-walker-history</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>history-startup</artifactId>
+    <packaging>jar</packaging>
+    <name>Dungeon Walker History - Startup</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>momomomo.dungeonwalker</groupId>
+            <artifactId>history-core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>momomomo.dungeonwalker</groupId>
+            <artifactId>history-transport</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>momomomo.dungeonwalker</groupId>
+            <artifactId>history-domain</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+</project>

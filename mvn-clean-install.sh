@@ -22,6 +22,9 @@ mvn clean install -U -DskipTests
 cd ../dungeon-walker-ws-server || exit
 mvn clean install -U -DskipTests
 
+cd ../dungeon-walker-history || exit
+mvn clean install -U -DskipTests
+
 cd ../dungeon-walker-ui-html || exit
 mvn clean install -U -DskipTests
 

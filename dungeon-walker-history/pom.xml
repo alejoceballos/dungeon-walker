@@ -1,66 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>4.1.0</version>
+        <relativePath/>
     </parent>
 
     <groupId>momomomo.dungeonwalker</groupId>
-    <artifactId>dungeon-walker-config-server</artifactId>
-    <name>Dungeon Walker Config Server</name>
+    <artifactId>dungeon-walker-history</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Dungeon Walker History</name>
 
     <properties>
         <java.version>25</java.version>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <spring-cloud.version>2025.1.2</spring-cloud.version>
-        <otel.version>2.26.1</otel.version>
-
         <jib.version>3.5.1</jib.version>
     </properties>
 
+    <modules>
+        <module>history-core</module>
+        <module>history-transport</module>
+        <module>history-domain</module>
+        <module>history-startup</module>
+    </modules>
+
     <dependencies>
-
-        <!-- Spring Boot - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
         </dependency>
-
-        <!-- Spring Cloud  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-config-server</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
-
-        <!-- Micrometer - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- Open Telemetry - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-        <dependency>
-            <groupId>io.opentelemetry.javaagent</groupId>
-            <artifactId>opentelemetry-javaagent</artifactId>
-            <version>${otel.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-
     </dependencies>
 
     <dependencyManagement>
@@ -78,10 +59,17 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
-
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
@@ -91,12 +79,12 @@
                         <image>alejoceballos/eclipse-temurin-25-jre-with-curl:v1</image>
                     </from>
                     <to>
-                        <image>alejoceballos/dungeon-walker-config-server:v1</image>
+                        <image>alejoceballos/dungeon-walker-history:v1</image>
                     </to>
                     <container>
-                        <mainClass>momomomo.dungeonwalker.configserver.DungeonWalkerConfigServer</mainClass>
+                        <mainClass>momomomo.dungeonwalker.history.startup.DungeonWalkerHistory</mainClass>
                         <ports>
-                            <port>8083</port>
+                            <port>8086</port>
                         </ports>
                         <jvmFlags>
                             <jvmFlag>--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED</jvmFlag>

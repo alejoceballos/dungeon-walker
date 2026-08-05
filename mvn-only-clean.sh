@@ -15,6 +15,9 @@ mvn clean -U
 cd ../dungeon-walker-gateway-server || exit
 mvn clean -U
 
+cd ../dungeon-walker-history || exit
+mvn clean -U
+
 cd ../dungeon-walker-engine || exit
 mvn clean -U
 
