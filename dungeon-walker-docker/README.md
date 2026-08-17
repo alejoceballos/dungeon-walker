@@ -144,12 +144,12 @@ enum Direction {
 
 ## PostgreSQL
 
-The schema in the [create_tables_postgres.sql](ddl-scripts/create_tables_postgres.sql) file should be run when the
+The schema in the [create_pekko_tables_postgres.sql](ddl-scripts/engine/create_pekko_tables_postgres.sql) file should be run when the
 PostgreSQL container is started for the first time. If for some reason the schema is not created, run the following
 command in the `dungeon-walker-docker` root folder:
 
 ```shell
-docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
+docker exec -i postgres-dungeon-db psql -U postgres -t < ddl-scripts/engine/create_pekko_tables_postgres.sql
 ```
 
 ## Grafana

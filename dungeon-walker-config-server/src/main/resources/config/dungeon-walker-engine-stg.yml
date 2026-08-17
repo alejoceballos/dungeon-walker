@@ -66,7 +66,7 @@ pekko:
       dialect: "postgres"
       connection-factory:
         driver: "postgres"
-        host: "postgres-db"
+        host: "postgres-dungeon-db"
         port: "5432"
         database: "postgres"
         user: "postgres"

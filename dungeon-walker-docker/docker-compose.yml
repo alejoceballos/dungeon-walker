@@ -24,12 +24,12 @@ services:
   # - - - - POSTGRES - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # After starting the container for the first time (with no volume), in the "dungeon-walker-docker" folder, run:
-  # docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
+  # docker exec -i postgres-dungeon-db psql -U postgres -t < ddl-scripts/engine/create_pekko_tables_postgres.sql
 
-  postgres-db:
+  postgres-dungeon-db:
     extends:
       file: docker-compose-infra.yml
-      service: postgres-db
+      service: postgres-dungeon-db
     healthcheck:
       test: [ 'CMD', 'pg_isready', "-q", "-d", "postgres", "-U", "postgres" ]
       interval: 5s
@@ -38,6 +38,13 @@ services:
       timeout: 5s
     networks:
       - dungeon-walker-network
+
+  # - - - - RABBITMQ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  rabbitmq:
+    extends:
+      file: docker-compose-infra.yml
+      service: rabbitmq
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -164,7 +171,7 @@ services:
       - dungeon-walker-network
     depends_on:
       - kafka
-      - postgres-db
+      - postgres-dungeon-db
 
   # - - - - DISCOVERY SERVER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -254,6 +261,36 @@ services:
       - dungeon-walker-network
     depends_on:
       dungeon-walker-engine:
+        condition: service_healthy
+
+  # - - - - HISTORY - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # To create this container's image, go to the folder where this project is located and run:
+  # mvn clean install jib:dockerBuild -DskipTests
+
+  dungeon-walker-history:
+    image: alejoceballos/dungeon-walker-history:v1
+    container_name: dungeon-walker-history
+    ports:
+      - "8086:8086"
+    environment:
+      APP_PROFILE: stg
+      CONFIG_SERVER_URL: "optional:configserver:http://dungeon-walker-config-server:8083/"
+      JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.26.1.jar"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://grafana-tempo:4318"
+      OTEL_METRICS_EXPORTER: "none"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_SERVICE_NAME: "dungeon-walker-history"
+    healthcheck:
+      test: "curl --fail --silent http://localhost:8086/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - dungeon-walker-network
+    depends_on:
+      dungeon-walker-discovery-server:
         condition: service_healthy
 
   # - - - - GATEWAY SERVER - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

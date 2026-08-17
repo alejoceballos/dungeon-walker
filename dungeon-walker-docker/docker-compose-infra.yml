@@ -29,19 +29,18 @@ services:
   # - - - - POSTGRES - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # After starting the container for the first time (with no volume), in the "dungeon-walker-docker" folder, run:
-  # docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
+  # docker exec -i postgres-dungeon-db psql -U postgres -t < ddl-scripts/engine/create_pekko_tables_postgres.sql
   
-  postgres-db:
+  postgres-dungeon-db:
     image: postgres:18-alpine
-    container_name: postgres-db
+    container_name: postgres-dungeon-db
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - ./ddl-scripts:/docker-entrypoint-initdb.d
-
+      - ./ddl-scripts/engine:/docker-entrypoint-initdb.d
 
   # - - - - RABBITMQ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

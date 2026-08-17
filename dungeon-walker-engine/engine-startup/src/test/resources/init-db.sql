@@ -1,4 +1,6 @@
---  docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
+-- File used to create the schema for Pekko's DurableStateBehavior actors. This is a copy of
+-- "dungeon-walker-docker/ddl-scripts/engine/create_pekko_tables_postgres.sql" and must be kept updated with the
+-- original.
 
 CREATE TABLE IF NOT EXISTS event_journal
 (

@@ -1,4 +1,7 @@
---  docker exec -i postgres-db psql -U postgres -t < ddl-scripts/create_tables_postgres.sql
+-- File used to create the schema for Pekko's DurableStateBehavior actors. It should run automatically when Docker
+-- starts because the volume is mounted at the container's "/docker-entrypoint-initdb.d". In case a manual execution
+-- is needed, run:
+-- docker exec -i postgres-dungeon-db psql -U Postgres -t < ddl-scripts/engine/create_pekko_tables_postgres.sql
 
 CREATE TABLE IF NOT EXISTS event_journal
 (
