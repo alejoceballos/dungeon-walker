@@ -21,6 +21,8 @@ import momomomo.dungeonwalker.engine.core.actor.walker.command.from.dungeon.Upda
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.DungeonState;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.InitializedDungeon;
 import momomomo.dungeonwalker.engine.domain.model.dungeon.state.UninitializedDungeon;
+import momomomo.dungeonwalker.engine.domain.outbound.ClientOutbound;
+import momomomo.dungeonwalker.engine.domain.outbound.HistoryLog;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.Behavior;
 import org.apache.pekko.actor.typed.PostStop;
@@ -55,18 +57,21 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
     private final ActorContext<DungeonCommand> context;
     private final TimerScheduler<DungeonCommand> timers;
     private final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic;
+    private final ClientOutbound<HistoryLog> historyLogOutbound;
     private final Duration heartbeatInterval;
 
     public DungeonActor(
             @NonNull final ActorContext<DungeonCommand> context,
             @NonNull final TimerScheduler<DungeonCommand> timers,
             @NonNull final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic,
+            @NonNull final ClientOutbound<HistoryLog> historyLogOutbound,
             @NonNull final Duration heartbeatInterval,
             @NonNull final PersistenceId persistenceId
     ) {
         this.context = context;
         this.timers = timers;
         this.walkerBroadcastTopic = walkerBroadcastTopic;
+        this.historyLogOutbound = historyLogOutbound;
         this.heartbeatInterval = heartbeatInterval;
 
         super(persistenceId);
@@ -74,6 +79,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
 
     public static Behavior<DungeonCommand> create(
             @NonNull final ActorRef<Topic.Command<WalkerCommand>> walkerBroadcastTopic,
+            @NonNull final ClientOutbound<HistoryLog> historyLogOutbound,
             @NonNull final Duration heartbeatInterval,
             @NonNull final PersistenceId persistenceId
     ) {
@@ -84,6 +90,7 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
                                 context,
                                 timers,
                                 walkerBroadcastTopic,
+                                historyLogOutbound,
                                 heartbeatInterval,
                                 persistenceId)));
     }
@@ -182,6 +189,11 @@ public class DungeonActor extends DurableStateBehavior<DungeonCommand, DungeonSt
                         new UpdateCellState(
                                 command.walker().getId(),
                                 coordinates)))
+                .thenRun(_ -> historyLogOutbound
+                        .send(new HistoryLog(
+                                command.walker().getId(),
+                                coordinates.x(),
+                                coordinates.y())))
                 .thenRun(_ -> {
                     final var timerKey = TIMER_NAME.formatted(entityId());
 

@@ -6,14 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import momomomo.dungeonwalker.contract.engine.EngineMessageProto;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.DungeonActor;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonCommand;
-import momomomo.dungeonwalker.engine.core.actor.dungeon.command.to.DungeonStateReply;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.DungeonStateRequest;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.from.setup.KeepAliveHeartbeat;
+import momomomo.dungeonwalker.engine.core.actor.dungeon.command.to.DungeonStateReply;
 import momomomo.dungeonwalker.engine.core.actor.dungeon.command.to.KeepAliveReply;
 import momomomo.dungeonwalker.engine.core.actor.walker.WalkerActor;
 import momomomo.dungeonwalker.engine.core.actor.walker.command.WalkerCommand;
 import momomomo.dungeonwalker.engine.core.setup.DungeonIdentity;
 import momomomo.dungeonwalker.engine.domain.outbound.ClientOutbound;
+import momomomo.dungeonwalker.engine.domain.outbound.HistoryLog;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.ActorSystem;
 import org.apache.pekko.actor.typed.pubsub.Topic;
@@ -42,6 +43,7 @@ public class ClusterShardingManager {
 
     private final DungeonIdentity dungeonIdentity;
     private final ClientOutbound<EngineMessageProto.EngineMessage> clientOutbound;
+    private final ClientOutbound<HistoryLog> historyLogOutbound;
 
     private final Duration dungeonHeartbeatInterval;
 
@@ -55,6 +57,7 @@ public class ClusterShardingManager {
                         DungeonActor.ENTITY_TYPE_KEY,
                         context -> DungeonActor.create(
                                 walkerBroadcastTopic,
+                                historyLogOutbound,
                                 dungeonHeartbeatInterval,
                                 PersistenceId.of(
                                         context.getEntityTypeKey().name(),

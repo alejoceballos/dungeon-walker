@@ -19,11 +19,11 @@ public class Coordinates {
     private int y;
 
     public int x() {
-        return x;
+        return getX();
     }
-    
+
     public int y() {
-        return y;
+        return getY();
     }
 
     public enum Axis {

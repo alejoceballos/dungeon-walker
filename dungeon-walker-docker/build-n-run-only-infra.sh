@@ -6,6 +6,9 @@ docker container rm kafka
 docker container stop postgres-db
 docker container rm postgres-db
 
+docker container stop rabbitmq
+docker container rm rabbitmq
+
 # shellcheck disable=SC2046
 docker volume rm $(docker volume ls -q)
 

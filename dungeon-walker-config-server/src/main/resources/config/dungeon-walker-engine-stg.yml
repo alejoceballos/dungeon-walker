@@ -45,6 +45,12 @@ spring:
       bootstrap-servers: kafka:29092
       acks: 1
       retries: 3
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+    connection-timeout: 10s
 
 kafka:
   topic:

@@ -21,7 +21,10 @@
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <spring-cloud.version>2025.1.2</spring-cloud.version>
+        <otel.version>2.26.1</otel.version>
+
         <jib.version>3.5.1</jib.version>
     </properties>
 

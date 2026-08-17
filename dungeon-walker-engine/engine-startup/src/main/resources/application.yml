@@ -5,6 +5,11 @@ spring:
     active: ${APP_PROFILE:dev}
   config:
     import: "${CONFIG_SERVER_URL:optional:configserver:http://localhost:8083/}"
+  cloud:
+    stream:
+      bindings:
+        consumeHistoryLog-out-0:
+          destination: history-log-exchange # exchange name
 
 management:
   endpoints:
