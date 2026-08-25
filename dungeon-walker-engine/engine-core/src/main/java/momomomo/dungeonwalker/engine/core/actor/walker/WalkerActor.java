@@ -241,7 +241,10 @@ public class WalkerActor extends DurableStateBehavior<WalkerCommand, WalkerState
     ) {
         log.debug(logFullMessage(state, "[on update cell state]: {}"), command);
 
-        final var effectBuilder = state.getId().equals(command.id()) && !command.coordinates().equals(state.getCurrentCoordinates())
+        final var updateConcernsToThisWalker = state.getId().equals(command.id());
+        final var walkerChangedPosition = !command.coordinates().equals(state.getCurrentCoordinates());
+
+        final var effectBuilder = updateConcernsToThisWalker && walkerChangedPosition
                 ? Effect().persist(Stopped.of(state.updateCoordinates(command.coordinates())))
                 : Effect().none();
 

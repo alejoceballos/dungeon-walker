@@ -7,7 +7,7 @@ services:
 
   keycloak-auth-server:
     extends:
-      file: docker-compose-auth.yml
+      file: docker-compose-infra.yml
       service: keycloak-auth-server
     networks:
       - dungeon-walker-network

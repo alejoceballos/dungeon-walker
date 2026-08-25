@@ -42,6 +42,20 @@ services:
     volumes:
       - ./ddl-scripts/engine:/docker-entrypoint-initdb.d
 
+  # After starting the container for the first time (with no volume), in the "dungeon-walker-docker" folder, run:
+  # docker exec -i postgres-history-db psql -U postgres -t < ddl-scripts/history/create_history_tables_postgres.sql
+
+  postgres-history-db:
+    image: postgres:18-alpine
+    container_name: postgres-history-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./ddl-scripts/history:/docker-entrypoint-initdb.d
+
   # - - - - RABBITMQ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   rabbitmq:
@@ -50,3 +64,17 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+
+  # - - - - KEYCLOAK - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  keycloak-auth-server:
+    image: quay.io/keycloak/keycloak:26.6.1
+    container_name: keycloak-auth-server
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "8087:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
+      KC_BOOTSTRAP_ADMIN_PASSWORD: "admin"
+    volumes:
+      - ./security/keycloak-realm-dungeon-walker-4-docker.json:/opt/keycloak/data/import/keycloak-realm-dungeon-walker.json

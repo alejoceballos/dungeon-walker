@@ -1,6 +1,7 @@
 package momomomo.dungeonwalker.engine.core.config;
 
 import lombok.extern.slf4j.Slf4j;
+import momomomo.dungeonwalker.commons.DateTimeManager;
 import momomomo.dungeonwalker.commons.UuidGenerator;
 import momomomo.dungeonwalker.engine.core.setup.NoDungeonFilesException;
 import momomomo.dungeonwalker.engine.core.setup.loader.DngFileLoader;
@@ -30,6 +31,11 @@ public class EngineCoreConfig {
     @Bean
     public UuidGenerator uuidGenerator() {
         return new UuidGenerator();
+    }
+
+    @Bean
+    public DateTimeManager dateTime() {
+        return new DateTimeManager();
     }
 
     @Bean

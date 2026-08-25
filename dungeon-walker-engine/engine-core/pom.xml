@@ -100,15 +100,13 @@
             <version>${r2dbc-postgresql.version}</version>
         </dependency>
 
-        <!-- Apache Commons - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+        <!-- Utilities - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${apache-commons-lang.version}</version>
         </dependency>
-
-        <!-- Utilities - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
         <dependency>
             <groupId>com.machinezoo.noexception</groupId>

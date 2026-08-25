@@ -1,0 +1,51 @@
+# - - STARTUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+logging:
+  level:
+    root: info
+    momomomo:
+      dungeonwalker:
+        history:
+          startup: debug
+          transport: debug
+          core: debug
+          domain: debug
+
+spring:
+  application:
+    name: dungeon-walker-history
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+    function:
+      definition: consumeHistoryLog # @Bean function
+    stream:
+      bindings:
+        consumeHistoryLog-in-0:
+          destination: history-log-exchange # exchange name
+          group: ${spring.application.name} # Prevent random names to be appended to destination, channels and queues
+        consumeHistoryLog-out-0:
+          destination: history-log-exchange # exchange name
+
+  # - - CORE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+
+  # - - TRANSPORT - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    connection-timeout: 10s
