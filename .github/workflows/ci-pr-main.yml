@@ -1,14 +1,10 @@
 name: PR CI (monorepo Maven)
 
 on:
-  # Trigger this workflow for pull requests targeting main
   pull_request:
     branches: [ "main" ]
-    # Run when PR is opened, updated with new commits, reopened,
-    # or moved from draft to "ready for review"
     types: [opened, synchronize, reopened, ready_for_review]
 
-# Minimal permissions for CI read-only operations
 permissions:
   contents: read
 
@@ -18,10 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      # Continue running other modules even if one fails, for better feedback
       fail-fast: false
       matrix:
-        # All modules in build order (dependency order)
         module:
           - dungeon-walker-contracts
           - dungeon-walker-commons
@@ -42,22 +36,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-          # Enables built-in Maven dependency cache for faster runs
           cache: maven
 
       - name: Docker sanity check
         run: |
-          # Testcontainers relies on Docker daemon availability
           docker version
           docker info
 
-      - name: Build + Test ${{ matrix.module }} (and required dependencies)
+      - name: Build + Test ${{ matrix.module }}
         env:
-          # Optional compatibility setting for some CI/Testcontainers environments.
-          # Remove if your setup works reliably without it.
           TESTCONTAINERS_RYUK_DISABLED: "true"
         run: |
-          # -pl selects the target module from the matrix
-          # -am also builds modules required by that target
-          # clean verify compiles, runs tests, and verifies package quality gates
-          mvn -B -ntp -pl "${{ matrix.module }}" -am clean verify
+          cd ${{ matrix.module }}
+          mvn -B -ntp clean verify
