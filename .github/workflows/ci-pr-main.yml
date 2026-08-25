@@ -56,7 +56,7 @@ jobs:
         module:
           - dungeon-walker-config-server
           - dungeon-walker-discovery-server
-          - dungeon-walker-gateway
+          - dungeon-walker-gateway-server
 
     steps:
       - name: Checkout
