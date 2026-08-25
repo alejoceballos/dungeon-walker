@@ -38,16 +38,29 @@ jobs:
           # List files changed between PR head and base branch
           CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
 
-          # Find all module directories that contain a pom.xml
-          # Exclude root pom.xml because we want child modules for matrix entries
-          mapfile -t ALL_MODULES < <(find . -name pom.xml -not -path "./pom.xml" -exec dirname {} \; | sed 's#^\./##' | sort -u)
+          # Define all modules in build order (dependency order)
+          # These are leaf modules (not parent aggregators)
+          declare -a ALL_MODULES=(
+            "dungeon-walker-contracts"
+            "dungeon-walker-commons"
+            "dungeon-walker-commons-spring"
+            "dungeon-walker-config-server"
+            "dungeon-walker-discovery-server"
+            "dungeon-walker-engine"
+            "dungeon-walker-ws-server"
+            "dungeon-walker-history"
+            "dungeon-walker-gateway-server"
+          )
 
           # Collect modules that were directly touched by changed files
-          declare -A CHANGED_MODULES=()
+          declare -a CHANGED_MODULES=()
           while IFS= read -r file; do
             for mod in "${ALL_MODULES[@]}"; do
               if [[ "$file" == "$mod/"* ]] || [[ "$file" == "$mod" ]]; then
-                CHANGED_MODULES["$mod"]=1
+                # Check if module is already in CHANGED_MODULES array
+                if [[ ! " ${CHANGED_MODULES[@]} " =~ " ${mod} " ]]; then
+                  CHANGED_MODULES+=("$mod")
+                fi
               fi
             done
           done <<< "$CHANGED_FILES"
@@ -55,9 +68,7 @@ jobs:
           # If shared/root build files changed, force all modules to run
           # because dependency/build behavior may have changed globally
           if echo "$CHANGED_FILES" | grep -Eq '^(pom.xml|\.mvn/|mvnw|mvnw.cmd|\.github/workflows/)'; then
-            for mod in "${ALL_MODULES[@]}"; do
-              CHANGED_MODULES["$mod"]=1
-            done
+            CHANGED_MODULES=("${ALL_MODULES[@]}")
           fi
 
           # Export outputs for downstream matrix job
@@ -66,8 +77,8 @@ jobs:
             echo 'modules=[]' >> "$GITHUB_OUTPUT"
             echo 'has_modules=false' >> "$GITHUB_OUTPUT"
           else
-            # Convert module list to JSON array for matrix strategy
-            JSON=$(printf '%s\n' "${!CHANGED_MODULES[@]}" | sort -u | jq -R . | jq -s -c .)
+            # Convert module list to JSON array for matrix strategy (preserving order)
+            JSON=$(printf '%s\n' "${CHANGED_MODULES[@]}" | jq -R . | jq -s -c .)
             echo "modules=$JSON" >> "$GITHUB_OUTPUT"
             echo 'has_modules=true' >> "$GITHUB_OUTPUT"
           fi
