@@ -9,6 +9,9 @@ docker container rm postgres-dungeon-db
 docker container stop rabbitmq
 docker container rm rabbitmq
 
+docker container stop keycloak-auth-server
+docker container rm keycloak-auth-server
+
 # shellcheck disable=SC2046
 docker volume rm $(docker volume ls -q)
 

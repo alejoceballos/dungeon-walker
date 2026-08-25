@@ -68,11 +68,11 @@ the resulting cell updates, but each generated outbound message identifies its i
 
 ## Messaging
 
-| Direction | Transport                        | Payload         | Purpose                                                                                    |
-|-----------|----------------------------------|-----------------|--------------------------------------------------------------------------------------------|
-| Inbound   | Kafka                            | `ClientRequest` | Delivers player commands to the engine.                                                    |
-| Outbound  | Kafka                            | `EngineMessage` | Delivers targeted dungeon state, cell state, heartbeat, error, and informational messages. |
-| Outbound  | RabbitMQ via Spring Cloud Stream | `HistoryLog`    | Records a successful player's placement coordinates.                                       |
+| Direction | Transport                        | Payload            | Purpose                                                                                    |
+|-----------|----------------------------------|--------------------|--------------------------------------------------------------------------------------------|
+| Inbound   | Kafka                            | `ClientRequest`    | Delivers player commands to the engine.                                                    |
+| Outbound  | Kafka                            | `EngineMessage`    | Delivers targeted dungeon state, cell state, heartbeat, error, and informational messages. |
+| Outbound  | RabbitMQ via Spring Cloud Stream | `WalkerHistoryLog` | Records a successful player's placement coordinates.                                       |
 
 The dungeon broadcasts internal state changes using a Pekko pub/sub topic. Every walker actor subscribes to it; the
 target on each emitted `EngineMessage` allows downstream services to route updates to the corresponding user connection.

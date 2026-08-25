@@ -44,6 +44,8 @@ import java.util.function.Function;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class DungeonWalkerWsServerIntegrationTests {
 
+    private static final String LABEL = "---> [TEST - %s]".formatted(DungeonWalkerWsServerIntegrationTests.class.getSimpleName());
+
     @Autowired
     protected ObjectMapper jsonMapper;
 
@@ -57,6 +59,8 @@ public class DungeonWalkerWsServerIntegrationTests {
                     .withEnv("KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR", "1");
 
     static {
+        log.info("{} Starting Kafka Container", LABEL);
+
         KAFKA.setPortBindings(List.of("9092:9092"));
         KAFKA.start();
 
@@ -64,11 +68,17 @@ public class DungeonWalkerWsServerIntegrationTests {
         System.setProperty("KAFKA_BOOTSTRAP_SERVERS", bootstrapServers);
 
         try {
+            log.info("{} Creating Kafka topics", LABEL);
+
             createTopics(bootstrapServers);
+
+            log.info("{} Kafka topics created", LABEL);
 
         } catch (final ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        log.info("{} Kafka started", LABEL);
     }
 
     public static final KeycloakContainer KEYCLOACK =
@@ -76,15 +86,25 @@ public class DungeonWalkerWsServerIntegrationTests {
                     .withRealmImportFile("keycloak-realm-dungeon-walker.json");
 
     static {
+        log.info("{} Starting Keycloak Container", LABEL);
+
         KEYCLOACK.start();
+
+        log.info("{} Keycloak Container started", LABEL);
     }
 
     @AfterAll
     static void stopContainers() {
+        log.info("{} Stopping Kafka Container", LABEL);
         KAFKA.stop();
+
+        log.info("{} Closing Kafka Container", LABEL);
         KAFKA.close();
 
+        log.info("{} Stopping Keycloak Container", LABEL);
         KEYCLOACK.stop();
+
+        log.info("{} Closing Keycloak Container", LABEL);
         KEYCLOACK.close();
     }
 

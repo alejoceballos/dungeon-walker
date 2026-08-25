@@ -1,3 +1,6 @@
+
+# - - STARTUP - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 logging:
   level:
     root: info
@@ -14,6 +17,7 @@ logging:
           transport: debug
           core: debug
           domain: debug
+
 test:
   kafka:
     consumer:

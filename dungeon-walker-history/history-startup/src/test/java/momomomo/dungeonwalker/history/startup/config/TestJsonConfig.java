@@ -1,0 +1,21 @@
+package momomomo.dungeonwalker.history.startup.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class TestJsonConfig {
+
+    @Bean
+    public JavaTimeModule testJavaTimeModule() {
+        return new JavaTimeModule();
+    }
+
+    @Bean
+    public ObjectMapper testJsonMapper(final JavaTimeModule testJavaTimeModule) {
+        return new ObjectMapper().registerModule(testJavaTimeModule);
+    }
+
+}

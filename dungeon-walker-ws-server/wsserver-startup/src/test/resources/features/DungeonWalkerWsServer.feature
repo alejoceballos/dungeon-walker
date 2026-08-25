@@ -22,3 +22,4 @@ Feature: WebSocket Server process flow
     When the engine sends an "heartbeat: user1" message to the server
     Then the server sends the following message to user "01":
       | heartbeat |
+    And user "01" closes the connection with the server
