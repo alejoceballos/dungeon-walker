@@ -42,6 +42,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrationTests {
 
+    private static final String LABEL = "---> [TEST - %s]".formatted(DungeonWalkerWsServerStepsDef.class.getSimpleName());
+
     private static final long WAIT_VALUE = 100;
     private static final TimeUnit WAIT_UNIT = MILLISECONDS;
 
@@ -69,18 +71,22 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
 
     @Given("the server receives a connection request from user {string}")
     public void clientConnects(final String userLabel) {
+        log.info("{} Client connects", LABEL);
+
         wsClient
                 .execute(clientWsHandler, "ws://localhost:" + port + "/ws-endpoint")
                 .thenAccept(wsSession -> {
                     clientsContext.put(userLabel, new ClientContext());
                     final var context = clientsContext.get(userLabel);
                     context.setSession(wsSession);
-                });
+                })
+                .join();
     }
 
     @And("the server establishes this connection with user {string}")
     public void assertServerEstablishesConnection(final String userLabel) {
         waitFor(WAIT_VALUE, WAIT_UNIT);
+        log.info("{} Assert that the server establishes the connection", LABEL);
 
         final var wsClientSession = clientWsHandler
                 .getState()
@@ -97,6 +103,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
     @Then("the server sends the following message(s) to user {string}:")
     public void clientReceiveMessage(final String userLabel, final List<String> messages) throws JsonProcessingException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
+        log.info("{} The client receives the message", LABEL);
 
         final var receivedMessages = clientWsHandler
                 .getState()
@@ -126,6 +133,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
     @And("the server receives a(n) {string} message from user {string}")
     public void clientSendsMessage(final String message, final String userLabel) throws IOException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
+        log.info("{} The client sends a message", LABEL);
 
         final var filePath = FROM_USER_PATH
                 .formatted(message)
@@ -144,6 +152,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
     @Then("the server sends a(n) {string} request to the engine")
     public void serverSendsMessage(final String message) throws InvalidProtocolBufferException, JsonProcessingException {
         waitFor(WAIT_VALUE, WAIT_UNIT);
+        log.info("{} The server sends a message", LABEL);
 
         final List<ConsumerRecord<String, ClientRequest>> messagesToEngine = new ArrayList<>();
 
@@ -170,6 +179,8 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
 
     @Then("the server receives the following message(s) from the engine:")
     public void produceMessagesToEngineOutboundTopic(final List<String> messages) throws InvalidProtocolBufferException {
+        log.info("{} Produce a list of messages to engine outbound topic", LABEL);
+
         for (final var message : messages) {
             produceMessageToEngineOutboundTopic(message);
         }
@@ -177,6 +188,8 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
 
     @When("the engine sends a(n) {string} message to the server")
     public void produceMessageToEngineOutboundTopic(final String message) throws InvalidProtocolBufferException {
+        log.info("{} Produce a single message to engine outbound topic", LABEL);
+
         final var filePath = FROM_ENGINE_PATH
                 .formatted(message)
                 .replace(":", "")
@@ -196,6 +209,12 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
                 .exceptionally(ex -> {
                     throw new RuntimeException(ex);
                 });
+    }
+
+    @Then("user {string} closes the connection with the server")
+    public void endConnection(final String userLabel) throws IOException {
+        log.info("{} User closes the WS connection", LABEL);
+        clientsContext.get(userLabel).getSession().close();
     }
 
     @And("after {long} {string}")

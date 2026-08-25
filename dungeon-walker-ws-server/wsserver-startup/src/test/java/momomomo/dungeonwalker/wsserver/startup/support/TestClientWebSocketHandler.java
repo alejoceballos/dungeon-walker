@@ -19,7 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @RequiredArgsConstructor
 public class TestClientWebSocketHandler extends TextWebSocketHandler {
 
-    private static final String LABEL = "---> [TEST - Client WebSocket Handler]";
+    private static final String LABEL = "---> [TEST - %s]".formatted(TestClientWebSocketHandler.class.getSimpleName());
 
     @Getter
     private final State state = new State(
