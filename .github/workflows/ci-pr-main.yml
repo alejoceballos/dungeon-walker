@@ -37,9 +37,15 @@ jobs:
           TESTCONTAINERS_RYUK_DISABLED: "true"
         run: |
           cd ${{ matrix.module }}
-          mvn -B -ntp clean verify
+          mvn -B -ntp clean verify install
 
-  # Infrastructure services - can run in parallel after foundation is built
+      - name: Cache Maven repository
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ github.run_id }}-${{ matrix.module }}
+
+  # Infrastructure services
   build-infrastructure:
     name: Build ${{ matrix.module }}
     needs: build-foundation
@@ -62,14 +68,26 @@ jobs:
           java-version: '25'
           cache: maven
 
+      - name: Restore Maven repository from foundation builds
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ github.run_id }}-dungeon-walker-contracts
+
       - name: Build + Test ${{ matrix.module }}
         env:
           TESTCONTAINERS_RYUK_DISABLED: "true"
         run: |
           cd ${{ matrix.module }}
-          mvn -B -ntp clean verify
+          mvn -B -ntp clean verify install
 
-  # Aggregator projects - run after both foundation and infrastructure
+      - name: Cache Maven repository
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ github.run_id }}-${{ matrix.module }}
+
+  # Aggregator projects
   build-aggregators:
     name: Build ${{ matrix.module }}
     needs: [build-foundation, build-infrastructure]
@@ -93,14 +111,31 @@ jobs:
           java-version: '25'
           cache: maven
 
+      - name: Restore Maven repository from foundation
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ github.run_id }}-dungeon-walker-contracts
+
+      - name: Restore Maven repository from infrastructure
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ github.run_id }}-dungeon-walker-config-server
+
       - name: Build + Test ${{ matrix.module }}
         env:
           TESTCONTAINERS_RYUK_DISABLED: "true"
         run: |
           cd ${{ matrix.module }}
-          mvn -B -ntp clean verify
+          mvn -B -ntp clean verify install
 
-  # Final application - runs last
+      - name: Cache Maven repository
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ github.run_id }}-${{ matrix.module }}
+
   build-gateway:
     name: Build dungeon-walker-gateway-server
     needs: [build-foundation, build-infrastructure, build-aggregators]
@@ -116,6 +151,12 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
+
+      - name: Restore Maven repository
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ github.run_id }}-dungeon-walker-contracts
 
       - name: Docker sanity check
         run: |
