@@ -9,10 +9,10 @@ permissions:
   contents: read
 
 jobs:
-  build-test:
-    name: Build and test ${{ matrix.module }}
+  # Foundation libraries - build first, in parallel
+  build-foundation:
+    name: Build ${{ matrix.module }}
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
@@ -20,12 +20,91 @@ jobs:
           - dungeon-walker-contracts
           - dungeon-walker-commons
           - dungeon-walker-commons-spring
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build + Test ${{ matrix.module }}
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+        run: |
+          cd ${{ matrix.module }}
+          mvn -B -ntp clean verify
+
+  # Infrastructure services - can run in parallel after foundation is built
+  build-infrastructure:
+    name: Build ${{ matrix.module }}
+    needs: build-foundation
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
           - dungeon-walker-config-server
           - dungeon-walker-discovery-server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build + Test ${{ matrix.module }}
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+        run: |
+          cd ${{ matrix.module }}
+          mvn -B -ntp clean verify
+
+  # Aggregator projects - run after both foundation and infrastructure
+  build-aggregators:
+    name: Build ${{ matrix.module }}
+    needs: [build-foundation, build-infrastructure]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
           - dungeon-walker-engine
           - dungeon-walker-ws-server
           - dungeon-walker-history
-          - dungeon-walker-gateway-server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build + Test ${{ matrix.module }}
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+        run: |
+          cd ${{ matrix.module }}
+          mvn -B -ntp clean verify
+
+  # Final application - runs last
+  build-gateway:
+    name: Build dungeon-walker-gateway-server
+    needs: [build-foundation, build-infrastructure, build-aggregators]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -43,9 +122,9 @@ jobs:
           docker version
           docker info
 
-      - name: Build + Test ${{ matrix.module }}
+      - name: Build + Test dungeon-walker-gateway-server
         env:
           TESTCONTAINERS_RYUK_DISABLED: "true"
         run: |
-          cd ${{ matrix.module }}
+          cd dungeon-walker-gateway-server
           mvn -B -ntp clean verify
