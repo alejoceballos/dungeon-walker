@@ -67,7 +67,7 @@ jobs:
             echo 'has_modules=false' >> "$GITHUB_OUTPUT"
           else
             # Convert module list to JSON array for matrix strategy
-            JSON=$(printf '%s\n' "${!CHANGED_MODULES[@]}" | sort -u | jq -R . | jq -c .)
+            JSON=$(printf '%s\n' "${!CHANGED_MODULES[@]}" | sort -u | jq -R . | jq -s -c .)
             echo "modules=$JSON" >> "$GITHUB_OUTPUT"
             echo 'has_modules=true' >> "$GITHUB_OUTPUT"
           fi
