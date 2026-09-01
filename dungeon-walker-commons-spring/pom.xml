@@ -23,6 +23,8 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <sonar.organization>alejoceballos</sonar.organization>
+
         <maven-resources-plugin.version>3.4.0</maven-resources-plugin.version>
     </properties>
 

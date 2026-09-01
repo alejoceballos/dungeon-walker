@@ -131,6 +131,16 @@ jobs:
           cd ${{ matrix.module }}
           mvn -B -ntp clean verify install
 
+      - name: SonarCloud Analysis
+        if: ${{ !github.event.pull_request.draft }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          cd ${{ matrix.module }}
+          mvn -B -ntp sonar:sonar \
+            -Dsonar.token=${SONAR_TOKEN} \
+            -Dsonar.host.url=https://sonarcloud.io
+
       - name: Cache Maven repository
         uses: actions/cache/save@v4
         with:
