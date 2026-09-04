@@ -72,7 +72,7 @@ public class DungeonWalkerEngineStepsDef extends DungeonWalkerEngineIntegrationT
 
         waitFor(JUST_A_BIT, WAIT_UNIT);
 
-        final List<ConsumerRecord<String, EngineMessage>> actualMessages = pollMessagesFromKafkaTopic();
+        final var actualMessages = pollMessagesFromKafkaTopic();
         final var expectedMessages = messages.asList(String.class);
 
         assertThat(actualMessages).hasSize(expectedMessages.size());
@@ -86,7 +86,7 @@ public class DungeonWalkerEngineStepsDef extends DungeonWalkerEngineIntegrationT
 
         waitFor(JUST_A_BIT, WAIT_UNIT);
 
-        final List<ConsumerRecord<String, EngineMessage>> actualMessages = pollMessagesFromKafkaTopic();
+        final var actualMessages = pollMessagesFromKafkaTopic();
         final var expectedMessages = messages.asList(String.class);
 
         assertThat(actualMessages).hasSizeGreaterThanOrEqualTo(expectedMessages.size());
@@ -100,7 +100,7 @@ public class DungeonWalkerEngineStepsDef extends DungeonWalkerEngineIntegrationT
 
         waitFor(JUST_A_BIT, WAIT_UNIT);
 
-        final List<ConsumerRecord<String, EngineMessage>> messagesToClient = pollMessagesFromKafkaTopic();
+        final var messagesToClient = pollMessagesFromKafkaTopic();
 
         assertThat(messagesToClient).hasSize(1);
 
@@ -124,9 +124,18 @@ public class DungeonWalkerEngineStepsDef extends DungeonWalkerEngineIntegrationT
 
     private @NonNull List<ConsumerRecord<String, EngineMessage>> pollMessagesFromKafkaTopic() {
         final List<ConsumerRecord<String, EngineMessage>> messagesToClient = new ArrayList<>();
+        final long maxWaitTime = 5000; // 5 seconds max
+        final long pollInterval = 200; // poll every 200ms
+        final long endTime = System.currentTimeMillis() + maxWaitTime;
 
-        for (final var consumerRecord : testKafkaConsumer.poll(Duration.ofMillis(500))) {
-            messagesToClient.add(consumerRecord);
+        while (System.currentTimeMillis() < endTime) {
+            for (final var consumerRecord : testKafkaConsumer.poll(Duration.ofMillis(pollInterval))) {
+                messagesToClient.add(consumerRecord);
+            }
+
+            if (!messagesToClient.isEmpty()) {
+                break; // Got messages, exit early
+            }
         }
 
         testKafkaConsumer.commitSync();

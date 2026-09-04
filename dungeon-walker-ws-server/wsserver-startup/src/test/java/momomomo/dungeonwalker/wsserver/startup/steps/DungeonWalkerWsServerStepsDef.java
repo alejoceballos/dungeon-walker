@@ -20,6 +20,7 @@ import momomomo.dungeonwalker.wsserver.startup.support.TestKafkaProducer;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -154,14 +155,7 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
         waitFor(WAIT_VALUE, WAIT_UNIT);
         log.info("{} The server sends a message", LABEL);
 
-        final List<ConsumerRecord<String, ClientRequest>> messagesToEngine = new ArrayList<>();
-
-        for (final var consumerRecord : testKafkaConsumer.poll(Duration.ofMillis(500))) {
-            messagesToEngine.add(consumerRecord);
-        }
-
-        testKafkaConsumer.commitSync();
-
+        final var messagesToEngine = pollMessagesFromKafkaTopic();
         assertThat(messagesToEngine).hasSize(1);
 
         final var protoAsJsonString = JsonFormat.printer().print(messagesToEngine.getLast().value());
@@ -223,6 +217,26 @@ public class DungeonWalkerWsServerStepsDef extends DungeonWalkerWsServerIntegrat
         waitFor(value, TimeUnit.valueOf(timeUnit));
     }
 
+    private @NonNull List<ConsumerRecord<String, ClientRequest>> pollMessagesFromKafkaTopic() {
+        final List<ConsumerRecord<String, ClientRequest>> messagesToClient = new ArrayList<>();
+        final long maxWaitTime = 5000; // 5 seconds max
+        final long pollInterval = 200; // poll every 200ms
+        final long endTime = System.currentTimeMillis() + maxWaitTime;
+
+        while (System.currentTimeMillis() < endTime) {
+            for (final var consumerRecord : testKafkaConsumer.poll(Duration.ofMillis(pollInterval))) {
+                messagesToClient.add(consumerRecord);
+            }
+
+            if (!messagesToClient.isEmpty()) {
+                break; // Got messages, exit early
+            }
+        }
+
+        testKafkaConsumer.commitSync();
+        return messagesToClient;
+    }
+    
     @NoArgsConstructor
     private static class ClientContext {
 
