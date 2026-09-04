@@ -8,7 +8,7 @@
     <groupId>momomomo.dungeonwalker</groupId>
     <artifactId>dungeon-walker-commons</artifactId>
     <name>Dungeon Walker Commons</name>
-    <version>1.0</version>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -16,6 +16,8 @@
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <sonar.organization>alejoceballos</sonar.organization>
 
         <maven-resources-plugin.version>3.4.0</maven-resources-plugin.version>
     </properties>

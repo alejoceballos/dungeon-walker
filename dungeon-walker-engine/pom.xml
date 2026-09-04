@@ -23,7 +23,10 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <dungeon-walker-commons.version>1.0</dungeon-walker-commons.version>
+        <sonar.organization>alejoceballos</sonar.organization>
+        <sonar-maven-plugin.version>5.7.0.6970</sonar-maven-plugin.version>
+
+        <dungeon-walker-commons.version>0.0.1-SNAPSHOT</dungeon-walker-commons.version>
         <dungeon-walker-spring-commons.version>0.0.1-SNAPSHOT</dungeon-walker-spring-commons.version>
         <dungeon-walker-contracts.version>1.0-SNAPSHOT</dungeon-walker-contracts.version>
 
@@ -93,6 +96,12 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar-maven-plugin.version}</version>
             </plugin>
 
             <plugin>
