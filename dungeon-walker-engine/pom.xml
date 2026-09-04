@@ -25,7 +25,7 @@
 
         <sonar.organization>alejoceballos</sonar.organization>
 
-        <dungeon-walker-commons.version>1.0</dungeon-walker-commons.version>
+        <dungeon-walker-commons.version>0.0.1-SNAPSHOT</dungeon-walker-commons.version>
         <dungeon-walker-spring-commons.version>0.0.1-SNAPSHOT</dungeon-walker-spring-commons.version>
         <dungeon-walker-contracts.version>1.0-SNAPSHOT</dungeon-walker-contracts.version>
 
