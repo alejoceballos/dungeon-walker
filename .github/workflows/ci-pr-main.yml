@@ -9,42 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  # Detect which module groups were touched by this PR so downstream
-  # jobs can skip entirely when their modules are unaffected.
-  changes:
-    name: Detect changed modules
-    runs-on: ubuntu-latest
-    outputs:
-      foundation: ${{ steps.filter.outputs.foundation }}
-      infrastructure: ${{ steps.filter.outputs.infrastructure }}
-      aggregators: ${{ steps.filter.outputs.aggregators }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Filter changed paths
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            foundation:
-              - 'dungeon-walker-contracts/**'
-              - 'dungeon-walker-commons/**'
-              - 'dungeon-walker-commons-spring/**'
-            infrastructure:
-              - 'dungeon-walker-config-server/**'
-              - 'dungeon-walker-discovery-server/**'
-              - 'dungeon-walker-gateway-server/**'
-            aggregators:
-              - 'dungeon-walker-engine/**'
-              - 'dungeon-walker-ws-server/**'
-              - 'dungeon-walker-history/**'
-
   # Foundation libraries - build first, in parallel
   build-foundation:
     name: Build ${{ matrix.module }}
-    needs: changes
-    if: needs.changes.outputs.foundation == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -76,15 +43,12 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ~/.m2/repository
-          key: maven-repo-${{ matrix.module }}-${{ hashFiles(format('{0}/**', matrix.module)) }}
+          key: maven-repo-${{ github.run_id }}-${{ matrix.module }}
 
   # Infrastructure services
   build-infrastructure:
     name: Build ${{ matrix.module }}
-    needs: [changes, build-foundation]
-    # `!failure() && !cancelled()` keeps this job from being auto-skipped
-    # just because build-foundation itself was skipped (no foundation changes).
-    if: ${{ !failure() && !cancelled() && needs.changes.outputs.infrastructure == 'true' }}
+    needs: build-foundation
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -116,13 +80,12 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ~/.m2/repository
-          key: maven-repo-${{ matrix.module }}-${{ hashFiles(format('{0}/**', matrix.module)) }}
+          key: maven-repo-${{ github.run_id }}-${{ matrix.module }}
 
   # Aggregator projects
   build-aggregators:
     name: Build ${{ matrix.module }}
-    needs: [changes, build-foundation, build-infrastructure]
-    if: ${{ !failure() && !cancelled() && needs.changes.outputs.aggregators == 'true' }}
+    needs: [build-foundation, build-infrastructure]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -147,19 +110,19 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/.m2/repository
-          key: maven-repo-dungeon-walker-contracts-${{ hashFiles('dungeon-walker-contracts/**') }}
+          key: maven-repo-${{ github.run_id }}-dungeon-walker-contracts
 
       - name: Restore Maven repository - dungeon-walker-commons
         uses: actions/cache/restore@v4
         with:
           path: ~/.m2/repository
-          key: maven-repo-dungeon-walker-commons-${{ hashFiles('dungeon-walker-commons/**') }}
+          key: maven-repo-${{ github.run_id }}-dungeon-walker-commons
 
       - name: Restore Maven repository - dungeon-walker-commons-spring
         uses: actions/cache/restore@v4
         with:
           path: ~/.m2/repository
-          key: maven-repo-dungeon-walker-commons-spring-${{ hashFiles('dungeon-walker-commons-spring/**') }}
+          key: maven-repo-${{ github.run_id }}-dungeon-walker-commons-spring
 
       - name: Build + Test ${{ matrix.module }}
         env:
@@ -177,3 +140,9 @@ jobs:
           mvn -B -ntp sonar:sonar \
             -Dsonar.token=${SONAR_TOKEN} \
             -Dsonar.host.url=https://sonarcloud.io
+
+      - name: Cache Maven repository
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-repo-${{ github.run_id }}-${{ matrix.module }}
